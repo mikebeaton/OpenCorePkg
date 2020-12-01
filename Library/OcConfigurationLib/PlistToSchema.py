@@ -46,16 +46,13 @@ def parse_elem(elem, tabs):
       if type is None:
         type = type_from_data
 
-    if type is None and size is None:
-      type = 'blob'
-    
-    type_size_err = False
-    if type == 'blob':
-      type_size_err = size is not None
-    else:
-      type_size_err = type is None
-    if type_size_err:
-      print('ERROR: Cannot calculate data type and size')
+    if type is None:
+      if size is None:
+        type = 'blob'
+      else:
+        type = 'uint8'
+    elif type == 'blob' and size is not None:
+      print('ERROR: size attribute not valid with type="blob"')
       sys.exit(-1)
 
     print(tabs, '<', elem.tag, sep='', end='')
