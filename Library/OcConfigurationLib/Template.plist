@@ -955,7 +955,7 @@
 			<key>ProcessorType</key>
 			<integer>0</integer>
 			<key>ROM</key>
-			<data></data>
+			<data type="uint8" size="6"></data>
 			<key>SpoofVendor</key>
 			<true/>
 			<key>SystemProductName</key>

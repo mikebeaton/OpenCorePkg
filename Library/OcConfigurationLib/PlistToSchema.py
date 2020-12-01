@@ -31,7 +31,7 @@ def parse_elem(elem, tabs):
       length = len(data_bytes)
 
       type_from_data = None
-      
+
       if length == 2:
         type_from_data = 'uint16'
       elif length == 4:
@@ -81,7 +81,7 @@ def parse_elem(elem, tabs):
       print(tabs, '<', elem.tag, ' type="map">', sep='')
       count = len(elem)
       if count % 2 != 0:
-        print('ERROR: Number of nodes in dict-as-map must be even')
+        print('ERROR: Number of nodes in <dict type="map"> must be even')
         sys.exit(-1)
       count = count >> 1
       if (count > 0):
