@@ -158,7 +158,7 @@
 				<key>Mask</key>
 				<data></data>
 				<key>OemTableId</key>
-				<data></data>
+				<data type="uint8" size="8"></data>
 				<key>Replace</key>
 				<data>WFExMQ==</data>
 				<key>ReplaceMask</key>
@@ -184,7 +184,7 @@
 				<key>Mask</key>
 				<data></data>
 				<key>OemTableId</key>
-				<data></data>
+				<data type="uint8" size="8"></data>
 				<key>Replace</key>
 				<data>WFExMg==</data>
 				<key>ReplaceMask</key>
@@ -279,7 +279,7 @@
 			<key>PciRoot(0x0)/Pci(0x1b,0x0)</key>
 			<dict type="map">
 				<key>layout-id</key>
-				<data>AQAAAA==</data>
+				<data type="blob">AQAAAA==</data>
 			</dict>
 		</dict>
 		<key>Delete</key>

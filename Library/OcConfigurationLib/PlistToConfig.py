@@ -40,7 +40,7 @@ def error(*args, **kwargs):
 
 def debug(*args, **kwargs):
   if flags & SHOW_DEBUG != 0:
-    print('DEBUG: ', *args, sep='', file=sys.stderr, **kwargs)
+    print('DEBUG: ', *args, sep='', file=o_file, **kwargs)
 
 def info_print(*args, **kwargs):
   if kwargs.pop('info_flags', 0) & flags != 0:
@@ -65,75 +65,119 @@ def oc_schema_attr_print(name, value):
 
 @dataclass
 class PlistSchemaElement:
-  type: str
+  schema_type: str
   data_type: str
   data_size: str
   value: str
   default: str
-  of: object
 
   def __init__(
     self,
-    type: str,
+    schema_type: str,
     data_type: str = None,
     data_size: str = None,
     value: str = None,
-    default: str = None,
-    of: object = None
+    default: str = None
     ):
 
-    self.type = type
+    self.schema_type = schema_type
     self.data_type = data_type
     self.data_size = data_size
     self.value = value
     self.default = default
-    self.of = of
 
-    plist_schema_print('[plist:', type, end='')
+    plist_schema_print('[plist:', schema_type, end='')
     plist_schema_attr_print('data_type', data_type)
     plist_schema_attr_print('data_size', data_size)
     plist_schema_attr_print('value', value)
     plist_schema_attr_print('default', default)
-    plist_schema_attr_print('of', of.data_type if of is not None else None)
     plist_schema_print(']')
 
 @dataclass
 class OcSchemaElement:
-  type: str
+  schema_type: str
   name: str
   data_type: str
   data_size: str
   value: str
-  default: str
   of: object
 
   def __init__(
     self,
-    type: str,
+    schema_type: str,
     name: str = None,
-    data_type: str = None,
-    data_size: str = None,
+    size: str = None,
     value: str = None,
     default: str = None,
     of: object = None
     ):
 
-    self.type = type
+    self.schema_type = schema_type
     self.name = name
-    self.data_type = data_type
-    self.data_size = data_size
+    self.size = size
     self.value = value
     self.default = default
     self.of = of
 
-    oc_schema_print('[OC:', type, end='')
+    oc_schema_print('[OC:', schema_type, end='')
     oc_schema_attr_print('name', name)
-    oc_schema_attr_print('data_type', data_type)
-    oc_schema_attr_print('data_size', data_size)
+    oc_schema_attr_print('size', size)
     oc_schema_attr_print('value', value)
     oc_schema_attr_print('default', default)
-    oc_schema_attr_print('of', of.data_type if of is not None else None)
+    of_type = None
+    if of is not None:
+      if type(of) is list:
+        of_type = 'list[%d]' % len(of)
+      else:
+        of_type = of.schema_type
+    oc_schema_attr_print('of', of_type)
     oc_schema_print(']')
+
+def ocschema_from_node(
+  name: str,
+  node: object
+  ):
+  in_type = type(node)
+
+  if in_type is OcSchemaElement:
+    if node.schema_type == 'OC_ASSOC' \
+    or node.schema_type == 'OC_FIELDS' \
+    or node.schema_type == 'OC_MAP' \
+    or node.schema_type == 'ARRAY':
+      return node
+
+  if in_type is not PlistSchemaElement:
+    error('passed ', in_type, ':', node.schema_type , ' instead of ', PlistSchemaElement, ' to ocschema_from_node()')
+
+  if node.data_type is not None:
+    schema_type = node.data_type
+    if schema_type == 'blob':
+      # discard all other fields
+      return OcSchemaElement('OC_DATA')
+    else:
+      schema_type = schema_type.upper()
+  else:
+    schema_type = node.schema_type
+    if schema_type == 'string':
+      schema_type = 'OC_STRING'
+    elif schema_type == 'bool':
+      schema_type = 'BOOLEAN'
+
+  size = None
+  if type(node) is PlistSchemaElement:
+    size = node.data_size
+
+  value = node.default
+  if value is None:
+    value = node.value
+
+  return OcSchemaElement(
+    schema_type = schema_type,
+    name = name,
+    size = size,
+    value = value,
+    of = None
+  )
 
 def plist_open(elem, tab):
   plist_print(tab, '<', elem.tag, '>')
@@ -148,7 +192,7 @@ def plist_open_close(elem, tab):
     plist_print(tab, '<', elem.tag, '/>')
 
 def parse_data(elem, tab):
-  type = elem.attrib['type'] if 'type' in elem.attrib else None
+  schema_type = elem.attrib['type'] if 'type' in elem.attrib else None
   size = elem.attrib['size'] if 'size' in elem.attrib else None
   data = elem.text
 
@@ -159,7 +203,7 @@ def parse_data(elem, tab):
     data_bytes = None
     data_print = None
 
-  if data is not None and (type is None or size is None):
+  if data is not None and (schema_type is None or size is None):
     length = len(data_bytes)
 
     type_from_data = None
@@ -175,24 +219,24 @@ def parse_data(elem, tab):
       if length != 1 and size is None:
         size = length
 
-    if type is None:
-      type = type_from_data
+    if schema_type is None:
+      schema_type = type_from_data
 
-  if type is None:
+  if schema_type is None:
     if size is None:
-      type = 'blob'
+      schema_type = 'blob'
     else:
-      type = 'uint8'
-  elif type == 'blob' and size is not None:
-    error('size attribute not valid with type="blob"')
+      schema_type = 'uint8'
+  elif schema_type == 'blob' and size is not None:
+    error('size attribute not valid with schema_type="blob"')
 
   plist_print(tab, '<', elem.tag, end='')
-  plist_print(' type="', type, end='')
+  plist_print(' type="', schema_type, end='')
   if size is not None:
     plist_print('" size="', size, end='')
   plist_print('">', data_print if data_print is not None else '[None]', '</', elem.tag, '>')
 
-  return PlistSchemaElement(elem.tag, data_type=type.upper(), data_size=size, value=data_print)
+  return PlistSchemaElement(elem.tag, data_type=schema_type, data_size=size, value=data_print)
 
 def parse_array(elem, tab):
   plist_open(elem, tab)
@@ -204,7 +248,7 @@ def parse_array(elem, tab):
     plist_print(tab, '\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')')
   plist_close(elem, tab)
 
-  return OcSchemaElement(type='ARRAY', of=child)
+  return OcSchemaElement(schema_type='ARRAY', of = child)
 
 def init_dict(elem, tab, map):
   displayName = '<' + elem.tag + (' type="map"' if map else '') + '>'
@@ -222,7 +266,7 @@ def init_dict(elem, tab, map):
   return count >> 1
 
 def check_key(parent, child, index):
-  if child.type != 'key':
+  if child.schema_type != 'key':
     error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
 
 def parse_map(elem, tab):
@@ -232,7 +276,9 @@ def parse_map(elem, tab):
 
   check_key(elem, key, 0)
 
-  value = parse_elem(elem[1], tab)
+  plist_value = parse_elem(elem[1], tab)
+  # dummy name
+  oc_value = ocschema_from_node('map-target', plist_value)
 
   count -= 1
 
@@ -241,24 +287,37 @@ def parse_map(elem, tab):
 
   plist_close(elem, tab)
 
-  return OcSchemaElement(type='OC_MAP', of=value)
+  if oc_value.schema_type == 'OC_DATA':
+    return OcSchemaElement(schema_type='OC_ASSOC')
+  else:
+    return OcSchemaElement(schema_type='OC_MAP', of=oc_value)
 
 def parse_fields(elem, tab):
   count = init_dict(elem, tab, False)
 
+  fields = []
+
   index = 0
   while count > 0:
     key = parse_elem(elem[index], tab)
+
     check_key(elem, key, index)
 
-    parse_elem(elem[index + 1], tab)
+    if key.value is None:
+      error('<key> tag used in OC_FIELDS template cannot be empty, contents are used as variable name')
+
+    plist_child = parse_elem(elem[index + 1], tab)
+
+    oc_child = ocschema_from_node(key.value, plist_child)
+
+    fields.append(oc_child)
 
     count -= 1
     index += 2
 
   plist_close(elem, tab)
 
-  return OcSchemaElement(type='OC_FIELDS', of=None)
+  return OcSchemaElement(schema_type='OC_FIELDS', of=fields)
 
 def parse_plist(elem, tab):
   plist_open(elem, tab)
@@ -282,19 +341,19 @@ def parse_elem(elem, tab, indent = True):
 
   if elem.tag == 'true' or elem.tag == 'false':
     plist_open_close(elem, tab)
-    return OcSchemaElement(type='BOOLEAN', value=elem.tag)
+    return PlistSchemaElement(schema_type='bool', value=elem.tag)
 
   if elem.tag == 'key':
     plist_open_close(elem, tab)
-    return PlistSchemaElement(type=elem.tag, value=elem.text)
+    return PlistSchemaElement(schema_type=elem.tag, value=elem.text)
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
-    return OcSchemaElement(type='OC_STRING', value=elem.text)
+    return PlistSchemaElement(schema_type='string', value=elem.text)
 
   if elem.tag == 'integer':
     plist_open_close(elem, tab)
-    return OcSchemaElement(type='UINT32', value=elem.text)
+    return PlistSchemaElement(schema_type='data', data_type='uint32', value=elem.text)
 
   if elem.tag == 'data':
     return parse_data(elem, tab)
