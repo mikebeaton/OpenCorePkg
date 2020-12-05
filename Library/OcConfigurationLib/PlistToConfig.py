@@ -44,6 +44,8 @@ def debug(*args, **kwargs):
 
 def info_print(*args, **kwargs):
   if kwargs.pop('info_flags', 0) & flags != 0:
+    for _ in range(0, kwargs.pop('tab', 0)):
+      print(end='\t')
     print(*args, file=o_file, sep='', **kwargs)
 
 def plist_print(*args, **kwargs):
@@ -71,7 +73,8 @@ class PlistSchemaElement:
   def __init__(
     self,
     schema_type: str,
-    value: str = None
+    value: str = None,
+    tab: int = 0
     ):
 
     if schema_type != 'key':
@@ -80,7 +83,7 @@ class PlistSchemaElement:
     self.schema_type = schema_type
     self.value = value
 
-    plist_schema_print('[plist:', schema_type, end='')
+    plist_schema_print('[plist:', schema_type, tab=tab, end='')
     plist_schema_attr_print('value', value)
     plist_schema_print(']')
 
@@ -99,7 +102,8 @@ class OcSchemaElement:
     name: str = None,
     size: str = None,
     value: str = None,
-    of: object = None
+    of: object = None,
+    tab: int = 0
     ):
 
     self.schema_type = schema_type
@@ -108,7 +112,7 @@ class OcSchemaElement:
     self.value = value
     self.of = of
 
-    oc_schema_print('[OC:', schema_type, end='')
+    oc_schema_print('[OC:', schema_type, tab=tab, end='')
     oc_schema_attr_print('name', name)
     oc_schema_attr_print('size', size)
     oc_schema_attr_print('value', value)
@@ -123,25 +127,26 @@ class OcSchemaElement:
 
   def set_name(
     self,
-    name
+    name,
+    tab = 0
     ):
 
     if self.name is not None:
       error('INTERNAL: name should not get set more than once on OcSchemaElement')
     self.name = name
-    oc_schema_print('[... name="', name, '"]',)
+    oc_schema_print('... [name="', name, '"]', tab=tab)
 
 def plist_open(elem, tab):
-  plist_print(tab, '<', elem.tag, '>')
+  plist_print('<', elem.tag, '>', tab=tab)
 
 def plist_close(elem, tab):
-  plist_print(tab, '</', elem.tag, '>')
+  plist_print('</', elem.tag, '>', tab=tab)
 
 def plist_open_close(elem, tab):
   if elem.text is not None:
-    plist_print(tab, '<', elem.tag, '>', elem.text, '</', elem.tag, '>')
+    plist_print('<', elem.tag, '>', elem.text, '</', elem.tag, '>', tab=tab)
   else:
-    plist_print(tab, '<', elem.tag, '/>')
+    plist_print('<', elem.tag, '/>', tab=tab)
 
 def parse_data(elem, tab):
   schema_type = elem.attrib['type'] if 'type' in elem.attrib else None
@@ -182,7 +187,7 @@ def parse_data(elem, tab):
   elif schema_type == 'blob' and size is not None:
     error('size attribute not valid with schema_type="blob"')
 
-  plist_print(tab, '<', elem.tag, end='')
+  plist_print('<', elem.tag, tab=tab, end='')
   plist_print(' type="', schema_type, end='')
   if size is not None:
     plist_print('" size="', size, end='')
@@ -191,7 +196,7 @@ def parse_data(elem, tab):
   if schema_type == 'blob':
     schema_type = 'oc_data'
 
-  return OcSchemaElement(schema_type=schema_type.upper(), size=size, value=data_print)
+  return OcSchemaElement(schema_type=schema_type.upper(), size=size, value=data_print, tab=tab)
 
 def parse_array(elem, tab):
   plist_open(elem, tab)
@@ -200,15 +205,15 @@ def parse_array(elem, tab):
     error('No template for <array>')
   child = parse_elem(elem[0], tab)
   if (count > 1):
-    plist_print(tab, '\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')')
+    plist_print('\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')', tab=tab)
   plist_close(elem, tab)
 
-  return OcSchemaElement(schema_type='ARRAY', of = child)
+  return OcSchemaElement(schema_type='ARRAY', of=child, tab=tab)
 
 def init_dict(elem, tab, map):
   displayName = '<' + elem.tag + (' type="map"' if map else '') + '>'
 
-  plist_print(tab, displayName)
+  plist_print(displayName, tab=tab)
 
   count = len(elem)
 
@@ -236,14 +241,14 @@ def parse_map(elem, tab):
   count -= 1
 
   if (count > 0):
-    plist_print(tab, '\t(skipping ', count, ' item', '' if count == 1 else 's' , ')')
+    plist_print('\t(skipping ', count, ' item', '' if count == 1 else 's' , ')', tab=tab)
 
   plist_close(elem, tab)
 
   if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC')
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab)
   else:
-    return OcSchemaElement(schema_type='OC_MAP', of=oc_value)
+    return OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab)
 
 def parse_fields(elem, tab):
   count = init_dict(elem, tab, False)
@@ -261,7 +266,7 @@ def parse_fields(elem, tab):
 
     oc_child = parse_elem(elem[index + 1], tab)
 
-    oc_child.set_name(key.value)
+    oc_child.set_name(key.value, tab=tab)
 
     fields.append(oc_child)
 
@@ -270,7 +275,7 @@ def parse_fields(elem, tab):
 
   plist_close(elem, tab)
 
-  return OcSchemaElement(schema_type='OC_STRUCT', of=fields)
+  return OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab)
 
 def parse_plist(elem, tab):
   plist_open(elem, tab)
@@ -287,26 +292,26 @@ def parse_plist(elem, tab):
 
 def parse_elem(elem, tab, indent = True):
   if tab == None:
-    tab =''
+    tab = 0
 
   if indent:
-    tab += '\t'
-
-  if elem.tag == 'true' or elem.tag == 'false':
-    plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag)
+    tab += 1
 
   if elem.tag == 'key':
     plist_open_close(elem, tab)
-    return PlistSchemaElement(schema_type=elem.tag, value=elem.text)
+    return PlistSchemaElement(schema_type=elem.tag, value=elem.text, tab=tab)
+
+  if elem.tag == 'true' or elem.tag == 'false':
+    plist_open_close(elem, tab)
+    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab)
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='OC_STRING', value=elem.text)
+    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab)
 
   if elem.tag == 'integer':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='UINT32', value=elem.text)
+    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab)
 
   if elem.tag == 'data':
     return parse_data(elem, tab)
