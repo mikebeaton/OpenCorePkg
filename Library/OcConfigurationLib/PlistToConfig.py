@@ -69,28 +69,24 @@ class PlistSchemaElement:
   data_type: str
   data_size: str
   value: str
-  default: str
 
   def __init__(
     self,
     schema_type: str,
     data_type: str = None,
     data_size: str = None,
-    value: str = None,
-    default: str = None
+    value: str = None
     ):
 
     self.schema_type = schema_type
     self.data_type = data_type
     self.data_size = data_size
     self.value = value
-    self.default = default
 
     plist_schema_print('[plist:', schema_type, end='')
     plist_schema_attr_print('data_type', data_type)
     plist_schema_attr_print('data_size', data_size)
     plist_schema_attr_print('value', value)
-    plist_schema_attr_print('default', default)
     plist_schema_print(']')
 
 @dataclass
@@ -108,7 +104,6 @@ class OcSchemaElement:
     name: str = None,
     size: str = None,
     value: str = None,
-    default: str = None,
     of: object = None
     ):
 
@@ -116,14 +111,12 @@ class OcSchemaElement:
     self.name = name
     self.size = size
     self.value = value
-    self.default = default
     self.of = of
 
     oc_schema_print('[OC:', schema_type, end='')
     oc_schema_attr_print('name', name)
     oc_schema_attr_print('size', size)
     oc_schema_attr_print('value', value)
-    oc_schema_attr_print('default', default)
     of_type = None
     if of is not None:
       if type(of) is list:
@@ -167,9 +160,7 @@ def ocschema_from_node(
   if type(node) is PlistSchemaElement:
     size = node.data_size
 
-  value = node.default
-  if value is None:
-    value = node.value
+  value = node.value
 
   return OcSchemaElement(
     schema_type = schema_type,
