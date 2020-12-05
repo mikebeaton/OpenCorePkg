@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+#  Copyright (c) 2020, Mike Beaton. All rights reserved.
+#  SPDX-License-Identifier: BSD-3-Clause
+
 """
 Generate OpenCore .c and .h plist definition files from template plist file.
 """
