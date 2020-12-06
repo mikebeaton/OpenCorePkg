@@ -461,6 +461,13 @@ def twice(flag, handle):
   if handle is not None:
     error(flag, ' specified twice')
 
+def customise_template(template, body):
+  #debug('customise_template body= \\\n\'\'\'', body, '\'\'\'')
+  return template \
+    .replace('[[Prefix]]', camelPrefix) \
+    .replace('[[PREFIX]]', upperPrefix) \
+    .replace('[[BODY]]', body)
+
 ##
 # Usage, input args, general init
 #
@@ -479,6 +486,11 @@ h_file = None
 h_types = io.StringIO()
 c_structors = io.StringIO()
 c_schemata = io.StringIO()
+
+## DEBUG
+print('// h_types', file=h_types)
+print('// c_structors', file=c_structors)
+print('// c_schemata', file=c_schemata)
 
 # main template filename
 plist_filename = None
@@ -508,7 +520,7 @@ for i in range(1, argc):
     elif arg == '-p':
 
       camelPrefix = sys.argv[i + 1]
-      debug('prefix=\'', camelPrefix, '\'')
+      debug('prefix = \'', camelPrefix, '\'')
 
     else:
 
@@ -542,9 +554,10 @@ for i in range(1, argc):
   elif not arg.startswith('-'):
 
     if plist_filename is not None:
-      error('"', arg, '": too many input files, already using "', plist_filename, '"')
+      error('\'', arg, '\': too many input files, already using \'', plist_filename, '\'')
 
     plist_filename = arg
+    debug('input: \'', plist_filename, '\'')
     skip = False
 
   else:
@@ -579,21 +592,13 @@ h_types.seek(0)
 
 debug('Writing c file')
 print(SHARED_HEADER, file=c_file, end='')
-c_body = C_TEMPLATE \
-  .replace('[[Prefix]]', camelPrefix) \
-  .replace('[[PREFIX]]', upperPrefix) \
-  .replace('[[BODY]]', c_structors.read() + c_schemata.read())
-print(c_body, file=c_file, end='')
+print(customise_template(C_TEMPLATE, c_structors.read() + c_schemata.read()), file=c_file, end='')
 
 file_close(c_file)
 
 debug('Writing h file')
 print(SHARED_HEADER, file=h_file, end='')
-h_body = H_TEMPLATE \
-  .replace('[[Prefix]]', camelPrefix) \
-  .replace('[[PREFIX]]', upperPrefix) \
-  .replace('[[BODY]]', h_types.read())
-print(h_body, file=h_file, end='')
+print(customise_template(H_TEMPLATE, h_types.read()), file=h_file, end='')
 
 file_close(h_file)
 
