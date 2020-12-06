@@ -4,7 +4,7 @@
 #  SPDX-License-Identifier: BSD-3-Clause
 
 """
-Generate OpenCore .c and .h plist definition files from template plist file.
+Generate OpenCore .c and .h plist config definition files from template plist file.
 """
 
 import base64
@@ -14,6 +14,19 @@ import sys
 import xml.etree.ElementTree as ET
 
 from dataclasses import dataclass
+
+# Available flags for -f:
+
+# show markup with implied types added
+PRINT_PLIST = 1 << 0
+# show creation of plist schema objects
+PRINT_PLIST_SCHEMA = 1 << 1
+# show creation of OC schema objects
+PRINT_OC_SCHEMA = 1 << 2
+# show processing steps
+PRINT_DEBUG = 1 << 3
+
+flags = 0
 
 # output string buffers
 h_types = None
@@ -120,17 +133,6 @@ VOID
 #endif // [[PREFIX]]_CONFIGURATION_LIB_H
 '''
 
-# show markup with implied types added
-PRINT_PLIST = 1 << 0
-# show creation of plist schema objects
-PRINT_PLIST_SCHEMA = 1 << 1
-# show creation of OC schema objects
-PRINT_OC_SCHEMA = 1 << 2
-# Show extra debug info
-SHOW_DEBUG = 1 << 3
-
-flags = 0
-
 def error(*args, **kwargs):
   print('ERROR: ', *args, sep='', file=sys.stderr, **kwargs)
   sys.exit(-1)
@@ -140,7 +142,7 @@ def internal_error(*args, **kwargs):
   sys.exit(-1)
 
 def debug(*args, **kwargs):
-  if flags & SHOW_DEBUG != 0:
+  if flags & PRINT_DEBUG != 0:
     print('DEBUG: ', *args, sep='', **kwargs)
 
 def info_print(*args, **kwargs):
