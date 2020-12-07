@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Validates schema files (e.g. OcConfigurationLib.c) for being sorted.
+Validates schema header files (e.g. OcConfigurationLib.h) for being sorted.
 """
 
 import re
@@ -15,11 +15,12 @@ with open(sys.argv[1], 'r') as f:
   prev = ''
   content = [l.strip() for l in f.readlines()]
   for i, l in enumerate(content):
-    if l == 'OC_SCHEMA':
-      print('Checking schema {}'.format(re.match(r'^\w+', content[i+1]).group(0)))
+    y = re.search(r'#define\s*(\w+)\(', l)
+    if y:
+      print('Checking schema {}'.format(y.group(1)))
       prev = ''
       continue
-    x = re.search(r'"([^"]+)"', l)
+    x = re.search(r'_\(\w+\s*,\s*(\w+)', l)
     if x:
       if x.group(1) < prev:
         print('ERROR: {} precedes {}'.format(prev, x.group(1)))
