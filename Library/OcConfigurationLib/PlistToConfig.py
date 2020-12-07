@@ -183,31 +183,31 @@ def oc_schema_attr_print(name, value):
 
 def emit_section_name(key):
   print('/**', file = h_types)
-  print('  ', key.value, 'section', file = h_types)
+  print('  %s section' % key.value, file = h_types)
   print('**/', file = h_types)
   print(file = h_types)
 
 def upper_path(path):
   return '_'.join(p.upper() for p in path)
 
-def emit_array(array_elem, context):
+def emit_array(elem_array, context):
   context_type = 'ENTRY' if context == 'map' else 'ARRAY'
 
-  upath = upper_path(array_elem.path)
-  array_elem.def_name = '%s_%s_%s' % (upper_prefix, upath, context_type)
+  upath = upper_path(elem_array.path)
+  elem_array.def_name = '%s_%s_%s' % (upper_prefix, upath, context_type)
 
-  print('#define %s_FIELDS(_, __) \\' % array_elem.def_name, file = h_types)
-  print('  OC_ARRAY (%s, _, __)' % array_elem.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % array_elem.def_name , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem_array.def_name, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % elem_array.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % elem_array.def_name , file = h_types)
   print(file = h_types)
 
-def emit_map(map_elem):
-  upath = upper_path(map_elem.path)
-  map_elem.def_name = '%s_%s_MAP' % (upper_prefix, upath)
+def emit_map(elem_map):
+  upath = upper_path(elem_map.path)
+  elem_map.def_name = '%s_%s_MAP' % (upper_prefix, upath)
 
-  print('#define %s_FIELDS(_, __) \\' % map_elem.def_name, file = h_types)
-  print('  OC_MAP (OC_STRING, %s, _, __)' % map_elem.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % map_elem.def_name , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem_map.def_name, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % elem_map.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % elem_map.def_name , file = h_types)
   print(file = h_types)
 
 ##
@@ -416,9 +416,9 @@ def parse_map(elem, tab, path, key):
   if oc_value.schema_type == 'OC_DATA':
     return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=path, def_name = 'OC_ASSOC')
   else:
-    map_elem = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path)
-    emit_map(map_elem)
-    return map_elem
+    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path)
+    emit_map(elem_map)
+    return elem_map
 
 def parse_fields(elem, tab, path, key):
   count = init_dict(elem, tab, False)
