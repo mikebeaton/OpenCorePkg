@@ -213,7 +213,7 @@
 	</dict>
 	<key>Booter</key>
 	<dict>
-		<key>MmioWhitelist</key>
+		<key path="wl">MmioWhitelist</key>
 		<array>
 			<dict>
 				<key>Address</key>
@@ -272,7 +272,7 @@
 			<false/>
 		</dict>
 	</dict>
-	<key>DeviceProperties</key>
+	<key path="dev_prop">DeviceProperties</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map">
@@ -708,7 +708,7 @@
 	</dict>
 	<key>Misc</key>
 	<dict>
-		<key>BlessOverride</key>
+		<key path="bless">BlessOverride</key>
 		<array>
 			<string></string>
 		</array>
@@ -914,7 +914,7 @@
 		<false/>
 		<key>LegacyOverwrite</key>
 		<false/>
-		<key>LegacySchema</key>
+		<key path="legacy">LegacySchema</key>
 		<dict type="map">
 			<key>7C436110-AB2A-4BBB-A880-FE41995C9F82</key>
 			<array>

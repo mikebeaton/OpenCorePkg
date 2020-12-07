@@ -31,13 +31,13 @@ flags = 0
 # output string buffers
 h_types = None
 c_structors = None
-c_schemata = None
+c_schema = None
 
 # support customisation for other apps
 DEFAULT_PREFIX = 'Oc'
 
-camelPrefix = None
-upperPrefix = None
+camel_prefix = None
+upper_prefix = None
 
 SHARED_HEADER = \
 '''/** @file
@@ -103,8 +103,7 @@ H_TEMPLATE = \
 #include <Library/OcSerializeLib.h>
 #include <Library/OcBootManagementLib.h>
 
-[[BODY]]
-/**
+[[BODY]]/**
   Initialize configuration with plist data.
 
   @param[out]  Config   Configuration structure.
@@ -132,6 +131,10 @@ VOID
 
 #endif // [[PREFIX]]_CONFIGURATION_LIB_H
 '''
+
+##
+# Errors and IO
+#
 
 def error(*args, **kwargs):
   print('ERROR: ', *args, sep='', file=sys.stderr, **kwargs)
@@ -174,27 +177,67 @@ def plist_schema_attr_print(name, value):
 def oc_schema_attr_print(name, value):
   attr_print(name, value, PRINT_OC_SCHEMA)
 
+##
+# Emit file elements
+#
+
+def emit_section_name(key):
+  print('/**', file = h_types)
+  print('  ', key.value, 'section', file = h_types)
+  print('**/', file = h_types)
+  print(file = h_types)
+
+def upper_path(path):
+  return '_'.join(p.upper() for p in path)
+
+def emit_array(array_elem, context):
+  context_type = 'ENTRY' if context == 'map' else 'ARRAY'
+
+  upath = upper_path(array_elem.path)
+  array_elem.def_name = '%s_%s_%s' % (upper_prefix, upath, context_type)
+
+  print('#define %s_FIELDS(_, __) \\' % array_elem.def_name, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % array_elem.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % array_elem.def_name , file = h_types)
+  print(file = h_types)
+
+def emit_map(map_elem):
+  upath = upper_path(map_elem.path)
+  map_elem.def_name = '%s_%s_MAP' % (upper_prefix, upath)
+
+  print('#define %s_FIELDS(_, __) \\' % map_elem.def_name, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % map_elem.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % map_elem.def_name , file = h_types)
+  print(file = h_types)
+
+##
+# Schema objects
+#
+
 @dataclass
-class PlistSchemaElement:
+class PlistKey:
   schema_type: str
   value: str
+  path_spec: str
 
   def __init__(
     self,
-    schema_type: str,
     value: str = None,
+    path_spec: str = None,
     tab: int = 0
     ):
 
-    if schema_type != 'key':
-      internal_error('\'key\' is only expected PlistSchemaElement schema_type')
-
-    self.schema_type = schema_type
+    self.schema_type = 'key'
     self.value = value
+    self.path_spec = path_spec
 
-    plist_schema_print('[plist:', schema_type, tab=tab, end='')
+    plist_schema_print('[plist:key', tab=tab, end='')
     plist_schema_attr_print('value', value)
+    plist_schema_attr_print('path', path_spec)
     plist_schema_print(']')
+
+    if path_spec is None:
+      self.path_spec = value
 
 @dataclass
 class OcSchemaElement:
@@ -205,6 +248,8 @@ class OcSchemaElement:
   size: str
   value: str
   of: object
+  # .h file definition name, once emitted
+  def_name: str
 
   def __init__(
     self,
@@ -214,6 +259,7 @@ class OcSchemaElement:
     size: str = None,
     value: str = None,
     of: object = None,
+    def_name: str = None,
     tab: int = 0
     ):
 
@@ -223,6 +269,7 @@ class OcSchemaElement:
     self.size = size
     self.value = value
     self.of = of
+    self.def_name = def_name
 
     oc_schema_print('[OC:', schema_type, tab=tab, end='')
     oc_schema_attr_print('name', name)
@@ -236,6 +283,7 @@ class OcSchemaElement:
       else:
         of_type = of.schema_type
     oc_schema_attr_print('of', of_type)
+    oc_schema_attr_print('def_name', def_name)
     oc_schema_print(']')
 
   def set_name(
@@ -248,6 +296,10 @@ class OcSchemaElement:
       internal_error('name should not get set more than once on OcSchemaElement')
     self.name = name
     oc_schema_print('... [name="', name, '"]', tab=tab)
+
+##
+# Parsing
+#
 
 def plist_open(elem, tab):
   plist_print('<', elem.tag, '>', tab=tab)
@@ -311,7 +363,7 @@ def parse_data(elem, tab, path):
 
   return OcSchemaElement(schema_type=schema_type.upper(), size=size, value=data_print, tab=tab, path=path)
 
-def parse_array(elem, tab, path, key):
+def parse_array(elem, tab, path, key, context):
   plist_open(elem, tab)
   count = len(elem)
   if count == 0:
@@ -321,7 +373,10 @@ def parse_array(elem, tab, path, key):
     plist_print('\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')', tab=tab)
   plist_close(elem, tab)
 
-  return OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path)
+  array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path)
+  emit_array(array, context)
+
+  return array
 
 def init_dict(elem, tab, map):
   displayName = '<' + elem.tag + (' type="map"' if map else '') + '>'
@@ -349,7 +404,7 @@ def parse_map(elem, tab, path, key):
 
   check_key(elem, key, 0)
 
-  oc_value = parse_elem(elem[1], tab, path, None)
+  oc_value = parse_elem(elem[1], tab, path, None, context='map')
 
   count -= 1
 
@@ -359,9 +414,11 @@ def parse_map(elem, tab, path, key):
   plist_close(elem, tab)
 
   if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=path)
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=path, def_name = 'OC_ASSOC')
   else:
-    return OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path)
+    map_elem = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path)
+    emit_map(map_elem)
+    return map_elem
 
 def parse_fields(elem, tab, path, key):
   count = init_dict(elem, tab, False)
@@ -377,7 +434,10 @@ def parse_fields(elem, tab, path, key):
     if key.value is None:
       error('<key> tag within <dict> fields template cannot be empty, contents are used as variable name')
 
-    oc_child = parse_elem(elem[index + 1], tab, path, key.value)
+    if len(path) == 0:
+      emit_section_name(key)
+
+    oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec)
 
     oc_child.set_name(key.value, tab=tab)
 
@@ -403,7 +463,24 @@ def parse_plist(elem, tab, path, key):
 
   return child
 
-def parse_elem(elem, tab, path, key, indent = True):
+def parse_key(elem, tab):
+  display_name = elem.tag
+  path_spec = None
+
+  if 'path' in elem.attrib:
+    path_spec = elem.attrib['path']
+    display_name += ' path="' + path_spec + '"'
+
+  plist_print('<', display_name, end='', tab=tab)
+
+  if elem.text is not None:
+    plist_print('>', elem.text, '</', elem.tag, '>')
+  else:
+    plist_print('/>')
+
+  return PlistKey(value=elem.text, path_spec=path_spec, tab=tab)
+
+def parse_elem(elem, tab, path, key, indent = True, context = None):
   if tab == None:
     tab = 0
 
@@ -418,8 +495,7 @@ def parse_elem(elem, tab, path, key, indent = True):
       new_path.append(key) # NB modifies list, returns None
 
   if elem.tag == 'key':
-    plist_open_close(elem, tab)
-    return PlistSchemaElement(schema_type=elem.tag, value=elem.text, tab=tab)
+    return parse_key(elem, tab)
 
   if elem.tag == 'true' or elem.tag == 'false':
     plist_open_close(elem, tab)
@@ -427,7 +503,7 @@ def parse_elem(elem, tab, path, key, indent = True):
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=new_path)
+    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=new_path, def_name='OC_STRING')
 
   if elem.tag == 'integer':
     plist_open_close(elem, tab)
@@ -437,7 +513,7 @@ def parse_elem(elem, tab, path, key, indent = True):
     return parse_data(elem, tab, new_path)
 
   if elem.tag == 'array':
-    return parse_array(elem, tab, new_path, None)
+    return parse_array(elem, tab, new_path, None, context)
 
   if elem.tag == 'dict':
     if 'type' in elem.attrib and elem.attrib['type'] == 'map':
@@ -464,8 +540,8 @@ def twice(flag, handle):
 def customise_template(template, body):
   #debug('customise_template body= \\\n\'\'\'', body, '\'\'\'')
   return template \
-    .replace('[[Prefix]]', camelPrefix) \
-    .replace('[[PREFIX]]', upperPrefix) \
+    .replace('[[Prefix]]', camel_prefix) \
+    .replace('[[PREFIX]]', upper_prefix) \
     .replace('[[BODY]]', body)
 
 ##
@@ -485,12 +561,12 @@ h_file = None
 # string buffers
 h_types = io.StringIO()
 c_structors = io.StringIO()
-c_schemata = io.StringIO()
+c_schema = io.StringIO()
 
 ## DEBUG
-print('// h_types', file=h_types)
+##print('// h_types', file=h_types)
 print('// c_structors', file=c_structors)
-print('// c_schemata', file=c_schemata)
+print('// c_schema', file=c_schema)
 
 # main template filename
 plist_filename = None
@@ -519,8 +595,8 @@ for i in range(1, argc):
 
     elif arg == '-p':
 
-      camelPrefix = sys.argv[i + 1]
-      debug('prefix = \'', camelPrefix, '\'')
+      camel_prefix = sys.argv[i + 1]
+      debug('prefix = \'', camel_prefix, '\'')
 
     else:
 
@@ -567,9 +643,9 @@ for i in range(1, argc):
 if plist_filename is None:
   error('No input file')
 
-if camelPrefix is None:
-  camelPrefix = DEFAULT_PREFIX
-upperPrefix = camelPrefix.upper()
+if camel_prefix is None:
+  camel_prefix = DEFAULT_PREFIX
+upper_prefix = camel_prefix.upper()
 
 if c_file is None:
   c_file = devnull
@@ -587,12 +663,12 @@ parse_elem(root, None, [], None, indent=False)
 
 # write output
 c_structors.seek(0)
-c_schemata.seek(0)
+c_schema.seek(0)
 h_types.seek(0)
 
 debug('Writing c file')
 print(SHARED_HEADER, file=c_file, end='')
-print(customise_template(C_TEMPLATE, c_structors.read() + c_schemata.read()), file=c_file, end='')
+print(customise_template(C_TEMPLATE, c_structors.read() + c_schema.read()), file=c_file, end='')
 
 file_close(c_file)
 
