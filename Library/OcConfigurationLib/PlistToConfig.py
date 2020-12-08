@@ -136,6 +136,36 @@ VOID
 # Errors and IO
 #
 
+tab_pos = {}
+
+def tab_print(*args, **kwargs):
+  end = kwargs.get('end', '\n')
+  file = kwargs.get('file', sys.stdout)
+
+  if end == '\n':
+    tab_pos[file] = 0
+    print(*args, **kwargs)
+  else:
+    sep = kwargs.get('sep', ' ')
+    tab = tab_pos.get(file, 0)
+
+    buffer = io.StringIO()
+
+    print(args, file=buffer, sep=sep, end='')
+    count = len(buffer)
+    tab_pos[file] = tab + count
+    print(buffer, **kwargs)
+
+    buffer.close()
+
+def tab_to(col, file):
+  tab = tab_pos.get(file, 0)
+  count = col - tab
+  if count > 0:
+    tab_pos[file] = tab + count
+    for _ in range(count):
+      print(' ', file=file, end='')
+
 def error(*args, **kwargs):
   print('ERROR: ', *args, sep='', file=sys.stderr, **kwargs)
   sys.exit(-1)
