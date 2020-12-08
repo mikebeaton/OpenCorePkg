@@ -104,8 +104,8 @@
 
 #define OC_BOOTER_WL_ENTRY_FIELDS(_, __) \
   _(UINT64                      , Address          ,     , 0       , () ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) )
-  _(BOOLEAN                     , Enabled          ,     , FALSE   , () ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE   , () )
   OC_DECLARE (OC_BOOTER_WL_ENTRY)
 
 #define OC_BOOTER_WL_ARRAY_FIELDS(_, __) \
