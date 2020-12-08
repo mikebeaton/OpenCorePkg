@@ -18,6 +18,7 @@
 #include <Library/DebugLib.h>
 #include <Library/OcSerializeLib.h>
 #include <Library/OcBootManagementLib.h>
+#include <Library/OcConfigurationConstants.h>
 
 /**
   ACPI section
@@ -323,18 +324,6 @@
   _(BOOLEAN                     , SysReport                   ,     , FALSE        , ()) \
   _(UINT32                      , Target                      ,     , 0            , ())
   OC_DECLARE (OC_MISC_DEBUG)
-
-#define OCS_EXPOSE_BOOT_PATH   1U
-#define OCS_EXPOSE_VERSION_VAR 2U
-#define OCS_EXPOSE_VERSION_UI  4U
-#define OCS_EXPOSE_OEM_INFO    8U
-#define OCS_EXPOSE_VERSION     (OCS_EXPOSE_VERSION_VAR | OCS_EXPOSE_VERSION_UI)
-
-typedef enum {
-  OcsVaultOptional = 0,
-  OcsVaultBasic    = 1,
-  OcsVaultSecure   = 2,
-} OCS_VAULT_MODE;
 
 #define OC_MISC_SECURITY_FIELDS(_, __) \
   _(BOOLEAN                     , AllowNvramReset             ,      , FALSE                   , ()) \
