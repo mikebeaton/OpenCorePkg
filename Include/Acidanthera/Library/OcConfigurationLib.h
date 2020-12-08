@@ -66,9 +66,9 @@
   _(UINT8                       , OemTableId       , [8] , {0}                         , ()                   ) \
   _(OC_DATA                     , Replace          ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
   _(OC_DATA                     , ReplaceMask      ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(UINT32                      , Skip             ,     , 0                           , ()                   )
+  _(UINT32                      , Skip             ,     , 0                           , ()                   ) \
   _(UINT32                      , TableLength      ,     , 0                           , ()                   ) \
-  _(UINT8                       , TableSignature   , [4] , {0}                         , ()                   ) \
+  _(UINT8                       , TableSignature   , [4] , {0}                         , ()                   )
   OC_DECLARE (OC_ACPI_PATCH_ENTRY)
 
 #define OC_ACPI_PATCH_ARRAY_FIELDS(_, __) \
