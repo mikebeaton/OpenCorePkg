@@ -211,7 +211,7 @@
 ///
 /// Kernel emulation preferences.
 ///
-#define OC_KERNEL_EMULATE_FIELDS(_,__) \
+#define OC_KERNEL_EMULATE_FIELDS(_, __) \
   _(UINT32                      , Cpuid1Data          , [4] , {0}                         , () ) \
   _(UINT32                      , Cpuid1Mask          , [4] , {0}                         , () ) \
   _(BOOLEAN                     , DummyPowerManagement,     , FALSE                       , () ) \
