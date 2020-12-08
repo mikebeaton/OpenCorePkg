@@ -233,9 +233,9 @@ def emit_section_name(h_name, c_name):
   print('**/', file = h_types)
   print(file = h_types)
 
-  print('///', file = c_schema)
-  print('/// %s' % c_name, file = c_schema)
-  print('///', file = c_schema)
+  print('//', file = c_schema)
+  print('// %s' % c_name, file = c_schema)
+  print('//', file = c_schema)
   print(file = c_schema)
 
   print(file = c_structors)
@@ -552,6 +552,12 @@ def check_key(parent, child, index):
     error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
 
 def parse_key(elem, tab):
+  if elem.attrib.get('type', None) is not None:
+    error('type attribute should be applied to data not key')
+    
+  if elem.attrib.get('size', None) is not None:
+    error('size attribute should be applied to data not key')
+    
   plist_start(elem, tab)
   replace_name = consume_attr(elem, 'name')
   path_spec = consume_attr(elem, 'path')
@@ -574,57 +580,68 @@ def parse_pointer(elem, tab, path):
   return OcSchemaElement(schema_type='OC_POINTER', tab=tab, path=path, reference=reference)
 
 def parse_data(elem, tab, path, is_integer = False):
-  schema_type = elem.attrib.get('type', None)
-  size = elem.attrib.get('size', None)
+  data_type = elem.attrib.get('type', None)
+  data_size = elem.attrib.get('size', None)
   data = elem.text
 
   data_print = None
 
-  if data is not None:
-    if is_integer:
-      data_print = '0x%8x' % int(data)
-      byte_length = 4
-    else:
+  if is_integer:
+    if data_type is None:
+      data_type = 'uint32' # use as default for integer
+
+    if data is not None:
+      if data_type == 'uint64':
+        data_print = '0x%16x' % int(data)
+      elif data_type == 'uint16':
+        data_print = '0x%4x' % int(data)
+      elif data_type == 'uint8':
+        data_print = '0x%2x' % int(data)
+      else:
+        data_print = '0x%8x' % int(data)
+  else:
+    if data is not None:
       data_bytes = base64.b64decode(data)
       byte_length = len(data_bytes)
       data_print = '0x' + data_bytes.hex()
 
-    if schema_type is None or size is None:
+      if data_type is None or data_size is None:
 
-      if schema_type is None:
-        if byte_length == 2:
-          schema_type = 'uint16'
-        elif byte_length == 4:
-          schema_type = 'uint32'
-        elif byte_length == 8:
-          schema_type = 'uint64'
-        else:
-          schema_type = 'uint8'
+        if data_type is None:
+          if byte_length == 2:
+            data_type = 'uint16'
+          elif byte_length == 4:
+            data_type = 'uint32'
+          elif byte_length == 8:
+            data_type = 'uint64'
+          else:
+            data_type = 'uint8'
 
-      if schema_type == 'uint8' and byte_length != 1 and size is None:
-        size = str(byte_length)
+        # for data of a definite length with uint8 type we allow implicit array size
+        if data_type == 'uint8' and byte_length != 1 and data_size is None:
+          data_size = str(byte_length)
 
-  if schema_type is None:
-    if size is None:
-      schema_type = 'blob'
+  if data_type is None:
+    if data_size is None:
+      data_type = 'blob'
     else:
-      schema_type = 'uint8'
-  elif schema_type == 'blob' and size is not None:
-    error('size attribute not valid with schema_type="blob"')
+      data_type = 'uint8'
+  elif data_type == 'blob' and data_size is not None:
+    error('size attribute not valid with type="blob"')
 
   plist_start(elem, tab)
-  plist_attr('type', schema_type)
-  plist_attr('size', size)
+  plist_attr('type', data_type)
+  plist_attr('size', data_size)
   plist_stop_then_close(elem, data_print)
 
-  reference = schema_type.upper()
+  reference = data_type.upper()
   if reference == 'BLOB':
     schema_type = 'OC_DATA'
     reference = 'OC_DATA'
   else:
-      schema_type = 'DATA'
+    schema_type = 'DATA'
 
-  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, reference=reference)
+  return OcSchemaElement(schema_type=schema_type, size=data_size, value=data_print, tab=tab, path=path, reference=reference)
 
 def skipping(count, tab, used_count = 0):
   skip = count - used_count
