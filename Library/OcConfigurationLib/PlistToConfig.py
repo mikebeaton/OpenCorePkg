@@ -209,8 +209,10 @@ def attr_print(name, value, flags):
     info_print(' ', name, '=', info_flags=flags, end='')
     if type(value) is list:
       info_print(value, info_flags=flags, end='')
-    else:
+    elif type(value) is str:
       info_print('"', value, '"', info_flags=flags, end='')
+    else:
+      info_print(value, info_flags=flags, end='')
 
 def plist_schema_attr_print(name, value):
   attr_print(name, value, SHOW_PLIST_SCHEMA)
@@ -259,7 +261,7 @@ def set_def_name(elem, elem_type):
   elif elem_type is not None:
     use_path.append(elem_type)
   upath = upper_path(use_path)
-  elem.def_name = '%s_%s' % (upper_prefix, upath)
+  elem.reference = '%s_%s' % (upper_prefix, upath)
 
 def emit_comment(elem):
   if elem.comment is not None:
@@ -285,19 +287,22 @@ def emit_field(elem):
     if elem.size is not None:
       constructor = '{%s}' % constructor
   elif elem.schema_type == 'OC_MAP' or elem.schema_type == 'OC_STRUCT' or elem.schema_type == 'OC_ARRAY':
-    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.def_name)
-    destructor = 'OC_DESTR (%s)' % elem.def_name
+    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.reference)
+    destructor = 'OC_DESTR (%s)' % elem.reference
     tab_destructor = 117
     tab_end = 158
   elif elem.schema_type == 'OC_DATA':
     constructor = 'OC_EDATA_CONSTR (_, __)'
     destructor = 'OC_DESTR (OC_DATA)'
+  elif elem.schema_type == 'OC_POINTER':
+    constructor = 'NULL'
+    destructor = 'OcFreePointer'
   else:
-    debug('NO DEFAULT for ', elem.schema_type)
+    internal_error('Unhandled schema type ', elem.schema_type)
 
   tab_to(2, file = h_types)
   tab_print('_(', file = h_types)
-  tab_print(elem.def_name, file = h_types)
+  tab_print(elem.reference, file = h_types)
 
   tab_to(36, file = h_types)
   tab_print(', ', elem.name, file = h_types)
@@ -334,7 +339,7 @@ def emit_struct(elem, context):
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
 
   last = len(elem.of) - 1
   for (i, of) in enumerate(elem.of):
@@ -343,14 +348,14 @@ def emit_struct(elem, context):
       tab_print(' \\', file = h_types)
     tab_nl(file = h_types)
 
-  print('  OC_DECLARE (%s)' % elem.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference, file = h_types)
   print(file = h_types)
 
   # .c structors
-  print('OC_STRUCTORS       (%s, ())' % elem.def_name, file = c_structors)
+  print('OC_STRUCTORS       (%s, ())' % elem.reference, file = c_structors)
 
 def emit_array(elem, context):
-  context_print('ARRAY CONTEXT:', context)
+  context_print('ARRAY CONTEXT: ', context)
   if context == 'map':
     set_def_name(elem, 'ENTRY')
   else:
@@ -358,29 +363,29 @@ def emit_array(elem, context):
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
-  print('  OC_ARRAY (%s, _, __)' % elem.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % elem.of.reference, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference , file = h_types)
   print(file = h_types)
 
   # .c structors
   if context == 'map':
-    print('OC_STRUCTORS       (%s, ())' % elem.def_name, file = c_structors)
+    print('OC_STRUCTORS       (%s, ())' % elem.reference, file = c_structors)
   else:
-    print('OC_ARRAY_STRUCTORS (%s)' % elem.def_name, file = c_structors)
+    print('OC_ARRAY_STRUCTORS (%s)' % elem.reference, file = c_structors)
 
 def emit_map(elem):
   set_def_name(elem, 'MAP')
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
-  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.reference, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference , file = h_types)
   print(file = h_types)
 
   # .c structors
-  print('OC_MAP_STRUCTORS   (%s)' % elem.def_name, file = c_structors)
+  print('OC_MAP_STRUCTORS   (%s)' % elem.reference, file = c_structors)
 
 ##
 # Schema objects
@@ -390,6 +395,7 @@ def emit_map(elem):
 class PlistKey:
   schema_type: str
   comment: str
+  remove: bool
   value: str
   path_spec: str
   replace_name: str
@@ -397,21 +403,30 @@ class PlistKey:
   def __init__(
     self,
     comment: str = None,
+    remove: str = None,
     value: str = None,
     path_spec: str = None,
     replace_name: str = None,
     tab: int = 0
     ):
 
+    bool_remove = None
+    if remove is not None:
+      if remove == "0" or remove.lower() == "false":
+        bool_remove = False
+      else:
+        bool_remove = True
     self.schema_type = 'key'
     self.comment = comment
     self.value = value
+    self.remove = bool_remove
     self.path_spec = path_spec
     self.replace_name = replace_name
 
     plist_schema_print('[plist:key', tab=tab, end='')
     plist_schema_attr_print('comment', comment)
     plist_schema_attr_print('value', value)
+    plist_schema_attr_print('remove', bool_remove)
     plist_schema_attr_print('path', path_spec)
     plist_schema_attr_print('name', replace_name)
     plist_schema_print(']')
@@ -428,10 +443,11 @@ class OcSchemaElement:
   size: str
   comment: str
   value: str
+  remove: bool
   default: str
   of: object
   # .h file definition name, once emitted
-  def_name: str
+  reference: str
 
   def __init__(
     self,
@@ -441,9 +457,10 @@ class OcSchemaElement:
     size: str = None,
     comment: str = None,
     value: str = None,
+    remove: bool = None,
     default: str = None,
     of: object = None,
-    def_name: str = None,
+    reference: str = None,
     tab: int = 0
     ):
 
@@ -453,9 +470,10 @@ class OcSchemaElement:
     self.size = size
     self.comment = comment
     self.value = value
+    self.remove = remove
     self.default = default
     self.of = of
-    self.def_name = def_name
+    self.reference = reference
 
     oc_schema_print('[OC:', schema_type, tab=tab, end='')
     oc_schema_attr_print('name', name)
@@ -463,6 +481,7 @@ class OcSchemaElement:
     oc_schema_attr_print('size', size)
     oc_schema_attr_print('comment', comment)
     oc_schema_attr_print('value', value)
+    oc_schema_attr_print('remove', remove)
     oc_schema_attr_print('default', default)
     of_type = None
     if of is not None:
@@ -471,19 +490,27 @@ class OcSchemaElement:
       else:
         of_type = of.schema_type
     oc_schema_attr_print('of', of_type)
-    oc_schema_attr_print('def_name', def_name)
+    oc_schema_attr_print('reference', reference)
     oc_schema_print(']')
 
-  def set_name(
+  def apply_key(
     self,
-    name,
+    key,
     tab = 0
     ):
+
+    name = key.replace_name if key.replace_name is not None else key.value
 
     if self.name is not None:
       internal_error('name should not get set more than once on OcSchemaElement')
     self.name = name
-    oc_schema_print('... [name="', name, '"]', tab=tab)
+    oc_schema_print('[OC: ... name="', name, '"', tab=(tab+1), end='')
+
+    self.remove = key.remove
+    if self.remove is not None:
+      oc_schema_print(' remove=', self.remove, end='')
+
+    oc_schema_print(']')
 
 ##
 # Parsing
@@ -529,9 +556,22 @@ def parse_key(elem, tab):
   replace_name = consume_attr(elem, 'name')
   path_spec = consume_attr(elem, 'path')
   comment = consume_attr(elem, 'comment')
+  remove = consume_attr(elem, 'remove')
   plist_stop_then_close(elem, elem.text)
 
-  return PlistKey(value=elem.text, replace_name=replace_name, path_spec=path_spec, comment=comment, tab=tab)
+  return PlistKey(value=elem.text, replace_name=replace_name, path_spec=path_spec, comment=comment, remove=remove, tab=tab)
+
+def parse_pointer(elem, tab, path):
+  plist_start(elem, tab)
+  to = consume_attr(elem, 'to')
+  plist_stop_then_close(elem, None)
+
+  if to is None:
+    to = 'uint8'
+
+  reference = '%s *' % to.upper()
+
+  return OcSchemaElement(schema_type='OC_POINTER', tab=tab, path=path, reference=reference)
 
 def parse_data(elem, tab, path, is_integer = False):
   schema_type = elem.attrib.get('type', None)
@@ -577,14 +617,14 @@ def parse_data(elem, tab, path, is_integer = False):
   plist_attr('size', size)
   plist_stop_then_close(elem, data_print)
 
-  def_name = schema_type.upper()
-  if def_name == 'BLOB':
+  reference = schema_type.upper()
+  if reference == 'BLOB':
     schema_type = 'OC_DATA'
-    def_name = 'OC_DATA'
+    reference = 'OC_DATA'
   else:
       schema_type = 'DATA'
 
-  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, def_name=def_name)
+  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, reference=reference)
 
 def skipping(count, tab, used_count = 0):
   skip = count - used_count
@@ -601,7 +641,7 @@ def parse_array(elem, tab, path, key, context):
 
   if xref is not None:
     skipping(count, tab)
-    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, def_name=xref)
+    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, reference=xref)
   else:
     if count == 0:
       error('No template for <array>')
@@ -663,7 +703,7 @@ def parse_map(elem, tab, path, key):
   plist_close(elem, tab)
 
   if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, def_name = 'OC_ASSOC')
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, reference = 'OC_ASSOC')
   else:
     elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=replace_path, comment=comment)
     emit_map(elem_map)
@@ -674,7 +714,7 @@ def parse_struct(elem, tab, path, key, context):
 
   if xref is not None:
     skipping(count, tab)
-    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, def_name=xref)
+    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, reference=xref)
   else:
     fields = []
 
@@ -692,7 +732,7 @@ def parse_struct(elem, tab, path, key, context):
 
       oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec, context = 'struct')
 
-      oc_child.set_name(key.replace_name if key.replace_name is not None else key.value, tab=tab)
+      oc_child.apply_key(key, tab=tab)
 
       fields.append(oc_child)
 
@@ -740,11 +780,11 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
 
   if elem.tag == 'true' or elem.tag == 'false':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=replace_path, def_name='BOOLEAN')
+    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=replace_path, reference='BOOLEAN')
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=replace_path, def_name='OC_STRING')
+    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=replace_path, reference='OC_STRING')
 
   if elem.tag == 'integer':
     return parse_data(elem, tab, replace_path, True)
@@ -761,10 +801,14 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
     else:
       return parse_struct(elem, tab, replace_path, key, context)
 
+  # fake element used to insert pointer to named type
+  if elem.tag == 'pointer':
+    return parse_pointer(elem, tab, replace_path)
+
   if elem.tag == 'plist':
     return parse_plist(elem, tab, replace_path, key)
 
-  error('Unhandled tag:', elem.tag)
+  error('Unhandled tag <', elem.tag, '>')
 
 ##
 # Utils

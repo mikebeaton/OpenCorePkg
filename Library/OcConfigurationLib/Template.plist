@@ -305,10 +305,20 @@
 				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/Lilu</string>
+				<key remove="true">Identifier</key>
+				<string/>
+				<key remove="true">ImageData</key>
+				<pointer to="uint8"/>
+				<key remove="true">ImageDataSize</key>
+				<data type="uint32"/>
 				<key>MaxKernel</key>
 				<string></string>
 				<key>MinKernel</key>
 				<string>10.0.0</string>
+				<key remove="true">PlistData</key>
+				<pointer to="char8"/>
+				<key remove="true">PlistDataSize</key>
+				<data type="uint32"/>
 				<key>PlistPath</key>
 				<string>Contents/Info.plist</string>
 			</dict>
