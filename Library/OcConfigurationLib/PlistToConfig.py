@@ -696,6 +696,10 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
 
   error('Unhandled tag:', elem.tag)
 
+##
+# Utils
+#
+
 devnull = open(os.devnull, 'w')
 
 def file_close(handle):
