@@ -6,7 +6,7 @@
 	<dict>
 		<key>Add</key>
 		<array>
-			<dict>
+			<dict comment="ACPI added tables">
 				<key>Comment</key>
 				<string>My custom DSDT</string>
 				<key>Enabled</key>
@@ -113,7 +113,7 @@
 		</array>
 		<key>Delete</key>
 		<array>
-			<dict>
+			<dict comment="ACPI table deletion">
 				<key>All</key>
 				<false/>
 				<key>Comment</key>
@@ -121,7 +121,7 @@
 				<key>Enabled</key>
 				<false/>
 				<key>OemTableId</key>
-				<data>Q3B1UG0AAAA=</data>
+				<data type="uint8">Q3B1UG0AAAA=</data>
 				<key>TableLength</key>
 				<integer>0</integer>
 				<key>TableSignature</key>
@@ -144,7 +144,7 @@
 		</array>
 		<key>Patch</key>
 		<array>
-			<dict>
+			<dict comment="ACPI patches">
 				<key>Comment</key>
 				<string>_Q11 to XQ11</string>
 				<key>Count</key>
@@ -198,7 +198,7 @@
 			</dict>
 		</array>
 		<key>Quirks</key>
-		<dict>
+		<dict comment="ACPI quirks">
 			<key>FadtEnableReset</key>
 			<false/>
 			<key>NormalizeHeaders</key>
@@ -211,9 +211,9 @@
 			<false/>
 		</dict>
 	</dict>
-	<key>Booter</key>
-	<dict>
-		<key path="wl">MmioWhitelist</key>
+	<key comment="Apple bootloader">Booter</key>
+	<dict comment="Apple bootloader section">
+		<key path="WL">MmioWhitelist</key>
 		<array>
 			<dict>
 				<key>Address</key>
@@ -233,7 +233,7 @@
 			</dict>
 		</array>
 		<key>Quirks</key>
-		<dict>
+		<dict comment="Apple bootloader quirks">
 			<key>AllowRelocationBlock</key>
 			<false/>
 			<key>AvoidRuntimeDefrag</key>
@@ -272,7 +272,7 @@
 			<false/>
 		</dict>
 	</dict>
-	<key path="dev_prop">DeviceProperties</key>
+	<key path="DEV_PROP">DeviceProperties</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map">
@@ -708,7 +708,7 @@
 	</dict>
 	<key>Misc</key>
 	<dict>
-		<key path="bless">BlessOverride</key>
+		<key path="BLESS">BlessOverride</key>
 		<array>
 			<string></string>
 		</array>
@@ -867,7 +867,7 @@
 	<key>NVRAM</key>
 	<dict>
 		<key>Add</key>
-		<dict type="map">
+		<dict type="map" comment="NVRAM values is an associative map of GUIDS with their property key value maps">
 			<key>4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14</key>
 			<dict type="map">
 				<key>DefaultBackgroundColor</key>
@@ -914,7 +914,7 @@
 		<false/>
 		<key>LegacyOverwrite</key>
 		<false/>
-		<key path="legacy">LegacySchema</key>
+		<key path="LEGACY">LegacySchema</key>
 		<dict type="map">
 			<key>7C436110-AB2A-4BBB-A880-FE41995C9F82</key>
 			<array>
@@ -945,13 +945,13 @@
 		<key>WriteFlash</key>
 		<true/>
 	</dict>
-	<key>PlatformInfo</key>
+	<key path="PLATFORM" comment="Platform information">PlatformInfo</key>
 	<dict>
 		<key>Automatic</key>
 		<false/>
 		<key>CustomMemory</key>
 		<true/>
-		<key>Generic</key>
+		<key path="GENERIC_CONFIG">Generic</key>
 		<dict>
 			<key>AdviseWindows</key>
 			<false/>
@@ -972,7 +972,7 @@
 			<key>SystemUUID</key>
 			<string></string>
 		</dict>
-		<key>DataHub</key>
+		<key path="DATA_HUB_CONFIG">DataHub</key>
 		<dict>
 			<key>ARTFrequency</key>
 			<integer>0</integer>
@@ -1019,7 +1019,7 @@
 			<integer>26</integer>
 			<key>TypeDetail</key>
 			<integer>128</integer>
-			<key>Devices</key>
+			<key path="DEVICE">Devices</key>
 			<array>
 				<dict>
 					<key>AssetTag</key>
@@ -1179,7 +1179,7 @@
 	<key>UEFI</key>
 	<dict>
 		<key>APFS</key>
-		<dict>
+		<dict comment="APFS is a set of options for APFS file system support">
 			<key>EnableJumpstart</key>
 			<true/>
 			<key>GlobalConnect</key>
@@ -1194,7 +1194,7 @@
 			<integer>0</integer>
 		</dict>
 		<key>Audio</key>
-		<dict>
+		<dict comment="Audio is a set of options for sound configuration">
 			<key>AudioCodec</key>
 			<integer>0</integer>
 			<key>AudioDevice</key>
@@ -1212,8 +1212,8 @@
 		</dict>
 		<key>ConnectDrivers</key>
 		<true/>
-		<key>Drivers</key>
-		<array>
+		<key path="DRIVER">Drivers</key>
+		<array comment="Drivers is a sorted array of strings containing driver paths">
 			<string>HfsPlus.efi</string>
 			<string>OpenRuntime.efi</string>
 			<string>#OpenCanopy.efi</string>
@@ -1230,7 +1230,7 @@
 			<string>#CrScreenshotDxe.efi</string>
 		</array>
 		<key>Input</key>
-		<dict>
+		<dict comment="Input is a set of options to support advanced input">
 			<key>KeyFiltering</key>
 			<false/>
 			<key>KeyForgetThreshold</key>
@@ -1251,7 +1251,7 @@
 			<integer>50000</integer>
 		</dict>
 		<key>Output</key>
-		<dict>
+		<dict comment="Output is a set of options to support advanced output">
 			<key>ClearScreenOnModeSwitch</key>
 			<false/>
 			<key>ConsoleMode</key>
@@ -1277,8 +1277,8 @@
 			<key>UgaPassThrough</key>
 			<false/>
 		</dict>
-		<key>ProtocolOverrides</key>
-		<dict>
+		<key path="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
+		<dict comment="Prefer own protocol implementation for these protocols">
 			<key>AppleAudio</key>
 			<false/>
 			<key>AppleBootPolicy</key>
@@ -1333,7 +1333,7 @@
 			<key>UnblockFsConnect</key>
 			<false/>
 		</dict>
-		<key>ReservedMemory</key>
+		<key path="RSVD">ReservedMemory</key>
 		<array>
 			<dict>
 				<key>Address</key>

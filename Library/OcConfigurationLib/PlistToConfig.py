@@ -18,13 +18,15 @@ from dataclasses import dataclass
 # Available flags for -f:
 
 # show markup with implied types added
-PRINT_PLIST = 1 << 0
+SHOW_PLIST = 1 << 0
 # show creation of plist schema objects
-PRINT_PLIST_SCHEMA = 1 << 1
+SHOW_PLIST_SCHEMA = 1 << 1
 # show creation of OC schema objects
-PRINT_OC_SCHEMA = 1 << 2
+SHOW_OC_SCHEMA = 1 << 2
 # show processing steps
-PRINT_DEBUG = 1 << 3
+SHOW_DEBUG = 1 << 3
+# show additional context used in processing
+SHOW_CONTEXT = 1 << 4
 
 flags = 0
 
@@ -136,35 +138,40 @@ VOID
 # Errors and IO
 #
 
-tab_pos = {}
+column_pos = {}
 
 def tab_print(*args, **kwargs):
-  end = kwargs.get('end', '\n')
+  kwargs['end'] = ''
+  kwargs['sep'] = ''
   file = kwargs.get('file', sys.stdout)
 
-  if end == '\n':
-    tab_pos[file] = 0
-    print(*args, **kwargs)
-  else:
-    sep = kwargs.get('sep', ' ')
-    tab = tab_pos.get(file, 0)
+  pos = column_pos.get(file, 0)
 
-    buffer = io.StringIO()
+  s = io.StringIO()
 
-    print(args, file=buffer, sep=sep, end='')
-    count = len(buffer)
-    tab_pos[file] = tab + count
-    print(buffer, **kwargs)
+  kwargs['file'] = s
 
-    buffer.close()
+  print(*args, **kwargs)
+  count = s.tell()
+  column_pos[file] = pos + count
+  s.seek(0)
+
+  kwargs['file'] = file
+  print(s.read(), **kwargs)
+
+  s.close()
 
 def tab_to(col, file):
-  tab = tab_pos.get(file, 0)
-  count = col - tab
+  pos = column_pos.get(file, 0)
+  count = col - pos
   if count > 0:
-    tab_pos[file] = tab + count
+    column_pos[file] = col
     for _ in range(count):
       print(' ', file=file, end='')
+
+def tab_nl(file):
+  column_pos[file] = 0
+  print(file=file)
 
 def error(*args, **kwargs):
   print('ERROR: ', *args, sep='', file=sys.stderr, **kwargs)
@@ -175,7 +182,7 @@ def internal_error(*args, **kwargs):
   sys.exit(-1)
 
 def debug(*args, **kwargs):
-  if flags & PRINT_DEBUG != 0:
+  if flags & SHOW_DEBUG != 0:
     print('DEBUG: ', *args, sep='', **kwargs)
 
 def info_print(*args, **kwargs):
@@ -185,13 +192,13 @@ def info_print(*args, **kwargs):
     print(*args, sep='', **kwargs)
 
 def plist_print(*args, **kwargs):
-  info_print(*args, info_flags=PRINT_PLIST, **kwargs)
+  info_print(*args, info_flags=SHOW_PLIST, **kwargs)
 
 def plist_schema_print(*args, **kwargs):
-  info_print(*args, info_flags=PRINT_PLIST_SCHEMA, **kwargs)
+  info_print(*args, info_flags=SHOW_PLIST_SCHEMA, **kwargs)
 
 def oc_schema_print(*args, **kwargs):
-  info_print(*args, info_flags=PRINT_OC_SCHEMA, **kwargs)
+  info_print(*args, info_flags=SHOW_OC_SCHEMA, **kwargs)
 
 def attr_print(name, value, flags):
   if value is not None:
@@ -202,10 +209,13 @@ def attr_print(name, value, flags):
       info_print('"', value, '"', info_flags=flags, end='')
 
 def plist_schema_attr_print(name, value):
-  attr_print(name, value, PRINT_PLIST_SCHEMA)
+  attr_print(name, value, SHOW_PLIST_SCHEMA)
 
 def oc_schema_attr_print(name, value):
-  attr_print(name, value, PRINT_OC_SCHEMA)
+  attr_print(name, value, SHOW_OC_SCHEMA)
+
+def context_print(*args, **kwargs):
+  info_print(*args, info_flags=SHOW_CONTEXT, **kwargs)
 
 ##
 # Emit file elements
@@ -213,31 +223,102 @@ def oc_schema_attr_print(name, value):
 
 def emit_section_name(key):
   print('/**', file = h_types)
-  print('  %s section' % key.value, file = h_types)
+  comment = key.comment
+  if comment is None:
+    comment = key.value
+  print('  %s section' % comment, file = h_types)
   print('**/', file = h_types)
   print(file = h_types)
 
 def upper_path(path):
   return '_'.join(p.upper() for p in path)
 
-def emit_array(elem_array, context):
-  context_type = 'ENTRY' if context == 'map' else 'ARRAY'
+def set_def_name(elem, elem_type):
+  use_path = elem.path.copy()
+  if len(elem.path) == 0:
+    use_path.append('GLOBAL')
+  if len(elem.path) <= 1:
+    use_path.append('CONFIG')
+  elif elem_type is not None:
+    use_path.append(elem_type)
+  upath = upper_path(use_path)
+  elem.def_name = '%s_%s' % (upper_prefix, upath)
 
-  upath = upper_path(elem_array.path)
-  elem_array.def_name = '%s_%s_%s' % (upper_prefix, upath, context_type)
-
-  print('#define %s_FIELDS(_, __) \\' % elem_array.def_name, file = h_types)
-  print('  OC_ARRAY (%s, _, __)' % elem_array.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % elem_array.def_name , file = h_types)
+def emit_root_config():
+  print('/**', file = h_types)
+  print('  Root configuration', file = h_types)
+  print('**/', file = h_types)
   print(file = h_types)
 
-def emit_map(elem_map):
-  upath = upper_path(elem_map.path)
-  elem_map.def_name = '%s_%s_MAP' % (upper_prefix, upath)
+def emit_comment(elem):
+  if elem.comment is not None:
+    print('///', file = h_types)
+    print('/// %s.' % elem.comment, file = h_types)
+    print('///', file = h_types)
 
-  print('#define %s_FIELDS(_, __) \\' % elem_map.def_name, file = h_types)
-  print('  OC_MAP (OC_STRING, %s, _, __)' % elem_map.of.def_name, file = h_types)
-  print('  OC_DECLARE (%s)' % elem_map.def_name , file = h_types)
+def emit_struct(elem, context):
+  context_print('STRUCT CONTEXT: ', context)
+  if context == 'array':
+    set_def_name(elem, 'ENTRY')
+  elif context == 'struct':
+    set_def_name(elem, None)
+  else:
+    set_def_name(elem, 'ARRAY')
+
+  if len(elem.path) == 0:
+    emit_root_config()
+
+  emit_comment(elem)
+
+  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
+
+  last = len(elem.of) - 1
+  for (i, of) in enumerate(elem.of):
+    tab_to(2, file = h_types)
+    tab_print('_(', file = h_types)
+    tab_print(of.def_name, file = h_types)
+
+    tab_to(32, file = h_types)
+    tab_print(', ', of.name, file = h_types)
+
+    tab_to(53, file = h_types)
+    tab_print(', ', file = h_types)
+    if of.size is not None:
+      tab_print('[', of.size, ']', file = h_types)
+
+    tab_to(59, file = h_types)
+    tab_print(', , )', file = h_types)
+
+    if i < last:
+      tab_print(' \\', file = h_types)
+
+    tab_nl(file = h_types)
+
+  print('  OC_DECLARE (%s)' % elem.def_name, file = h_types)
+  print(file = h_types)
+
+def emit_array(elem, context):
+  context_print('ARRAY CONTEXT:', context)
+  if context == 'map':
+    set_def_name(elem, 'ENTRY')
+  else:
+    set_def_name(elem, 'ARRAY')
+
+  emit_comment(elem)
+
+  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % elem.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
+  print(file = h_types)
+
+def emit_map(elem):
+  set_def_name(elem, 'MAP')
+
+  emit_comment(elem)
+
+  print('#define %s_FIELDS(_, __) \\' % elem.def_name, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.def_name, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
   print(file = h_types)
 
 ##
@@ -247,21 +328,25 @@ def emit_map(elem_map):
 @dataclass
 class PlistKey:
   schema_type: str
+  comment: str
   value: str
   path_spec: str
 
   def __init__(
     self,
+    comment: str = None,
     value: str = None,
     path_spec: str = None,
     tab: int = 0
     ):
 
     self.schema_type = 'key'
+    self.comment = comment
     self.value = value
     self.path_spec = path_spec
 
     plist_schema_print('[plist:key', tab=tab, end='')
+    plist_schema_attr_print('comment', comment)
     plist_schema_attr_print('value', value)
     plist_schema_attr_print('path', path_spec)
     plist_schema_print(']')
@@ -276,6 +361,7 @@ class OcSchemaElement:
   path: str
   data_type: str
   size: str
+  comment: str
   value: str
   of: object
   # .h file definition name, once emitted
@@ -287,6 +373,7 @@ class OcSchemaElement:
     name: str = None,
     path: str = None,
     size: str = None,
+    comment: str = None,
     value: str = None,
     of: object = None,
     def_name: str = None,
@@ -297,6 +384,7 @@ class OcSchemaElement:
     self.name = name
     self.path = path
     self.size = size
+    self.comment = comment
     self.value = value
     self.of = of
     self.def_name = def_name
@@ -305,6 +393,7 @@ class OcSchemaElement:
     oc_schema_attr_print('name', name)
     oc_schema_attr_print('path', path)
     oc_schema_attr_print('size', size)
+    oc_schema_attr_print('comment', comment)
     oc_schema_attr_print('value', value)
     of_type = None
     if of is not None:
@@ -359,20 +448,19 @@ def check_key(parent, child, index):
     error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
 
 def parse_key(elem, tab):
-  path_spec = None
-
-  if 'path' in elem.attrib:
-    path_spec = elem.attrib['path']
+  path_spec = elem.attrib.get('path', None)
+  comment = elem.attrib.get('comment', None)
 
   plist_start(elem, tab)
   plist_attr('path', path_spec)
+  plist_attr('comment', comment)
   plist_end(elem, elem.text)
 
-  return PlistKey(value=elem.text, path_spec=path_spec, tab=tab)
+  return PlistKey(value=elem.text, path_spec=path_spec, comment=comment, tab=tab)
 
 def parse_data(elem, tab, path):
-  schema_type = elem.attrib['type'] if 'type' in elem.attrib else None
-  size = elem.attrib['size'] if 'size' in elem.attrib else None
+  schema_type = elem.attrib.get('type', None)
+  size = elem.attrib.get('size', None)
   data = elem.text
 
   if data is not None:
@@ -385,21 +473,18 @@ def parse_data(elem, tab, path):
   if data is not None and (schema_type is None or size is None):
     length = len(data_bytes)
 
-    type_from_data = None
-
-    if length == 2:
-      type_from_data = 'uint16'
-    elif length == 4:
-      type_from_data = 'uint32'
-    elif length == 8:
-      type_from_data = 'uint64'
-    else:
-      type_from_data = 'uint8'
-      if length != 1 and size is None:
-        size = length
-
     if schema_type is None:
-      schema_type = type_from_data
+      if length == 2:
+        schema_type = 'uint16'
+      elif length == 4:
+        schema_type = 'uint32'
+      elif length == 8:
+        schema_type = 'uint64'
+      else:
+        schema_type = 'uint8'
+
+    if schema_type == 'uint8' and length != 1 and size is None:
+      size = str(length)
 
   if schema_type is None:
     if size is None:
@@ -414,43 +499,49 @@ def parse_data(elem, tab, path):
   plist_attr('size', size)
   plist_end(elem, data_print)
 
-  if schema_type == 'blob':
-    schema_type = 'oc_data'
+  schema_type = schema_type.upper()
+  if schema_type == 'BLOB':
+    schema_type = 'OC_DATA'
 
-  return OcSchemaElement(schema_type=schema_type.upper(), size=size, value=data_print, tab=tab, path=path)
+  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, def_name=schema_type)
 
 def parse_array(elem, tab, path, key, context):
+  comment = elem.attrib.get('comment', None)
   plist_open(elem, tab)
+  plist_attr('comment', comment)
   count = len(elem)
   if count == 0:
     error('No template for <array>')
-  child = parse_elem(elem[0], tab, path, None)
+  child = parse_elem(elem[0], tab, path, None, context='array')
   if (count > 1):
     plist_print('\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')', tab=tab)
   plist_close(elem, tab)
 
-  array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path)
-  emit_array(array, context)
+  elem_array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path, comment=comment)
+  emit_array(elem_array, context)
 
-  return array
+  return elem_array
 
 def init_dict(elem, tab, map):
-  displayName = '<' + elem.tag + (' type="map"' if map else '') + '>'
+  comment = elem.attrib.get('comment', None)
 
-  plist_print(displayName, tab=tab)
+  plist_start(elem, tab=tab)
+  plist_attr('type', 'map' if map else None)
+  plist_attr('comment', comment)
+  plist_print('>')
 
   count = len(elem)
 
   if count == 0:
-    error('No elements in ', displayName)
+    error('No elements in <dict>')
 
   if count % 2 != 0:
-    error('Number of nodes in ', displayName, ' must be even')
+    error('Number of nodes in <dict> must be even')
 
-  return count >> 1
+  return (count >> 1, comment)
 
 def parse_map(elem, tab, path, key):
-  count = init_dict(elem, tab, True)
+  (count, comment) = init_dict(elem, tab, True)
 
   key = parse_elem(elem[0], tab, path, None)
 
@@ -468,12 +559,12 @@ def parse_map(elem, tab, path, key):
   if oc_value.schema_type == 'OC_DATA':
     return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=path, def_name = 'OC_ASSOC')
   else:
-    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path)
+    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path, comment=comment)
     emit_map(elem_map)
     return elem_map
 
-def parse_fields(elem, tab, path, key):
-  count = init_dict(elem, tab, False)
+def parse_struct(elem, tab, path, key, context):
+  (count, comment) = init_dict(elem, tab, False)
 
   fields = []
 
@@ -489,7 +580,7 @@ def parse_fields(elem, tab, path, key):
     if len(path) == 0:
       emit_section_name(key)
 
-    oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec)
+    oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec, context = 'struct')
 
     oc_child.set_name(key.value, tab=tab)
 
@@ -500,7 +591,10 @@ def parse_fields(elem, tab, path, key):
 
   plist_close(elem, tab)
 
-  return OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab, path=path)
+  elem_struct = OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab, path=path, comment=comment)
+  emit_struct(elem_struct, context)
+
+  return elem_struct
 
 def parse_plist(elem, tab, path, key):
   plist_open(elem, tab)
@@ -522,6 +616,8 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
   if indent:
     tab += 1
 
+  context_print('CONTEXT: ', context, tab = tab)
+  
   if path is None:
     new_path = None
   else:
@@ -534,7 +630,7 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
 
   if elem.tag == 'true' or elem.tag == 'false':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=new_path)
+    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=new_path, def_name='BOOLEAN')
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
@@ -542,7 +638,7 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
 
   if elem.tag == 'integer':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab, path=new_path)
+    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab, path=new_path, def_name='UINT32')
 
   if elem.tag == 'data':
     return parse_data(elem, tab, new_path)
@@ -551,10 +647,10 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
     return parse_array(elem, tab, new_path, None, context)
 
   if elem.tag == 'dict':
-    if 'type' in elem.attrib and elem.attrib['type'] == 'map':
+    if elem.attrib.get('type', None) == 'map':
       return parse_map(elem, tab, new_path, key)
     else:
-      return parse_fields(elem, tab, new_path, key)
+      return parse_struct(elem, tab, new_path, key, context)
 
   if elem.tag == 'plist':
     return parse_plist(elem, tab, new_path, key)
