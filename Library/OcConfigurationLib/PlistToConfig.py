@@ -278,15 +278,15 @@ def emit_struct(elem, context):
     tab_print('_(', file = h_types)
     tab_print(of.def_name, file = h_types)
 
-    tab_to(32, file = h_types)
+    tab_to(36, file = h_types)
     tab_print(', ', of.name, file = h_types)
 
-    tab_to(53, file = h_types)
+    tab_to(57, file = h_types)
     tab_print(', ', file = h_types)
     if of.size is not None:
       tab_print('[', of.size, ']', file = h_types)
 
-    tab_to(59, file = h_types)
+    tab_to(63, file = h_types)
     tab_print(', , )', file = h_types)
 
     if i < last:
@@ -331,12 +331,14 @@ class PlistKey:
   comment: str
   value: str
   path_spec: str
+  replace_name: str
 
   def __init__(
     self,
     comment: str = None,
     value: str = None,
     path_spec: str = None,
+    replace_name: str = None,
     tab: int = 0
     ):
 
@@ -344,11 +346,13 @@ class PlistKey:
     self.comment = comment
     self.value = value
     self.path_spec = path_spec
+    self.replace_name = replace_name
 
     plist_schema_print('[plist:key', tab=tab, end='')
     plist_schema_attr_print('comment', comment)
     plist_schema_attr_print('value', value)
     plist_schema_attr_print('path', path_spec)
+    plist_schema_attr_print('name', replace_name)
     plist_schema_print(']')
 
     if path_spec is None:
@@ -423,11 +427,14 @@ class OcSchemaElement:
 def plist_start(elem, tab):
   plist_print('<', elem.tag, end='', tab=tab)
 
+def plist_stop():
+  plist_print('>')
+
 def plist_attr(name, value):
   if value is not None:
     plist_print(' ', name, '="', value, '"', end='')
 
-def plist_end(elem, contents):
+def plist_end_and_close(elem, contents):
   if contents is not None:
     plist_print('>', contents, '</', elem.tag, '>')
   else:
@@ -441,22 +448,25 @@ def plist_close(elem, tab):
 
 def plist_open_close(elem, tab):
   plist_start(elem, tab)
-  plist_end(elem, elem.text)
+  plist_end_and_close(elem, elem.text)
+
+def consume_attr(elem, name):
+  value = elem.attrib.get(name, None)
+  plist_attr(name, value)
+  return value
 
 def check_key(parent, child, index):
   if child.schema_type != 'key':
     error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
 
 def parse_key(elem, tab):
-  path_spec = elem.attrib.get('path', None)
-  comment = elem.attrib.get('comment', None)
-
   plist_start(elem, tab)
-  plist_attr('path', path_spec)
-  plist_attr('comment', comment)
-  plist_end(elem, elem.text)
+  replace_name = consume_attr(elem, 'name')
+  path_spec = consume_attr(elem, 'path')
+  comment = consume_attr(elem, 'comment')
+  plist_end_and_close(elem, elem.text)
 
-  return PlistKey(value=elem.text, path_spec=path_spec, comment=comment, tab=tab)
+  return PlistKey(value=elem.text, replace_name=replace_name, path_spec=path_spec, comment=comment, tab=tab)
 
 def parse_data(elem, tab, path):
   schema_type = elem.attrib.get('type', None)
@@ -497,7 +507,7 @@ def parse_data(elem, tab, path):
   plist_start(elem, tab)
   plist_attr('type', schema_type)
   plist_attr('size', size)
-  plist_end(elem, data_print)
+  plist_end_and_close(elem, data_print)
 
   schema_type = schema_type.upper()
   if schema_type == 'BLOB':
@@ -505,43 +515,69 @@ def parse_data(elem, tab, path):
 
   return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, def_name=schema_type)
 
-def parse_array(elem, tab, path, key, context):
-  comment = elem.attrib.get('comment', None)
-  plist_open(elem, tab)
-  plist_attr('comment', comment)
-  count = len(elem)
-  if count == 0:
-    error('No template for <array>')
-  child = parse_elem(elem[0], tab, path, None, context='array')
-  if (count > 1):
-    plist_print('\t(skipping ', count - 1, ' item', '' if (count - 1) == 1 else 's' , ')', tab=tab)
-  plist_close(elem, tab)
+def skipping(count, tab, used_count = 0):
+  skip = count - used_count
+  if skip > 0:
+    plist_print('(skipping ', skip, ' item', '' if skip == 1 else 's' , ')', tab=(tab + 1))
 
-  elem_array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path, comment=comment)
-  emit_array(elem_array, context)
+def parse_array(elem, tab, path, key, context):
+  plist_start(elem, tab)
+  comment = consume_attr(elem, 'comment')
+  xref = consume_attr(elem, 'xref')
+  plist_stop()
+
+  count = len(elem)
+
+  if xref is not None:
+    skipping(count, tab)
+    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, def_name=xref)
+  else:
+    if count == 0:
+      error('No template for <array>')
+
+    child = parse_elem(elem[0], tab, path, None, context='array')
+
+    skipping(count, tab, used_count=1)
+
+    elem_array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path, comment=comment)
+    emit_array(elem_array, context)
+
+  plist_close(elem, tab)
 
   return elem_array
 
-def init_dict(elem, tab, map):
-  comment = elem.attrib.get('comment', None)
-
+def init_dict(elem, path, tab, map):
   plist_start(elem, tab=tab)
   plist_attr('type', 'map' if map else None)
-  plist_attr('comment', comment)
-  plist_print('>')
+  comment = consume_attr(elem, 'comment')
+  xref = consume_attr(elem, 'xref')
+  new_path = consume_attr(elem, 'path')
+  plist_stop()
 
   count = len(elem)
 
-  if count == 0:
+  if count == 0 and xref is not None:
     error('No elements in <dict>')
 
   if count % 2 != 0:
     error('Number of nodes in <dict> must be even')
 
-  return (count >> 1, comment)
+  # used where name of child needs to differ from name of parent
+  if new_path is not None:
+    replace_path = path.copy()
+    del replace_path[-1]
+    replace_path.append(new_path)
+  else:
+    replace_path = path
+
+  return (count >> 1, comment, xref, replace_path)
 
 def parse_map(elem, tab, path, key):
-  (count, comment) = init_dict(elem, tab, True)
+  (count, comment, xref, replace_path) = init_dict(elem, path, tab, True)
+
+  if xref is not None:
+    # no particular reason not to add it following the pattern of struct and array, just not (yet?) required
+    error('no support for xref in map')
 
   key = parse_elem(elem[0], tab, path, None)
 
@@ -551,48 +587,51 @@ def parse_map(elem, tab, path, key):
 
   count -= 1
 
-  if (count > 0):
-    plist_print('\t(skipping ', count, ' item', '' if count == 1 else 's' , ')', tab=tab)
+  skipping(count, tab)
 
   plist_close(elem, tab)
 
   if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=path, def_name = 'OC_ASSOC')
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, def_name = 'OC_ASSOC')
   else:
-    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=path, comment=comment)
+    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=replace_path, comment=comment)
     emit_map(elem_map)
     return elem_map
 
 def parse_struct(elem, tab, path, key, context):
-  (count, comment) = init_dict(elem, tab, False)
+  (count, comment, xref, replace_path) = init_dict(elem, path, tab, False)
 
-  fields = []
+  if xref is not None:
+    skipping(count, tab)
+    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, def_name=xref)
+  else:
+    fields = []
 
-  index = 0
-  while count > 0:
-    key = parse_elem(elem[index], tab, path, None)
+    index = 0
+    while count > 0:
+      key = parse_elem(elem[index], tab, path, None)
 
-    check_key(elem, key, index)
+      check_key(elem, key, index)
 
-    if key.value is None:
-      error('<key> tag within <dict> fields template cannot be empty, contents are used as variable name')
+      if key.value is None and key.replace_name is None:
+        error('<key> tag within <dict> fields template must have name attribute or xml content to use as variable name')
 
-    if len(path) == 0:
-      emit_section_name(key)
+      if len(path) == 0:
+        emit_section_name(key)
 
-    oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec, context = 'struct')
+      oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec, context = 'struct')
 
-    oc_child.set_name(key.value, tab=tab)
+      oc_child.set_name(key.replace_name if key.replace_name is not None else key.value, tab=tab)
 
-    fields.append(oc_child)
+      fields.append(oc_child)
 
-    count -= 1
-    index += 2
+      count -= 1
+      index += 2
+
+    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab, path=replace_path, comment=comment)
+    emit_struct(elem_struct, context)
 
   plist_close(elem, tab)
-
-  elem_struct = OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab, path=path, comment=comment)
-  emit_struct(elem_struct, context)
 
   return elem_struct
 
@@ -619,41 +658,41 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
   context_print('CONTEXT: ', context, tab = tab)
   
   if path is None:
-    new_path = None
+    replace_path = None
   else:
-    new_path = path.copy()
+    replace_path = path.copy()
     if key is not None:
-      new_path.append(key) # NB modifies list, returns None
+      replace_path.append(key) # NB modifies list, returns None
 
   if elem.tag == 'key':
     return parse_key(elem, tab)
 
   if elem.tag == 'true' or elem.tag == 'false':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=new_path, def_name='BOOLEAN')
+    return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, tab=tab, path=replace_path, def_name='BOOLEAN')
 
   if elem.tag == 'string':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=new_path, def_name='OC_STRING')
+    return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=replace_path, def_name='OC_STRING')
 
   if elem.tag == 'integer':
     plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab, path=new_path, def_name='UINT32')
+    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab, path=replace_path, def_name='UINT32')
 
   if elem.tag == 'data':
-    return parse_data(elem, tab, new_path)
+    return parse_data(elem, tab, replace_path)
 
   if elem.tag == 'array':
-    return parse_array(elem, tab, new_path, None, context)
+    return parse_array(elem, tab, replace_path, None, context)
 
   if elem.tag == 'dict':
     if elem.attrib.get('type', None) == 'map':
-      return parse_map(elem, tab, new_path, key)
+      return parse_map(elem, tab, replace_path, key)
     else:
-      return parse_struct(elem, tab, new_path, key, context)
+      return parse_struct(elem, tab, replace_path, key, context)
 
   if elem.tag == 'plist':
-    return parse_plist(elem, tab, new_path, key)
+    return parse_plist(elem, tab, replace_path, key)
 
   error('Unhandled tag:', elem.tag)
 
