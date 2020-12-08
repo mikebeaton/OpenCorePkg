@@ -573,7 +573,6 @@ def error_on_twice(flag, handle):
     error(flag, ' specified twice')
 
 def customise_template(template, body):
-  #debug('customise_template body= \\\n\'\'\'', body, '\'\'\'')
   return template \
     .replace('[[Prefix]]', camel_prefix) \
     .replace('[[PREFIX]]', upper_prefix) \
