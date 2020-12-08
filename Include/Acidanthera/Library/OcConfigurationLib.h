@@ -532,13 +532,6 @@ typedef enum {
 **/
 
 ///
-/// Drivers is a sorted array of strings containing driver paths.
-///
-#define OC_UEFI_DRIVER_ARRAY_FIELDS(_, __) \
-  OC_ARRAY (OC_STRING, _, __)
-  OC_DECLARE (OC_UEFI_DRIVER_ARRAY)
-
-///
 /// APFS is a set of options for APFS file system support.
 ///
 #define OC_UEFI_APFS_FIELDS(_, __) \
@@ -562,6 +555,13 @@ typedef enum {
   _(BOOLEAN                     , PlayChime          ,     , FALSE                         , ()) \
   _(UINT16                      , VolumeAmplifier    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_AUDIO)
+
+///
+/// Drivers is a sorted array of strings containing driver paths.
+///
+#define OC_UEFI_DRIVER_ARRAY_FIELDS(_, __) \
+  OC_ARRAY (OC_STRING, _, __)
+  OC_DECLARE (OC_UEFI_DRIVER_ARRAY)
 
 ///
 /// Input is a set of options to support advanced input.
