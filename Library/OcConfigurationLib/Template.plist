@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ACPI</key>
+	<key name="Acpi">ACPI</key>
 	<dict>
 		<key>Add</key>
 		<array>
@@ -212,7 +212,7 @@
 		</dict>
 	</dict>
 	<key comment="Apple bootloader">Booter</key>
-	<dict comment="Apple bootloader section">
+	<dict comment="Apple bootloader config">
 		<key path="WL">MmioWhitelist</key>
 		<array>
 			<dict comment="MMIO whitelist">
@@ -658,7 +658,7 @@
 			</dict>
 		</array>
 		<key>Quirks</key>
-		<dict>
+		<dict comment="KernelSpace quirks">
 			<key>AppleCpuPmCfgLock</key>
 			<false/>
 			<key>AppleXcpmCfgLock</key>
@@ -697,7 +697,7 @@
 			<false/>
 		</dict>
 		<key>Scheme</key>
-		<dict>
+		<dict comment="KernelSpace operation scheme">
 			<key>FuzzyMatch</key>
 			<true/>
 			<key>KernelArch</key>
@@ -864,7 +864,7 @@
 			</dict>
 		</array>
 	</dict>
-	<key>NVRAM</key>
+	<key name="Nvram">NVRAM</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map" comment="NVRAM values is an associative map of GUIDS with their property key value maps">
@@ -1176,9 +1176,9 @@
 		<key name="UpdateSmbiosMode">UpdateSMBIOSMode</key>
 		<string>Create</string>
 	</dict>
-	<key>UEFI</key>
-	<dict>
-		<key>APFS</key>
+	<key name="Uefi">UEFI</key>
+	<dict comment="Uefi contains firmware tweaks and extra drivers">
+		<key name="Apfs">APFS</key>
 		<dict comment="APFS is a set of options for APFS file system support">
 			<key>EnableJumpstart</key>
 			<true/>
@@ -1317,7 +1317,7 @@
 			<false/>
 		</dict>
 		<key>Quirks</key>
-		<dict>
+		<dict comment="Quirks is a set of hacks for different types of firmware">
 			<key>DeduplicateBootOrder</key>
 			<true/>
 			<key>ExitBootServicesDelay</key>
@@ -1335,7 +1335,7 @@
 		</dict>
 		<key path="RSVD">ReservedMemory</key>
 		<array>
-			<dict>
+			<dict comment="Reserved memory entries adds">
 				<key>Address</key>
 				<integer>268435456</integer>
 				<key>Type</key>
