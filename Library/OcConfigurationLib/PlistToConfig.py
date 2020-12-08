@@ -64,8 +64,12 @@ SHARED_HEADER = \
 C_TEMPLATE = \
 '''
 #include <Library/OcConfigurationLib.h>
+[[BODY]]STATIC
+OC_SCHEMA_INFO
+mRootConfigurationInfo = {
+  .Dict = {mRootConfigurationNodes, ARRAY_SIZE (mRootConfigurationNodes)}
+};
 
-[[BODY]]
 EFI_STATUS
 [[Prefix]]ConfigurationInit (
   OUT [[PREFIX]]_GLOBAL_CONFIG   *Config,
@@ -221,14 +225,27 @@ def context_print(*args, **kwargs):
 # Emit file elements
 #
 
-def emit_section_name(key):
+def emit_section_name(h_name, c_name):
   print('/**', file = h_types)
+  print('  %s' % h_name, file = h_types)
+  print('**/', file = h_types)
+  print(file = h_types)
+
+  print('///', file = c_schema)
+  print('/// %s' % c_name, file = c_schema)
+  print('///', file = c_schema)
+  print(file = c_schema)
+
+  print(file = c_structors)
+
+def emit_section(key):
   comment = key.comment
   if comment is None:
     comment = key.value
-  print('  %s section' % comment, file = h_types)
-  print('**/', file = h_types)
-  print(file = h_types)
+  emit_section_name('%s section' % comment, '%s configuration support' % comment)
+
+def emit_root_config_section():
+  emit_section_name('Root configuration', 'Root configuration')
 
 def upper_path(path):
   return '_'.join(p.upper() for p in path)
@@ -244,17 +261,64 @@ def set_def_name(elem, elem_type):
   upath = upper_path(use_path)
   elem.def_name = '%s_%s' % (upper_prefix, upath)
 
-def emit_root_config():
-  print('/**', file = h_types)
-  print('  Root configuration', file = h_types)
-  print('**/', file = h_types)
-  print(file = h_types)
-
 def emit_comment(elem):
   if elem.comment is not None:
     print('///', file = h_types)
     print('/// %s.' % elem.comment, file = h_types)
     print('///', file = h_types)
+
+def emit_field(elem):
+  constructor = None
+  destructor = '()'
+
+  tab_destructor = 98
+  tab_end = 122
+
+  if elem.schema_type == 'OC_STRING':
+    constructor = '""'
+    constructor = 'OC_STRING_CONSTR (%s, _, __)' % constructor
+    destructor = 'OC_DESTR (OC_STRING)'
+  elif elem.schema_type == 'BOOLEAN':
+    constructor = 'FALSE'
+  elif elem.schema_type == 'DATA':
+    constructor = '0'
+    if elem.size is not None:
+      constructor = '{%s}' % constructor
+  elif elem.schema_type == 'OC_MAP' or elem.schema_type == 'OC_STRUCT' or elem.schema_type == 'OC_ARRAY':
+    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.def_name)
+    destructor = 'OC_DESTR (%s)' % elem.def_name
+    tab_destructor = 117
+    tab_end = 158
+  elif elem.schema_type == 'OC_DATA':
+    constructor = 'OC_EDATA_CONSTR (_, __)'
+    destructor = 'OC_DESTR (OC_DATA)'
+  else:
+    debug('NO DEFAULT for ', elem.schema_type)
+
+  tab_to(2, file = h_types)
+  tab_print('_(', file = h_types)
+  tab_print(elem.def_name, file = h_types)
+
+  tab_to(36, file = h_types)
+  tab_print(', ', elem.name, file = h_types)
+
+  tab_to(62, file = h_types)
+  tab_print(', ', file = h_types)
+  if elem.size is not None:
+    tab_print('[%s]' % elem.size, file = h_types)
+
+  tab_to(67, file = h_types)
+  tab_print(' , ', file = h_types)
+  if constructor is not None:
+    tab_print(constructor, file = h_types)
+
+  tab_to(tab_destructor, file = h_types)
+  tab_print(' , ', file = h_types)
+  if destructor is not None:
+    tab_print(destructor, file = h_types)
+
+  tab_to(tab_end, file = h_types)
+  tab_print(')', file = h_types)
 
 def emit_struct(elem, context):
   context_print('STRUCT CONTEXT: ', context)
@@ -266,7 +330,7 @@ def emit_struct(elem, context):
     set_def_name(elem, 'ARRAY')
 
   if len(elem.path) == 0:
-    emit_root_config()
+    emit_root_config_section()
 
   emit_comment(elem)
 
@@ -274,28 +338,16 @@ def emit_struct(elem, context):
 
   last = len(elem.of) - 1
   for (i, of) in enumerate(elem.of):
-    tab_to(2, file = h_types)
-    tab_print('_(', file = h_types)
-    tab_print(of.def_name, file = h_types)
-
-    tab_to(36, file = h_types)
-    tab_print(', ', of.name, file = h_types)
-
-    tab_to(62, file = h_types)
-    tab_print(', ', file = h_types)
-    if of.size is not None:
-      tab_print('[', of.size, ']', file = h_types)
-
-    tab_to(69, file = h_types)
-    tab_print(', , )', file = h_types)
-
+    emit_field(of)
     if i < last:
       tab_print(' \\', file = h_types)
-
     tab_nl(file = h_types)
 
   print('  OC_DECLARE (%s)' % elem.def_name, file = h_types)
   print(file = h_types)
+
+  # .c structors
+  print('OC_STRUCTORS       (%s, ())' % elem.def_name, file = c_structors)
 
 def emit_array(elem, context):
   context_print('ARRAY CONTEXT:', context)
@@ -311,6 +363,12 @@ def emit_array(elem, context):
   print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
   print(file = h_types)
 
+  # .c structors
+  if context == 'map':
+    print('OC_STRUCTORS       (%s, ())' % elem.def_name, file = c_structors)
+  else:
+    print('OC_ARRAY_STRUCTORS (%s)' % elem.def_name, file = c_structors)
+
 def emit_map(elem):
   set_def_name(elem, 'MAP')
 
@@ -320,6 +378,9 @@ def emit_map(elem):
   print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.def_name, file = h_types)
   print('  OC_DECLARE (%s)' % elem.def_name , file = h_types)
   print(file = h_types)
+
+  # .c structors
+  print('OC_MAP_STRUCTORS   (%s)' % elem.def_name, file = c_structors)
 
 ##
 # Schema objects
@@ -367,6 +428,7 @@ class OcSchemaElement:
   size: str
   comment: str
   value: str
+  default: str
   of: object
   # .h file definition name, once emitted
   def_name: str
@@ -379,6 +441,7 @@ class OcSchemaElement:
     size: str = None,
     comment: str = None,
     value: str = None,
+    default: str = None,
     of: object = None,
     def_name: str = None,
     tab: int = 0
@@ -390,6 +453,7 @@ class OcSchemaElement:
     self.size = size
     self.comment = comment
     self.value = value
+    self.default = default
     self.of = of
     self.def_name = def_name
 
@@ -399,6 +463,7 @@ class OcSchemaElement:
     oc_schema_attr_print('size', size)
     oc_schema_attr_print('comment', comment)
     oc_schema_attr_print('value', value)
+    oc_schema_attr_print('default', default)
     of_type = None
     if of is not None:
       if type(of) is list:
@@ -434,7 +499,7 @@ def plist_attr(name, value):
   if value is not None:
     plist_print(' ', name, '="', value, '"', end='')
 
-def plist_end_and_close(elem, contents):
+def plist_stop_then_close(elem, contents):
   if contents is not None:
     plist_print('>', contents, '</', elem.tag, '>')
   else:
@@ -448,7 +513,7 @@ def plist_close(elem, tab):
 
 def plist_open_close(elem, tab):
   plist_start(elem, tab)
-  plist_end_and_close(elem, elem.text)
+  plist_stop_then_close(elem, elem.text)
 
 def consume_attr(elem, name):
   value = elem.attrib.get(name, None)
@@ -464,37 +529,40 @@ def parse_key(elem, tab):
   replace_name = consume_attr(elem, 'name')
   path_spec = consume_attr(elem, 'path')
   comment = consume_attr(elem, 'comment')
-  plist_end_and_close(elem, elem.text)
+  plist_stop_then_close(elem, elem.text)
 
   return PlistKey(value=elem.text, replace_name=replace_name, path_spec=path_spec, comment=comment, tab=tab)
 
-def parse_data(elem, tab, path):
+def parse_data(elem, tab, path, is_integer = False):
   schema_type = elem.attrib.get('type', None)
   size = elem.attrib.get('size', None)
   data = elem.text
 
+  data_print = None
+
   if data is not None:
-    data_bytes = base64.b64decode(data)
-    data_print = '0x' + data_bytes.hex()
-  else:
-    data_bytes = None
-    data_print = None
+    if is_integer:
+      data_print = '0x%8x' % int(data)
+      byte_length = 4
+    else:
+      data_bytes = base64.b64decode(data)
+      byte_length = len(data_bytes)
+      data_print = '0x' + data_bytes.hex()
 
-  if data is not None and (schema_type is None or size is None):
-    length = len(data_bytes)
+    if schema_type is None or size is None:
 
-    if schema_type is None:
-      if length == 2:
-        schema_type = 'uint16'
-      elif length == 4:
-        schema_type = 'uint32'
-      elif length == 8:
-        schema_type = 'uint64'
-      else:
-        schema_type = 'uint8'
+      if schema_type is None:
+        if byte_length == 2:
+          schema_type = 'uint16'
+        elif byte_length == 4:
+          schema_type = 'uint32'
+        elif byte_length == 8:
+          schema_type = 'uint64'
+        else:
+          schema_type = 'uint8'
 
-    if schema_type == 'uint8' and length != 1 and size is None:
-      size = str(length)
+      if schema_type == 'uint8' and byte_length != 1 and size is None:
+        size = str(byte_length)
 
   if schema_type is None:
     if size is None:
@@ -507,13 +575,16 @@ def parse_data(elem, tab, path):
   plist_start(elem, tab)
   plist_attr('type', schema_type)
   plist_attr('size', size)
-  plist_end_and_close(elem, data_print)
+  plist_stop_then_close(elem, data_print)
 
-  schema_type = schema_type.upper()
-  if schema_type == 'BLOB':
+  def_name = schema_type.upper()
+  if def_name == 'BLOB':
     schema_type = 'OC_DATA'
+    def_name = 'OC_DATA'
+  else:
+      schema_type = 'DATA'
 
-  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, def_name=schema_type)
+  return OcSchemaElement(schema_type=schema_type, size=size, value=data_print, tab=tab, path=path, def_name=def_name)
 
 def skipping(count, tab, used_count = 0):
   skip = count - used_count
@@ -617,7 +688,7 @@ def parse_struct(elem, tab, path, key, context):
         error('<key> tag within <dict> fields template must have name attribute or xml content to use as variable name')
 
       if len(path) == 0:
-        emit_section_name(key)
+        emit_section(key)
 
       oc_child = parse_elem(elem[index + 1], tab, path, key.path_spec, context = 'struct')
 
@@ -676,8 +747,7 @@ def parse_elem(elem, tab, path, key, indent = True, context = None):
     return OcSchemaElement(schema_type='OC_STRING', value=elem.text, tab=tab, path=replace_path, def_name='OC_STRING')
 
   if elem.tag == 'integer':
-    plist_open_close(elem, tab)
-    return OcSchemaElement(schema_type='UINT32', value=elem.text, tab=tab, path=replace_path, def_name='UINT32')
+    return parse_data(elem, tab, replace_path, True)
 
   if elem.tag == 'data':
     return parse_data(elem, tab, replace_path)
@@ -735,11 +805,6 @@ h_file = None
 h_types = io.StringIO()
 c_structors = io.StringIO()
 c_schema = io.StringIO()
-
-## DEBUG
-##print('// h_types', file=h_types)
-print('// c_structors', file=c_structors)
-print('// c_schema', file=c_schema)
 
 # main template filename
 plist_filename = None
@@ -841,7 +906,7 @@ h_types.seek(0)
 
 debug('Writing c file')
 print(SHARED_HEADER, file=c_file, end='')
-print(customise_template(C_TEMPLATE, c_structors.read() + c_schema.read()), file=c_file, end='')
+print(customise_template(C_TEMPLATE, c_structors.read() + '\n' + c_schema.read()), file=c_file, end='')
 
 file_close(c_file)
 
