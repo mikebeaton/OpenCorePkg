@@ -407,18 +407,6 @@
   Platform information configuration
 **/
 
-#define OC_PLATFORM_GENERIC_CONFIG_FIELDS(_, __) \
-  _(BOOLEAN                     , AdviseWindows      ,     , FALSE                                        , () )                   \
-  _(OC_STRING                   , Mlb                ,     , OC_STRING_CONSTR ("OPENCORE_MLB_SN11", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT16                      , ProcessorType      ,     , 0                                            , () )                   \
-  _(UINT8                       , Rom                , [6] , {0}                                          , () )                   \
-  _(BOOLEAN                     , SpoofVendor        ,     , FALSE                                        , () )                   \
-  _(OC_STRING                   , SystemMemoryStatus ,     , OC_STRING_CONSTR ("Auto", _, __)             , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , SystemProductName  ,     , OC_STRING_CONSTR ("MacPro6,1", _, __)        , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , SystemSerialNumber ,     , OC_STRING_CONSTR ("OPENCORE_SN1", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , SystemUuid         ,     , OC_STRING_CONSTR ("", _, __)                 , OC_DESTR (OC_STRING) )
-  OC_DECLARE (OC_PLATFORM_GENERIC_CONFIG)
-
 #define OC_PLATFORM_DATA_HUB_CONFIG_FIELDS(_, __) \
   _(UINT64                      , ARTFrequency        ,     , 0                                , () )                   \
   _(OC_STRING                   , BoardProduct        ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
@@ -435,6 +423,18 @@
   _(OC_STRING                   , SystemSerialNumber  ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SystemUuid          ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_PLATFORM_DATA_HUB_CONFIG)
+
+#define OC_PLATFORM_GENERIC_CONFIG_FIELDS(_, __) \
+  _(BOOLEAN                     , AdviseWindows      ,     , FALSE                                        , () )                   \
+  _(OC_STRING                   , Mlb                ,     , OC_STRING_CONSTR ("OPENCORE_MLB_SN11", _, __), OC_DESTR (OC_STRING) ) \
+  _(UINT16                      , ProcessorType      ,     , 0                                            , () )                   \
+  _(UINT8                       , Rom                , [6] , {0}                                          , () )                   \
+  _(BOOLEAN                     , SpoofVendor        ,     , FALSE                                        , () )                   \
+  _(OC_STRING                   , SystemMemoryStatus ,     , OC_STRING_CONSTR ("Auto", _, __)             , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , SystemProductName  ,     , OC_STRING_CONSTR ("MacPro6,1", _, __)        , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , SystemSerialNumber ,     , OC_STRING_CONSTR ("OPENCORE_SN1", _, __)     , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , SystemUuid         ,     , OC_STRING_CONSTR ("", _, __)                 , OC_DESTR (OC_STRING) )
+  OC_DECLARE (OC_PLATFORM_GENERIC_CONFIG)
 
 #define OC_PLATFORM_MEMORY_DEVICE_ENTRY_FIELDS(_, __) \
   _(OC_STRING                   , AssetTag            ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
