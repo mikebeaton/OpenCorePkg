@@ -441,10 +441,10 @@
   _(OC_STRING                   , BankLocator         ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , DeviceLocator       ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , Manufacturer        ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , PartNumber          ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) )
+  _(OC_STRING                   , PartNumber          ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SerialNumber        ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT32                      , Size                ,     , 0                                  , () )                   \
-  _(UINT16                      , Speed               ,     , 0                                  , () )                   \
+  _(UINT32                      , Size                ,     , 0                                  , () ) \
+  _(UINT16                      , Speed               ,     , 0                                  , () )
   OC_DECLARE (OC_PLATFORM_MEMORY_DEVICE_ENTRY)
 
 #define OC_PLATFORM_MEMORY_DEVICES_ARRAY_FIELDS(_, __) \
