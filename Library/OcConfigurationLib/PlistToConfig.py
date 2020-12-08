@@ -301,6 +301,19 @@ class OcSchemaElement:
 # Parsing
 #
 
+def plist_start(elem, tab):
+  plist_print('<', elem.tag, end='', tab=tab)
+
+def plist_attr(name, value):
+  if value is not None:
+    plist_print(' ', name, '="', value, '"', end='')
+
+def plist_end(elem, contents):
+  if contents is not None:
+    plist_print('>', contents, '</', elem.tag, '>')
+  else:
+    plist_print('/>')
+
 def plist_open(elem, tab):
   plist_print('<', elem.tag, '>', tab=tab)
 
@@ -308,10 +321,24 @@ def plist_close(elem, tab):
   plist_print('</', elem.tag, '>', tab=tab)
 
 def plist_open_close(elem, tab):
-  if elem.text is not None:
-    plist_print('<', elem.tag, '>', elem.text, '</', elem.tag, '>', tab=tab)
-  else:
-    plist_print('<', elem.tag, '/>', tab=tab)
+  plist_start(elem, tab)
+  plist_end(elem, elem.text)
+
+def check_key(parent, child, index):
+  if child.schema_type != 'key':
+    error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
+
+def parse_key(elem, tab):
+  path_spec = None
+
+  if 'path' in elem.attrib:
+    path_spec = elem.attrib['path']
+
+  plist_start(elem, tab)
+  plist_attr('path', path_spec)
+  plist_end(elem, elem.text)
+
+  return PlistKey(value=elem.text, path_spec=path_spec, tab=tab)
 
 def parse_data(elem, tab, path):
   schema_type = elem.attrib['type'] if 'type' in elem.attrib else None
@@ -352,11 +379,10 @@ def parse_data(elem, tab, path):
   elif schema_type == 'blob' and size is not None:
     error('size attribute not valid with schema_type="blob"')
 
-  plist_print('<', elem.tag, tab=tab, end='')
-  plist_print(' type="', schema_type, end='')
-  if size is not None:
-    plist_print('" size="', size, end='')
-  plist_print('">', data_print if data_print is not None else '[None]', '</', elem.tag, '>')
+  plist_start(elem, tab)
+  plist_attr('type', schema_type)
+  plist_attr('size', size)
+  plist_end(elem, data_print)
 
   if schema_type == 'blob':
     schema_type = 'oc_data'
@@ -392,10 +418,6 @@ def init_dict(elem, tab, map):
     error('Number of nodes in ', displayName, ' must be even')
 
   return count >> 1
-
-def check_key(parent, child, index):
-  if child.schema_type != 'key':
-    error('<key> required as ', 'first' if index == 0 else 'every even' , ' element of <', parent.tag, '>')
 
 def parse_map(elem, tab, path, key):
   count = init_dict(elem, tab, True)
@@ -463,23 +485,6 @@ def parse_plist(elem, tab, path, key):
 
   return child
 
-def parse_key(elem, tab):
-  display_name = elem.tag
-  path_spec = None
-
-  if 'path' in elem.attrib:
-    path_spec = elem.attrib['path']
-    display_name += ' path="' + path_spec + '"'
-
-  plist_print('<', display_name, end='', tab=tab)
-
-  if elem.text is not None:
-    plist_print('>', elem.text, '</', elem.tag, '>')
-  else:
-    plist_print('/>')
-
-  return PlistKey(value=elem.text, path_spec=path_spec, tab=tab)
-
 def parse_elem(elem, tab, path, key, indent = True, context = None):
   if tab == None:
     tab = 0
@@ -533,7 +538,7 @@ def file_close(handle):
     debug('Closing: ', handle)
     handle.close()
 
-def twice(flag, handle):
+def error_on_twice(flag, handle):
   if handle is not None:
     error(flag, ' specified twice')
 
@@ -619,10 +624,10 @@ for i in range(1, argc):
     debug(arg, ' ', handle)
 
     if arg == '-c':
-      twice(arg, c_file)
+      error_on_twice(arg, c_file)
       c_file = handle
     elif arg == '-h':
-      twice(arg, h_file)
+      error_on_twice(arg, h_file)
       h_file = handle
     else:
       internal_error('file flag error')
