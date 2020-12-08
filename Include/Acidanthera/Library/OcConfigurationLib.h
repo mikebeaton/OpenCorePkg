@@ -515,7 +515,6 @@
   _(OC_STRING                   , UpdateSmbiosMode ,     , OC_STRING_CONSTR ("Create", _, __)              , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_PLATFORM_CONFIG)
 
-
 /**
   Uefi section
 **/
