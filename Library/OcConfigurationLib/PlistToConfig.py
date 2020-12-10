@@ -27,7 +27,8 @@ SHOW_OC_SCHEMA = 0x04
 SHOW_DEBUG = 0x08
 # show additional context used in processing
 SHOW_CONTEXT = 0x10
-# use with SHOW_PLIST to re-create original plist file (i.e. strip the extra args)
+# use with SHOW_PLIST to re-create original plist file
+# (strips extra args and any hidden or removed elements)
 SHOW_ORIGINAL = 0x20
 
 flags = 0
@@ -140,6 +141,11 @@ VOID
 #endif // [[PREFIX]]_CONFIGURATION_LIB_H
 '''
 
+PLIST_HEADER = \
+'''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+'''
+
 ##
 # Errors and IO
 #
@@ -229,6 +235,15 @@ def context_print(*args, **kwargs):
 # Emit file elements
 #
 
+@dataclass
+class hc:
+  h: str
+  c: str
+
+  def __init__(self, h=None, c=None):
+    self.h = h
+    self.c = c
+
 def emit_section_name(h_name, c_name):
   print('/**', file = h_types)
   print('  %s' % h_name, file = h_types)
@@ -251,19 +266,19 @@ def emit_section(key):
 def emit_root_config_section():
   emit_section_name('Root configuration', 'Root configuration')
 
-def upper_path(path):
-  return '_'.join(p.upper() for p in path)
+def h_path(path):
+  return '_'.join(p.h for p in path)
 
 def set_def_name(elem, elem_type):
   use_path = elem.path.copy()
   if len(elem.path) == 0:
-    use_path.append('GLOBAL')
+    use_path.append(hc('GLOBAL'))
   if len(elem.path) <= 1:
-    use_path.append('CONFIG')
+    use_path.append(hc('CONFIG'))
   elif elem_type is not None:
-    use_path.append(elem_type)
-  upath = upper_path(use_path)
-  elem.reference = '%s_%s' % (upper_prefix, upath)
+    use_path.append(hc(elem_type))
+  upath = h_path(use_path)
+  elem.reference = hc('%s_%s' % (upper_prefix, upath))
 
 def emit_comment(elem):
   if elem.comment is not None:
@@ -295,8 +310,8 @@ def emit_field(elem, last):
     if elem.size is not None:
       constructor = '{%s}' % constructor
   elif elem.schema_type == 'OC_MAP' or elem.schema_type == 'OC_STRUCT' or elem.schema_type == 'OC_ARRAY':
-    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.reference)
-    destructor = 'OC_DESTR (%s)' % elem.reference
+    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.reference.h)
+    destructor = 'OC_DESTR (%s)' % elem.reference.h
     tab_destructor = 112
     tab_end = 149
   elif elem.schema_type == 'OC_DATA':
@@ -310,7 +325,7 @@ def emit_field(elem, last):
 
   tab_to(2, file = h_types)
   tab_print('_(', file = h_types)
-  tab_print(elem.reference, file = h_types)
+  tab_print(elem.reference.h, file = h_types)
 
   tab_to(36, file = h_types)
   tab_print(', ', elem.name, file = h_types)
@@ -356,17 +371,17 @@ def emit_struct(elem, context):
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
 
   last = len(elem.of) - 1
   for (i, of) in enumerate(elem.of):
     emit_field(of, i == last)
 
-  print('  OC_DECLARE (%s)' % elem.reference, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference.h, file = h_types)
   print(file = h_types)
 
   # .c structors
-  print('OC_STRUCTORS       (%s, ())' % elem.reference, file = c_structors)
+  print('OC_STRUCTORS       (%s, ())' % elem.reference.h, file = c_structors)
 
 def emit_array(elem, context):
   # skipped elements when outputting original plist
@@ -381,16 +396,16 @@ def emit_array(elem, context):
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
-  print('  OC_ARRAY (%s, _, __)' % elem.of.reference, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.reference , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % elem.of.reference.h, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference.h , file = h_types)
   print(file = h_types)
 
   # .c structors
   if context == 'map':
-    print('OC_STRUCTORS       (%s, ())' % elem.reference, file = c_structors)
+    print('OC_STRUCTORS       (%s, ())' % elem.reference.h, file = c_structors)
   else:
-    print('OC_ARRAY_STRUCTORS (%s)' % elem.reference, file = c_structors)
+    print('OC_ARRAY_STRUCTORS (%s)' % elem.reference.h, file = c_structors)
 
 def emit_map(elem):
   # skipped elements when outputting original plist
@@ -401,13 +416,13 @@ def emit_map(elem):
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference, file = h_types)
-  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.reference, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.reference , file = h_types)
+  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.reference.h, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.reference.h , file = h_types)
   print(file = h_types)
 
   # .c structors
-  print('OC_MAP_STRUCTORS   (%s)' % elem.reference, file = c_structors)
+  print('OC_MAP_STRUCTORS   (%s)' % elem.reference.h, file = c_structors)
 
 ##
 # Schema objects
@@ -433,7 +448,7 @@ class PlistKey:
   remove: bool
   hide: bool
   value: str
-  path_spec: str
+  node: str
   replace_name: str
 
   def __init__(
@@ -442,7 +457,7 @@ class PlistKey:
     remove: bool = None,
     hide: bool = None,
     value: str = None,
-    path_spec: str = None,
+    node: hc = None,
     replace_name: str = None,
     tab: int = 0
     ):
@@ -452,7 +467,7 @@ class PlistKey:
     self.value = value
     self.remove = remove
     self.hide = hide
-    self.path_spec = path_spec
+    self.node = node
     self.replace_name = replace_name
 
     plist_schema_print('[plist:key', tab=tab, end='')
@@ -460,18 +475,15 @@ class PlistKey:
     plist_schema_attr_print('value', value)
     plist_schema_attr_print('remove', remove)
     plist_schema_attr_print('hide', hide)
-    plist_schema_attr_print('path', path_spec)
+    plist_schema_attr_print('node', node)
     plist_schema_attr_print('name', replace_name)
     plist_schema_print(']')
-
-    if path_spec is None:
-      self.path_spec = value
 
 @dataclass
 class OcSchemaElement:
   schema_type: str
   name: str
-  path: str
+  path: hc
   data_type: str
   size: str
   comment: str
@@ -480,20 +492,20 @@ class OcSchemaElement:
   default: str
   of: object
   # .h file definition name, once emitted
-  reference: str
+  reference: hc
 
   def __init__(
     self,
     schema_type: str,
     name: str = None,
-    path: str = None,
+    path: hc = None,
     size: str = None,
     comment: str = None,
     value: str = None,
     remove: bool = None,
     default: str = None,
     of: object = None,
-    reference: str = None,
+    reference: hc = None,
     tab: int = 0
     ):
 
@@ -610,17 +622,25 @@ def parse_key(elem, tab, hide):
     hide = remove
   
   replace_name = consume_attr(elem, 'name', hide)
-  path_spec = consume_attr(elem, 'path', hide)
+  h_node = consume_attr(elem, 'node', hide)
   comment = consume_attr(elem, 'comment', hide)
   plist_attr('remove', str_remove, hide)
   plist_stop_then_close(elem, elem.text, hide)
 
-  return PlistKey(value=elem.text, replace_name=replace_name, path_spec=path_spec, comment=comment, remove=remove, hide=hide, tab=tab)
+  if replace_name is not None:
+    c_node = replace_name
+  else:
+    c_node = elem.text
+
+  if h_node is None:
+    h_node = c_node
+
+  return PlistKey(value=elem.text, replace_name=replace_name, node=hc(h_node.upper(), c_node), comment=comment, remove=remove, hide=hide, tab=tab)
 
 def parse_boolean(elem, tab, path, hide):
   default = consume_attr(elem, 'default', hide)
   plist_stop_then_close(elem, elem.text, hide, quick_close = True)
-  return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, default=default, tab=tab, path=path, reference='BOOLEAN')
+  return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, default=default, tab=tab, path=path, reference=hc('BOOLEAN'))
 
 def parse_string(elem, tab, path, hide):
   default = consume_attr(elem, 'default', hide)
@@ -634,7 +654,7 @@ def parse_string(elem, tab, path, hide):
     default = const
 
   plist_stop_then_close(elem, elem.text, hide)
-  return OcSchemaElement(schema_type='OC_STRING', value=elem.text, default=default, tab=tab, path=path, reference='OC_STRING')
+  return OcSchemaElement(schema_type='OC_STRING', value=elem.text, default=default, tab=tab, path=path, reference=hc('OC_STRING'))
 
 def parse_pointer(elem, tab, path, hide):
   to = consume_attr(elem, 'to', hide)
@@ -645,7 +665,7 @@ def parse_pointer(elem, tab, path, hide):
 
   reference = '%s *' % to.upper()
 
-  return OcSchemaElement(schema_type='OC_POINTER', tab=tab, path=path, reference=reference)
+  return OcSchemaElement(schema_type='OC_POINTER', tab=tab, path=path, reference=hc(reference))
 
 def parse_data(elem, tab, path, hide, is_integer = False):
   data_type = elem.attrib.get('type', None)
@@ -710,7 +730,7 @@ def parse_data(elem, tab, path, hide, is_integer = False):
   else:
     schema_type = 'DATA'
 
-  return OcSchemaElement(schema_type=schema_type, size=data_size, value=data_print, default=default, tab=tab, path=path, reference=reference)
+  return OcSchemaElement(schema_type=schema_type, size=data_size, value=data_print, default=default, tab=tab, path=path, reference=hc(reference))
 
 def skipping(elem, index, count, hide, tab):
   if flags & SHOW_ORIGINAL != 0:
@@ -735,7 +755,7 @@ def parse_array(elem, tab, path, hide, hide_children, context):
   index = 0
 
   if xref is not None:
-    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, reference=xref)
+    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, reference=hc(xref))
   else:
     if count == 0:
       error('No template for <array>')
@@ -768,7 +788,7 @@ def init_dict(elem, path, hide, hide_children, tab, map):
   plist_attr('type', 'map' if map else None, hide)
   comment = consume_attr(elem, 'comment', hide)
   xref = consume_attr(elem, 'xref', hide)
-  new_path = consume_attr(elem, 'path', hide)
+  node = consume_attr(elem, 'node', hide)
 
   if hide_children:
     plist_stop_then_close(elem, None, hide, True)
@@ -788,10 +808,10 @@ def init_dict(elem, path, hide, hide_children, tab, map):
     error('Number of nodes in <dict> must be even')
 
   # used where name of child needs to differ from name of parent
-  if new_path is not None:
+  if node is not None:
     replace_path = path.copy()
     del replace_path[-1]
-    replace_path.append(new_path)
+    replace_path.append(hc(node, node))
   else:
     replace_path = path
 
@@ -822,7 +842,7 @@ def parse_map(elem, tab, path, hide, hide_children):
     plist_close(elem, tab, hide)
 
   if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, reference = 'OC_ASSOC')
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, reference = hc('OC_ASSOC'))
   else:
     elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=replace_path, comment=comment)
     emit_map(elem_map)
@@ -833,7 +853,7 @@ def parse_struct(elem, tab, path, hide, hide_children, context):
 
   index = 0
   if xref is not None:
-    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, reference=xref)
+    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, reference=hc(xref))
   else:
     fields = []
 
@@ -852,7 +872,7 @@ def parse_struct(elem, tab, path, hide, hide_children, context):
       if path is not None and len(path) == 0:
         emit_section(key)
 
-      oc_child = parse_elem(elem[index], tab, path, hide_field, key.path_spec, context='struct')
+      oc_child = parse_elem(elem[index], tab, path, hide_field, next_node=key.node, context='struct')
       index += 1
 
       oc_child.apply_key(key, tab=tab)
@@ -885,7 +905,7 @@ def parse_plist(elem, tab, path, hide):
 
   return child
 
-def parse_elem(elem, tab, path, hide, next_path = None, indent = True, context = None):
+def parse_elem(elem, tab, path, hide, next_node = None, indent = True, context = None):
   if tab == None:
     tab = 0
 
@@ -900,8 +920,8 @@ def parse_elem(elem, tab, path, hide, next_path = None, indent = True, context =
     # copy even if not modifying here (children may modify, we don't want to share)
     replace_path = path.copy()
 
-    if next_path is not None:
-      replace_path.append(next_path) # NB modifies list, returns None
+    if next_node is not None:
+      replace_path.append(next_node) # append modifies list, returns None
 
   # shared processing
   hide_children = None
@@ -1090,9 +1110,8 @@ root = ET.parse(plist_filename).getroot()
 
 # process into string buffers
 debug('Parsing plist in memory')
-if flags & SHOW_ORIGINAL is not None:
-  plist_print('<?xml version="1.0" encoding="UTF-8"?>')
-  plist_print('<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">')
+if flags & SHOW_ORIGINAL != 0:
+  plist_print(PLIST_HEADER, end='')
 parse_elem(root, None, [], False, indent=False)
 
 # write output

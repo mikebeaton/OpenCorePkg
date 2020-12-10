@@ -213,7 +213,7 @@
 	</dict>
 	<key comment="Apple bootloader">Booter</key>
 	<dict comment="Apple bootloader config">
-		<key path="WL">MmioWhitelist</key>
+		<key node="WL">MmioWhitelist</key>
 		<array>
 			<dict comment="MMIO whitelist">
 				<key>Address</key>
@@ -299,7 +299,7 @@
 			<false/>
 		</dict>
 	</dict>
-	<key path="DEV_PROP">DeviceProperties</key>
+	<key node="DEV_PROP">DeviceProperties</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map" comment="Device properties is an associative map of devices with their property key value maps">
@@ -745,7 +745,7 @@
 	</dict>
 	<key>Misc</key>
 	<dict>
-		<key path="BLESS">BlessOverride</key>
+		<key node="BLESS">BlessOverride</key>
 		<array hide="children">
 			<string></string>
 		</array>
@@ -951,7 +951,7 @@
 		<false/>
 		<key>LegacyOverwrite</key>
 		<false/>
-		<key path="LEGACY" name="Legacy">LegacySchema</key>
+		<key node="LEGACY" name="Legacy">LegacySchema</key>
 		<dict type="map">
 			<key>7C436110-AB2A-4BBB-A880-FE41995C9F82</key>
 			<array>
@@ -982,13 +982,13 @@
 		<key>WriteFlash</key>
 		<true/>
 	</dict>
-	<key path="PLATFORM" comment="Platform information">PlatformInfo</key>
+	<key node="PLATFORM" comment="Platform information">PlatformInfo</key>
 	<dict>
 		<key>Automatic</key>
 		<false/>
 		<key>CustomMemory</key>
 		<true/>
-		<key path="DATA_HUB_CONFIG">DataHub</key>
+		<key node="DATA_HUB_CONFIG">DataHub</key>
 		<dict>
 			<key>ARTFrequency</key>
 			<integer type="uint64">0</integer>
@@ -1019,7 +1019,7 @@
 			<key name="SystemUuid">SystemUUID</key>
 			<string>00000000-0000-0000-0000-000000000000</string>
 		</dict>
-		<key path="GENERIC_CONFIG">Generic</key>
+		<key node="GENERIC_CONFIG">Generic</key>
 		<dict>
 			<key>AdviseWindows</key>
 			<false/>
@@ -1041,12 +1041,12 @@
 			<string></string>
 		</dict>
 		<key>Memory</key>
-		<dict path="MEMORY_CONFIG">
+		<dict node="MEMORY_CONFIG">
 			<key>DataWidth</key>
 			<integer default="0xFFFF" type="uint16">64</integer>
 			<key>Devices</key>
 			<array>
-				<dict path="DEVICE">
+				<dict node="DEVICE">
 					<key>AssetTag</key>
 					<string default="Unknown">123456789</string>
 					<key>BankLocator</key>
@@ -1132,7 +1132,7 @@
 			<key>TypeDetail</key>
 			<integer default="0x4" type="uint16">128</integer>
 		</dict>
-		<key path="NVRAM_CONFIG" name="Nvram">PlatformNVRAM</key>
+		<key node="NVRAM_CONFIG" name="Nvram">PlatformNVRAM</key>
 		<dict>
 			<key name="Bid">BID</key>
 			<string>Mac-AA95B1DDAB278B95</string>
@@ -1147,7 +1147,7 @@
 			<key name="SystemUuid">SystemUUID</key>
 			<string>00000000-0000-0000-0000-000000000000</string>
 		</dict>
-		<key path="SMBIOS_CONFIG" name="Smbios">SMBIOS</key>
+		<key node="SMBIOS_CONFIG" name="Smbios">SMBIOS</key>
 		<dict>
 			<key>BIOSReleaseDate</key>
 			<string>10/19/2020</string>
@@ -1249,7 +1249,7 @@
 		</dict>
 		<key>ConnectDrivers</key>
 		<true/>
-		<key path="DRIVER">Drivers</key>
+		<key node="DRIVER">Drivers</key>
 		<array comment="Drivers is a sorted array of strings containing driver paths">
 			<string>HfsPlus.efi</string>
 			<string>OpenRuntime.efi</string>
@@ -1314,7 +1314,7 @@
 			<key>UgaPassThrough</key>
 			<false/>
 		</dict>
-		<key path="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
+		<key node="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
 		<dict comment="Prefer own protocol implementation for these protocols">
 			<key>AppleAudio</key>
 			<false/>
@@ -1370,7 +1370,7 @@
 			<key>UnblockFsConnect</key>
 			<false/>
 		</dict>
-		<key path="RSVD">ReservedMemory</key>
+		<key node="RSVD">ReservedMemory</key>
 		<array>
 			<dict comment="Reserved memory entries adds">
 				<key>Address</key>
