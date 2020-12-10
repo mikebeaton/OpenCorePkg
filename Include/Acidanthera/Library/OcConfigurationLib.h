@@ -111,6 +111,27 @@
   OC_DECLARE (OC_BOOTER_WL_ARRAY)
 
 ///
+/// Bootloader patches.
+///
+#define OC_BOOTER_PATCH_ENTRY_FIELDS(_, __) \
+  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __), OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Count            ,     , 0                           , ()                   ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
+  _(OC_DATA                     , Find             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
+  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Limit            ,     , 0                           , ()                   ) \
+  _(OC_DATA                     , Mask             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
+  _(OC_DATA                     , Replace          ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
+  _(OC_DATA                     , ReplaceMask      ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
+  _(UINT32                      , Skip             ,     , 0                           , ()                   )
+  OC_DECLARE (OC_BOOTER_PATCH_ENTRY)
+
+#define OC_BOOTER_PATCH_ARRAY_FIELDS(_, __) \
+  OC_ARRAY (OC_BOOTER_PATCH_ENTRY, _, __)
+  OC_DECLARE (OC_BOOTER_PATCH_ARRAY)
+
+///
 /// Apple bootloader quirks.
 ///
 #define OC_BOOTER_QUIRKS_FIELDS(_, __) \
@@ -139,6 +160,7 @@
 ///
 #define OC_BOOTER_CONFIG_FIELDS(_, __) \
   _(OC_BOOTER_WL_ARRAY          , MmioWhitelist    ,     , OC_CONSTR2 (OC_BOOTER_WL_ARRAY, _, __)      , OC_DESTR (OC_BOOTER_WL_ARRAY)) \
+  _(OC_BOOTER_PATCH_ARRAY       , Patch            ,     , OC_CONSTR2 (OC_BOOTER_PATCH_ARRAY, _, __)   , OC_DESTR (OC_BOOTER_PATCH_ARRAY)) \
   _(OC_BOOTER_QUIRKS            , Quirks           ,     , OC_CONSTR2 (OC_BOOTER_QUIRKS, _, __)        , OC_DESTR (OC_BOOTER_QUIRKS))
   OC_DECLARE (OC_BOOTER_CONFIG)
 
@@ -537,11 +559,11 @@
 ///
 #define OC_UEFI_AUDIO_FIELDS(_, __) \
   _(UINT8                       , AudioCodec         ,     , 0                             , ()) \
-  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
   _(UINT8                       , AudioOut           ,     , 0                             , ()) \
   _(BOOLEAN                     , AudioSupport       ,     , FALSE                         , ()) \
   _(UINT8                       , MinimumVolume      ,     , 0                             , ()) \
-  _(BOOLEAN                     , PlayChime          ,     , FALSE                         , ()) \
+  _(OC_STRING                   , PlayChime          ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
   _(UINT16                      , VolumeAmplifier    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_AUDIO)
 

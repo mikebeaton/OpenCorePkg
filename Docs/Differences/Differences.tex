@@ -1,7 +1,7 @@
 \documentclass[]{article}
 %DIF LATEXDIFF DIFFERENCE FILE
-%DIF DEL PreviousConfiguration.tex   Sun Nov 29 23:41:31 2020
-%DIF ADD ../Configuration.tex        Mon Nov 30 00:46:56 2020
+%DIF DEL PreviousConfiguration.tex   Sat Dec  5 13:56:03 2020
+%DIF ADD ../Configuration.tex        Sun Dec  6 18:37:34 2020
 
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
@@ -1324,7 +1324,18 @@ To view their current state use \texttt{pmset -g} command in Terminal.
   section below.
 
 \item
-  \texttt{Quirks}\\
+  \DIFaddbegin \texttt{\DIFadd{Patch}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ array}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Perform binary patches in booter.
+  }
+
+  \DIFadd{Designed to be filled with }\texttt{\DIFadd{plist\ dictionary}} \DIFadd{values, describing each
+  patch. See }\hyperref[booterpropspatch]{Patch Properties} \DIFadd{section below.
+}
+
+\item
+  \DIFaddend \texttt{Quirks}\\
   \textbf{Type}: \texttt{plist\ dict}\\
   \textbf{Description}: Apply individual booter quirks described
   in \hyperref[booterpropsquirks]{Quirks Properties} section below.
@@ -1364,7 +1375,103 @@ To view their current state use \texttt{pmset -g} command in Terminal.
 
 \end{enumerate}
 
-\subsection{Quirks Properties}\label{booterpropsquirks}
+\DIFaddbegin \subsection{\DIFadd{Patch Properties}}\label{booterpropspatch}
+
+\begin{enumerate}
+\item
+  \texttt{\DIFadd{Arch}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ string}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: }\texttt{\DIFadd{Any}}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Booter patch architecture (}\texttt{\DIFadd{Any}}\DIFadd{, }\texttt{\DIFadd{i386}}\DIFadd{, }\texttt{\DIFadd{x86\_64}}\DIFadd{).
+}
+
+\item
+  \texttt{\DIFadd{Comment}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ string}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty string}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Arbitrary ASCII string used to provide human readable
+  reference for the entry. It is implementation defined whether this value is
+  used.
+}
+
+\item
+  \texttt{\DIFadd{Count}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ integer}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: }\texttt{\DIFadd{0}}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Number of patch occurrences to apply. }\texttt{\DIFadd{0}} \DIFadd{applies
+  the patch to all occurrences found.
+}
+
+\item
+  \texttt{\DIFadd{Enabled}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ boolean}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: }\texttt{\DIFadd{false}}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: This booter patch will not be used unless set to
+  }\texttt{\DIFadd{true}}\DIFadd{.
+}
+
+\item
+  \texttt{\DIFadd{Find}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ data}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty data}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Data to find. This must equal to }\texttt{\DIFadd{Replace}} \DIFadd{in size.
+}
+
+\item
+  \texttt{\DIFadd{Identifier}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ string}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty string}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: }\texttt{\DIFadd{Apple}} \DIFadd{for macOS booter (generally }\texttt{\DIFadd{boot.efi}}\DIFadd{);
+  or a name with suffix (e.g. }\texttt{\DIFadd{bootmgfw.efi}}\DIFadd{) for a specific booter;
+  or }\texttt{\DIFadd{Any}} \DIFadd{/ empty string (failsafe) to match any booter.
+}
+
+\item
+  \texttt{\DIFadd{Limit}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ integer}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: }\texttt{\DIFadd{0}}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Maximum number of bytes to search for. Can be set to
+  }\texttt{\DIFadd{0}} \DIFadd{to look through the whole booter.
+}
+
+\item
+  \texttt{\DIFadd{Mask}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ data}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty data}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Data bitwise mask used during find comparison.
+  Allows fuzzy search by ignoring not masked (set to zero) bits. Can be
+  set to empty data to be ignored. Must equal to }\texttt{\DIFadd{Find}} \DIFadd{in size
+  otherwise.
+}
+
+\item
+  \texttt{\DIFadd{Replace}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ data}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty data}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Replacement data of one or more bytes.
+}
+
+\item
+  \texttt{\DIFadd{ReplaceMask}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ data}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: Empty data}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Data bitwise mask used during replacement.
+  Allows fuzzy replacement by updating masked (set to non-zero) bits. Can be
+  set to empty data to be ignored. Must equal to }\texttt{\DIFadd{Replace}} \DIFadd{in size
+  otherwise.
+}
+
+\item
+  \texttt{\DIFadd{Skip}}\\
+  \textbf{\DIFadd{Type}}\DIFadd{: }\texttt{\DIFadd{plist\ integer}}\\
+  \textbf{\DIFadd{Failsafe}}\DIFadd{: }\texttt{\DIFadd{0}}\\
+  \textbf{\DIFadd{Description}}\DIFadd{: Number of found occurrences to be skipped before replacement
+  is done.
+}
+
+\end{enumerate}
+
+\DIFaddend \subsection{Quirks Properties}\label{booterpropsquirks}
 
 \begin{enumerate}
 
@@ -2990,7 +3097,8 @@ entry choice will update till next manual reconfiguration.
     For all other entries OpenCore will try to load a volume icon and fallback to the default icon:
     \begin{itemize}
     \tightlist
-      \item \texttt{.VolumeIcon.icns} file at \texttt{Preboot} root for APFS.
+      \item \texttt{.VolumeIcon.icns} file at \texttt{Preboot} \DIFaddbegin \DIFadd{volume directory for APFS (if present).
+      }\item \texttt{\DIFadd{.VolumeIcon.icns}} \DIFadd{file at }\texttt{\DIFadd{Preboot}} \DIFaddend root for APFS \DIFaddbegin \DIFadd{(otherwise)}\DIFaddend .
       \item \texttt{.VolumeIcon.icns} file at volume root for other filesystems.
     \end{itemize} \medskip
 
@@ -3012,7 +3120,10 @@ entry choice will update till next manual reconfiguration.
   \item \texttt{0x0008} --- \texttt{OC\_ATTR\_USE\_ALTERNATE\_ICONS}, changes used icon set to
     an alternate one if it is supported. For example, this could make a use of old-style icons
     with a custom background colour.
-  \end{itemize}
+  \DIFaddbegin \item \texttt{\DIFadd{0x0010}} \DIFadd{--- }\texttt{\DIFadd{OC\_ATTR\_USE\_POINTER\_CONTROL}}\DIFadd{, enable pointer control
+  in the picker when available. For example, this could make use of mouse or trackpad to
+  control UI elements.
+  }\DIFaddend \end{itemize}
 
 \item
   \texttt{PickerAudioAssist}\\
@@ -3501,11 +3612,12 @@ diskutil mount -mountpoint /var/tmp/OSPersonalizationTemp $disk
   \item \texttt{None} --- do nothing.
   \item \texttt{Bootstrap} --- create or update top-priority
   \texttt{\textbackslash EFI\textbackslash OC\textbackslash Bootstrap\textbackslash Bootstrap.efi}
-  boot option (\texttt{Boot9696}) in UEFI variable storage at bootloader startup. For this option
+  boot option \DIFdelbegin \DIFdel{(}\texttt{\DIFdel{Boot9696}}%DIFAUXCMD
+\DIFdel{) }\DIFdelend in UEFI variable storage at bootloader startup. For this option
   to work \texttt{RequestBootVarRouting} is required to be enabled.
   \DIFaddbegin \item \texttt{\DIFadd{BootstrapShort}} \DIFadd{--- create a short boot option instead of a complete one,
-  otherwise equivalent to }\texttt{\DIFadd{Bootstrap}}\DIFadd{. This variant is useful for some Insyde firmwares,
-  which cannot handle full device paths.
+  otherwise equivalent to }\texttt{\DIFadd{Bootstrap}}\DIFadd{. This variant is useful for some older firmwares,
+  Insyde in particular, but possibly others, which cannot handle full device paths.
   }\DIFaddend \end{itemize}
 
   This option provides integration with third-party operating system installation and upgrade
@@ -3520,7 +3632,9 @@ diskutil mount -mountpoint /var/tmp/OSPersonalizationTemp $disk
   for some known issues with Haswell and other boards.
 
   \emph{Note 2}: Be aware that while NVRAM reset executed from OpenCore should not erase the boot
-  option created in \texttt{Bootstrap}, executing NVRAM reset prior to loading OpenCore will remove it.
+  option created in \texttt{Bootstrap}, executing NVRAM reset prior to loading OpenCore will remove it. \DIFaddbegin \DIFadd{For significant implementation updates (e.g. in OpenCore 0.6.4) make sure to perform
+  NVRAM reset with }\texttt{\DIFadd{Bootstrap}} \DIFadd{disabled before reenabling.
+}\DIFaddend 
 
 \item \label{securedmgloading}
   \texttt{DmgLoading}\\
@@ -3786,23 +3900,23 @@ rm vault.pub
   \tightlist
   \item \texttt{Default} --- Recent available model, currently set to \texttt{j137}.
   \item \texttt{Disabled} --- No model, Secure Boot will be disabled.
-  \item \texttt{j137} --- \texttt{iMacPro1,1 (December 2017) minimum macOS 10.13.2 (17C2111)}
-  \item \texttt{j680} --- \texttt{MacBookPro15,1 (July 2018) minimum macOS 10.13.6 (17G2112)}
-  \item \texttt{j132} --- \texttt{MacBookPro15,2 (July 2018) minimum macOS 10.13.6 (17G2112)}
-  \item \texttt{j174} --- \texttt{Macmini8,1 (October 2018) minimum macOS 10.14 (18A2063)}
-  \item \texttt{j140k} --- \texttt{MacBookAir8,1 (October 2018) minimum macOS 10.14.1 (18B2084)}
-  \item \texttt{j780} --- \texttt{MacBookPro15,3 (May 2019)  minimum macOS 10.14.5 (18F132)}
-  \item \texttt{j213} --- \texttt{MacBookPro15,4 (July 2019) minimum macOS 10.14.5 (18F2058)}
-  \item \texttt{j140a} --- \texttt{MacBookAir8,2 (July 2019) minimum macOS 10.14.5 (18F2058)}
-  \item \texttt{j152f} --- \texttt{MacBookPro16,1 (November 2019) minimum macOS 10.15.1 (19B2093)}
-  \item \texttt{j160} --- \texttt{MacPro7,1 (December 2019) minimum macOS 10.15.1 (19B88)}
-  \item \texttt{j230k} --- \texttt{MacBookAir9,1 (March 2020) minimum macOS 10.15.3 (19D2064)}
-  \item \texttt{j214k} --- \texttt{MacBookPro16,2 (May 2020) minimum macOS 10.15.4 (19E2269)}
-  \item \texttt{j223} --- \texttt{MacBookPro16,3 (May 2020) minimum macOS 10.15.4 (19E2265)}
-  \item \texttt{j215} --- \texttt{MacBookPro16,4 (June 2020) minimum macOS 10.15.5 (19F96)}
-  \item \texttt{j185} --- \texttt{iMac20,1 (August 2020) minimum macOS 10.15.6 (19G2005)}
-  \item \texttt{j185f} --- \texttt{iMac20,2 (August 2020) minimum macOS 10.15.6 (19G2005)}
-  \item \texttt{x86legacy} --- \texttt{Macs and VMs without T2 chip minimum macOS 11.0\DIFaddbegin \DIFadd{.1 (20B29)}\DIFaddend }
+  \item \texttt{j137} --- \texttt{iMacPro1,1 (December 2017)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.13.2 (17C2111)}
+  \item \texttt{j680} --- \texttt{MacBookPro15,1 (July 2018)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.13.6 (17G2112)}
+  \item \texttt{j132} --- \texttt{MacBookPro15,2 (July 2018)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.13.6 (17G2112)}
+  \item \texttt{j174} --- \texttt{Macmini8,1 (October 2018)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.14 (18A2063)}
+  \item \texttt{j140k} --- \texttt{MacBookAir8,1 (October 2018)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.14.1 (18B2084)}
+  \item \texttt{j780} --- \texttt{MacBookPro15,3 (May 2019)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.14.5 (18F132)}
+  \item \texttt{j213} --- \texttt{MacBookPro15,4 (July 2019)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.14.5 (18F2058)}
+  \item \texttt{j140a} --- \texttt{MacBookAir8,2 (July 2019)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.14.5 (18F2058)}
+  \item \texttt{j152f} --- \texttt{MacBookPro16,1 (November 2019)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.1 (19B2093)}
+  \item \texttt{j160} --- \texttt{MacPro7,1 (December 2019)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.1 (19B88)}
+  \item \texttt{j230k} --- \texttt{MacBookAir9,1 (March 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.3 (19D2064)}
+  \item \texttt{j214k} --- \texttt{MacBookPro16,2 (May 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.4 (19E2269)}
+  \item \texttt{j223} --- \texttt{MacBookPro16,3 (May 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.4 (19E2265)}
+  \item \texttt{j215} --- \texttt{MacBookPro16,4 (June 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.5 (19F96)}
+  \item \texttt{j185} --- \texttt{iMac20,1 (August 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.6 (19G2005)}
+  \item \texttt{j185f} --- \texttt{iMac20,2 (August 2020)\DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{. Minimum }\DIFaddend macOS 10.15.6 (19G2005)}
+  \item \texttt{x86legacy} --- \texttt{Macs \DIFdelbegin \DIFdel{and VMs }\DIFdelend without T2 chip \DIFdelbegin \DIFdel{minimum }\DIFdelend \DIFaddbegin \DIFadd{and VMs. Minimum }\DIFaddend macOS 11.0\DIFaddbegin \DIFadd{.1 (20B29)}\DIFaddend }
   \end{itemize}
 
   Apple Secure Boot appeared in macOS 10.13 on models with T2 chips.
@@ -4218,9 +4332,9 @@ troubleshooting:
   \item \texttt{debug=VALUE} (debug mask)
   \item \texttt{io=VALUE} (\texttt{IOKit} debug mask)
   \item \texttt{keepsyms=1} (show panic log debug symbols)
-  \item \texttt{kextlog=VALUE} (kernel extension loading debug mask\DIFaddbegin \DIFadd{)
-  }\item \texttt{\DIFadd{nvram-log=1}} \DIFadd{(enables AppleEFINVRAM logs}\DIFaddend )
-  \item \texttt{nv\_disable=1} (disables NVIDIA GPU acceleration)
+  \item \texttt{kextlog=VALUE} (kernel extension loading debug mask)
+  \item \DIFaddbegin \texttt{\DIFadd{nvram-log=1}} \DIFadd{(enables AppleEFINVRAM logs)
+  }\item \DIFaddend \texttt{nv\_disable=1} (disables NVIDIA GPU acceleration)
   \item \texttt{nvda\_drv=1} (legacy way to enable NVIDIA web driver, removed in 10.12)
   \item \texttt{npci=0x2000} (\href{https://www.insanelymac.com/forum/topic/260539-1068-officially-released/?do=findComment&comment=1707972}{legacy}, disables \texttt{kIOPCIConfiguratorPFM64})
   \item \texttt{lapic\_dont\_panic=1}
@@ -4377,9 +4491,10 @@ troubleshooting:
   \break
   Mute startup chime sound in firmware audio support. 8-bit integer.
   The value of \texttt{0x00} means unmuted. Missing variable or any
-  other value means muted. This variable only affects Gibraltar
+  other value means muted.
+\DIFdelbegin \DIFdel{This variable only affects Gibraltar
   machines (T2).
-\item
+}\DIFdelend \item
   \texttt{7C436110-AB2A-4BBB-A880-FE41995C9F82:SystemAudioVolume}
   \break
   System audio volume level for firmware audio support. 8-bit integer.
@@ -5877,16 +5992,26 @@ functioning. Feature highlights:
 
 \item
   \texttt{PlayChime}\\
-  \textbf{Type}: \texttt{plist\ boolean}\\
-  \textbf{Failsafe}: \texttt{false}\\
+  \textbf{Type}: \texttt{plist\ \DIFdelbegin \DIFdel{boolean}\DIFdelend \DIFaddbegin \DIFadd{string}\DIFaddend }\\
+  \textbf{Failsafe}: \DIFdelbegin \texttt{\DIFdel{false}}%DIFAUXCMD
+\DIFdelend \DIFaddbegin \DIFadd{empty string}\DIFaddend \\
   \textbf{Description}: Play chime sound at startup.
 
   Enabling this setting plays boot chime through builtin audio support. Volume level
   is determined by \texttt{MinimumVolume} and \texttt{VolumeAmplifier} settings and
-  \texttt{SystemAudioVolume} NVRAM variable.
+  \texttt{SystemAudioVolume} NVRAM variable. \DIFaddbegin \DIFadd{Possible values include:
+}\DIFaddend 
 
-  \emph{Note}: this setting is separate from \texttt{StartupMute} NVRAM variable
-  to avoid conflicts when the firmware is able to play boot chime.
+  \DIFaddbegin \begin{itemize}
+    \tightlist
+    \item \texttt{\DIFadd{Auto}} \DIFadd{--- Enables chime when }\texttt{\DIFadd{StartupMute}} \DIFadd{NVRAM variable
+      is not present or set to }\texttt{\DIFadd{00}}\DIFadd{.
+    }\item \texttt{\DIFadd{Enabled}} \DIFadd{--- Enables chime unconditionally.
+    }\item \texttt{\DIFadd{Disabled}} \DIFadd{--- Disables chime unconditionally.
+  }\end{itemize}
+
+  \DIFaddend \emph{Note}: \DIFdelbegin \DIFdel{this setting is }\DIFdelend \DIFaddbegin \texttt{\DIFadd{Enabled}} \DIFadd{can be used in }\DIFaddend separate from \texttt{StartupMute}
+  NVRAM variable to avoid conflicts when the firmware is able to play boot chime.
 
 \item
   \texttt{VolumeAmplifier}\\

@@ -17,6 +17,14 @@ OpenCore Changelog
 - Fixed `DisableSingleUser` quirk when Apple Secure Boot is enabled
 - Added `BootstrapShort` to workaround buggy Insyde firmwares
 - Changed `Bootstrap(Short)` to choose dynamic entry (requires NVRAM reset)
+- Avoided `Boot` prefix in `RequestBootVarRouting` to workaround AMI issues
+- Added bootloader patch support in `Booter` `Patch` section
+- Fixed startup hang on firmwares allowong reentrance for timer functions
+- Made pointer control optional for OpenCanopy via `PickerAttributes`
+- Added support for `StartupMute` variable in `PlayChime`
+- Added support for per-volume icons for APFS on Preboot
+- Removed HII dependency from OpenUsbKbDxe driver
+- Fixed undefined behavior in OpenDuet causing random crashes and hangs
 
 #### v0.6.3
 - Added support for xml comments in plist files
