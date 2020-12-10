@@ -232,6 +232,33 @@
 				<false/>
 			</dict>
 		</array>
+		<key>Patch</key>
+		<array>
+			<dict comment="Bootloader patches">
+				<key>Arch</key>
+				<string default="Any">Any</string>
+				<key>Comment</key>
+				<string>macOS to hacOS</string>
+				<key>Count</key>
+				<integer>1</integer>
+				<key>Enabled</key>
+				<false/>
+				<key>Find</key>
+				<data type="blob">bWFjT1M=</data>
+				<key>Identifier</key>
+				<string>Apple</string>
+				<key>Limit</key>
+				<integer>0</integer>
+				<key>Mask</key>
+				<data></data>
+				<key>Replace</key>
+				<data type="blob">aGFjT1M=</data>
+				<key>ReplaceMask</key>
+				<data></data>
+				<key>Skip</key>
+				<integer>0</integer>
+			</dict>
+		</array>
 		<key>Quirks</key>
 		<dict comment="Apple bootloader quirks">
 			<key>AllowRelocationBlock</key>
@@ -731,7 +758,7 @@
 			<key>HideAuxiliary</key>
 			<false/>
 			<key>PickerAttributes</key>
-			<integer>1</integer>
+			<integer>17</integer>
 			<key>PickerAudioAssist</key>
 			<false/>
 			<key>PickerMode</key>
@@ -796,7 +823,7 @@
 			<key>BlacklistAppleUpdate</key>
 			<true/>
 			<key>BootProtect</key>
-			<string default="None">Bootstrap</string>
+			<string default="None">None</string>
 			<key>DmgLoading</key>
 			<string default="Signed">Signed</string>
 			<key>EnablePassword</key>
@@ -1216,7 +1243,7 @@
 			<key>MinimumVolume</key>
 			<integer type="uint8">20</integer>
 			<key>PlayChime</key>
-			<false/>
+			<string>Auto</string>
 			<key>VolumeAmplifier</key>
 			<integer type="uint16">0</integer>
 		</dict>
