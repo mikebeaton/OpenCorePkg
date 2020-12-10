@@ -98,10 +98,8 @@
 **/
 
 ///
-/// Apple bootloader quirks.
+/// MMIO whitelist.
 ///
-
-
 #define OC_BOOTER_WL_ENTRY_FIELDS(_, __) \
   _(UINT64                      , Address          ,     , 0       , ()) \
   _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
@@ -112,6 +110,9 @@
   OC_ARRAY (OC_BOOTER_WL_ENTRY, _, __)
   OC_DECLARE (OC_BOOTER_WL_ARRAY)
 
+///
+/// Apple bootloader quirks.
+///
 #define OC_BOOTER_QUIRKS_FIELDS(_, __) \
   _(BOOLEAN                     , AllowRelocationBlock      ,     , FALSE  , ()) \
   _(BOOLEAN                     , AvoidRuntimeDefrag        ,     , FALSE  , ()) \
@@ -134,7 +135,7 @@
   OC_DECLARE (OC_BOOTER_QUIRKS)
 
 ///
-/// Apple bootloader section.
+/// Apple bootloader config.
 ///
 #define OC_BOOTER_CONFIG_FIELDS(_, __) \
   _(OC_BOOTER_WL_ARRAY          , MmioWhitelist    ,     , OC_CONSTR2 (OC_BOOTER_WL_ARRAY, _, __)      , OC_DESTR (OC_BOOTER_WL_ARRAY)) \
@@ -404,7 +405,7 @@
   OC_DECLARE (OC_NVRAM_CONFIG)
 
 /**
-  Platform information configuration
+  Platform information section
 **/
 
 #define OC_PLATFORM_DATA_HUB_CONFIG_FIELDS(_, __) \
