@@ -28,9 +28,9 @@
 /// ACPI added tables.
 ///
 #define OC_ACPI_ADD_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE   , () ) \
-  _(OC_STRING                   , Path             ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) )
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE   , ()) \
+  _(OC_STRING                   , Path             ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_ACPI_ADD_ENTRY)
 
 #define OC_ACPI_ADD_ARRAY_FIELDS(_, __) \
@@ -41,12 +41,12 @@
 /// ACPI table deletion.
 ///
 #define OC_ACPI_DELETE_ENTRY_FIELDS(_, __) \
-  _(BOOLEAN                     , All              ,     , FALSE   , () ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE   , () ) \
-  _(UINT8                       , OemTableId       , [8] , {0}     , () ) \
-  _(UINT32                      , TableLength      ,     , 0       , () ) \
-  _(UINT8                       , TableSignature   , [4] , {0}     , () )
+  _(BOOLEAN                     , All              ,     , FALSE   , ()) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE   , ()) \
+  _(UINT8                       , OemTableId       , [8] , {0}     , ()) \
+  _(UINT32                      , TableLength      ,     , 0       , ()) \
+  _(UINT8                       , TableSignature   , [4] , {0}     , ())
   OC_DECLARE (OC_ACPI_DELETE_ENTRY)
 
 #define OC_ACPI_DELETE_ARRAY_FIELDS(_, __) \
@@ -57,18 +57,18 @@
 /// ACPI patches.
 ///
 #define OC_ACPI_PATCH_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT32                      , Count            ,     , 0                           , ()                   ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Count            ,     , 0                           , ())                    \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ())                    \
   _(OC_DATA                     , Find             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(UINT32                      , Limit            ,     , 0                           , ()                   ) \
+  _(UINT32                      , Limit            ,     , 0                           , ())                    \
   _(OC_DATA                     , Mask             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(UINT8                       , OemTableId       , [8] , {0}                         , ()                   ) \
+  _(UINT8                       , OemTableId       , [8] , {0}                         , ())                    \
   _(OC_DATA                     , Replace          ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
   _(OC_DATA                     , ReplaceMask      ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(UINT32                      , Skip             ,     , 0                           , ()                   ) \
-  _(UINT32                      , TableLength      ,     , 0                           , ()                   ) \
-  _(UINT8                       , TableSignature   , [4] , {0}                         , ()                   )
+  _(UINT32                      , Skip             ,     , 0                           , ())                    \
+  _(UINT32                      , TableLength      ,     , 0                           , ())                    \
+  _(UINT8                       , TableSignature   , [4] , {0}                         , ())
   OC_DECLARE (OC_ACPI_PATCH_ENTRY)
 
 #define OC_ACPI_PATCH_ARRAY_FIELDS(_, __) \
@@ -103,9 +103,9 @@
 
 
 #define OC_BOOTER_WL_ENTRY_FIELDS(_, __) \
-  _(UINT64                      , Address          ,     , 0       , () ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE   , () )
+  _(UINT64                      , Address          ,     , 0       , ()) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE   , ())
   OC_DECLARE (OC_BOOTER_WL_ENTRY)
 
 #define OC_BOOTER_WL_ARRAY_FIELDS(_, __) \
@@ -173,19 +173,19 @@
 /// KernelSpace kext adds.
 ///
 #define OC_KERNEL_ADD_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , BundlePath       ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
-  _(OC_STRING                   , ExecutablePath   ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , BundlePath       ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ())                    \
+  _(OC_STRING                   , ExecutablePath   ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
   _(UINT8 *                     , ImageData        ,     , NULL                        , OcFreePointer        ) \
-  _(UINT32                      , ImageDataSize    ,     , 0                           , ()                   ) \
-  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , ImageDataSize    ,     , 0                           , ())                    \
+  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
   _(CHAR8 *                     , PlistData        ,     , NULL                        , OcFreePointer        ) \
-  _(UINT32                      , PlistDataSize    ,     , 0                           , ()                   ) \
-  _(OC_STRING                   , PlistPath        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) )
+  _(UINT32                      , PlistDataSize    ,     , 0                           , ())                    \
+  _(OC_STRING                   , PlistPath        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_KERNEL_ADD_ENTRY)
 
 #define OC_KERNEL_ADD_ARRAY_FIELDS(_, __) \
@@ -196,12 +196,12 @@
 /// KernelSpace kext blocks.
 ///
 #define OC_KERNEL_BLOCK_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
-  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) )
+  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                        , ())                    \
+  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_KERNEL_BLOCK_ENTRY)
 
 #define OC_KERNEL_BLOCK_ARRAY_FIELDS(_, __) \
@@ -212,11 +212,11 @@
 /// Kernel emulation preferences.
 ///
 #define OC_KERNEL_EMULATE_FIELDS(_, __) \
-  _(UINT32                      , Cpuid1Data          , [4] , {0}                         , () ) \
-  _(UINT32                      , Cpuid1Mask          , [4] , {0}                         , () ) \
-  _(BOOLEAN                     , DummyPowerManagement,     , FALSE                       , () ) \
-  _(OC_STRING                   , MaxKernel           ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , MinKernel           ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) )
+  _(UINT32                      , Cpuid1Data          , [4] , {0}                         , ()) \
+  _(UINT32                      , Cpuid1Mask          , [4] , {0}                         , ()) \
+  _(BOOLEAN                     , DummyPowerManagement ,    , FALSE                       , ()) \
+  _(OC_STRING                   , MaxKernel           ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , MinKernel           ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_KERNEL_EMULATE)
 
 ///
@@ -230,20 +230,20 @@
 /// KernelSpace patches.
 ///
 #define OC_KERNEL_PATCH_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Base             ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT32                      , Count            ,     , 0                           , ()                   ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
-  _(OC_DATA                     , Find             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT32                      , Limit            ,     , 0                           , ()                   ) \
-  _(OC_DATA                     , Mask             ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_DATA                     , Replace          ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(OC_DATA                     , ReplaceMask      ,     , OC_EDATA_CONSTR (_, __)     , OC_DESTR (OC_DATA)   ) \
-  _(UINT32                      , Skip             ,     , 0                           , ()                   )
+  _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Base             ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Count            ,     , 0                            , ())                    \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                        , ())                    \
+  _(OC_DATA                     , Find             ,     , OC_EDATA_CONSTR (_, __)      , OC_DESTR (OC_DATA)   ) \
+  _(OC_STRING                   , Identifier       ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Limit            ,     , 0                            , ())                    \
+  _(OC_DATA                     , Mask             ,     , OC_EDATA_CONSTR (_, __)      , OC_DESTR (OC_DATA)   ) \
+  _(OC_STRING                   , MaxKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , MinKernel        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_DATA                     , Replace          ,     , OC_EDATA_CONSTR (_, __)      , OC_DESTR (OC_DATA)   ) \
+  _(OC_DATA                     , ReplaceMask      ,     , OC_EDATA_CONSTR (_, __)      , OC_DESTR (OC_DATA)   ) \
+  _(UINT32                      , Skip             ,     , 0                            , ())
   OC_DECLARE (OC_KERNEL_PATCH_ENTRY)
 
 #define OC_KERNEL_PATCH_ARRAY_FIELDS(_, __) \
@@ -279,8 +279,8 @@
 ///
 #define OC_KERNEL_SCHEME_FIELDS(_, __) \
   _(BOOLEAN                     , FuzzyMatch       ,     , FALSE  , ()) \
-  _(OC_STRING                   , KernelArch       ,     , OC_STRING_CONSTR ("Auto", _, __), OC_DESTR (OC_STRING)) \
-  _(OC_STRING                   , KernelCache      ,     , OC_STRING_CONSTR ("Auto", _, __), OC_DESTR (OC_STRING))
+  _(OC_STRING                   , KernelArch       ,     , OC_STRING_CONSTR ("Auto", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , KernelCache      ,     , OC_STRING_CONSTR ("Auto", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_KERNEL_SCHEME)
 
 #define OC_KERNEL_CONFIG_FIELDS(_, __) \
@@ -302,15 +302,15 @@
   OC_DECLARE (OC_MISC_BLESS_ARRAY)
 
 #define OC_MISC_BOOT_FIELDS(_, __) \
-  _(UINT32                      , ConsoleAttributes           ,     , 0                                   , ())                   \
-  _(OC_STRING                   , HibernateMode               ,     , OC_STRING_CONSTR ("None", _, __)    , OC_DESTR (OC_STRING)) \
-  _(BOOLEAN                     , HideAuxiliary               ,     , FALSE                               , ())                   \
-  _(UINT32                      , PickerAttributes            ,     , 0                                   , ())                   \
-  _(BOOLEAN                     , PickerAudioAssist           ,     , FALSE                               , ())                   \
-  _(OC_STRING                   , PickerMode                  ,     , OC_STRING_CONSTR ("Builtin", _, __) , OC_DESTR (OC_STRING)) \
-  _(BOOLEAN                     , PollAppleHotKeys            ,     , FALSE                               , ())                   \
-  _(BOOLEAN                     , ShowPicker                  ,     , FALSE                               , ())                   \
-  _(UINT32                      , TakeoffDelay                ,     , 0                                   , ())                   \
+  _(UINT32                      , ConsoleAttributes           ,     , 0                                   , ())                    \
+  _(OC_STRING                   , HibernateMode               ,     , OC_STRING_CONSTR ("None", _, __)    , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , HideAuxiliary               ,     , FALSE                               , ())                    \
+  _(UINT32                      , PickerAttributes            ,     , 0                                   , ())                    \
+  _(BOOLEAN                     , PickerAudioAssist           ,     , FALSE                               , ())                    \
+  _(OC_STRING                   , PickerMode                  ,     , OC_STRING_CONSTR ("Builtin", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , PollAppleHotKeys            ,     , FALSE                               , ())                    \
+  _(BOOLEAN                     , ShowPicker                  ,     , FALSE                               , ())                    \
+  _(UINT32                      , TakeoffDelay                ,     , 0                                   , ())                    \
   _(UINT32                      , Timeout                     ,     , 0                                   , ())
   OC_DECLARE (OC_MISC_BOOT)
 
@@ -331,27 +331,27 @@
   _(UINT64                      , ApECID                      ,      , 0                       , ()) \
   _(BOOLEAN                     , AuthRestart                 ,      , FALSE                   , ()) \
   _(BOOLEAN                     , BlacklistAppleUpdate        ,      , FALSE                   , ()) \
-  _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , DmgLoading                  ,      , OC_STRING_CONSTR ("Signed", _, __), OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , DmgLoading                  ,      , OC_STRING_CONSTR ("Signed", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , EnablePassword              ,      , FALSE                   , ()) \
   _(BOOLEAN                     , ExposeSensitiveData         ,      , OCS_EXPOSE_VERSION      , ()) \
   _(UINT64                      , HaltLevel                   ,      , 0x80000000              , ()) \
   _(UINT8                       , PasswordHash                , [64] , {0}                     , ()) \
-  _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA)) \
+  _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA) ) \
   _(UINT32                      , ScanPolicy                  ,      , OC_SCAN_DEFAULT_POLICY  , ()) \
-  _(OC_STRING                   , SecureBootModel             ,      , OC_STRING_CONSTR ("Default", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __), OC_DESTR (OC_STRING) )
+  _(OC_STRING                   , SecureBootModel             ,      , OC_STRING_CONSTR ("Default", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_MISC_SECURITY)
 
 #define OC_MISC_TOOLS_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , Arguments        ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Auxiliary        ,     , FALSE                       , ()                   ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE                       , ()                   ) \
-  _(OC_STRING                   , Name             ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Path             ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , RealPath         ,     , FALSE                       , ()                   ) \
-  _(BOOLEAN                     , TextMode         ,     , FALSE                       , ()                   )
+  _(OC_STRING                   , Arguments        ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Auxiliary        ,     , FALSE                        , ())                    \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE                        , ())                    \
+  _(OC_STRING                   , Name             ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Path             ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , RealPath         ,     , FALSE                        , ())                    \
+  _(BOOLEAN                     , TextMode         ,     , FALSE                        , ())
   OC_DECLARE (OC_MISC_TOOLS_ENTRY)
 
 #define OC_MISC_TOOLS_ARRAY_FIELDS(_, __) \
@@ -398,9 +398,9 @@
   _(OC_NVRAM_ADD_MAP           , Add               ,     , OC_CONSTR2 (OC_NVRAM_ADD_MAP, _, __)        , OC_DESTR (OC_NVRAM_ADD_MAP)) \
   _(OC_NVRAM_DELETE_MAP        , Delete            ,     , OC_CONSTR2 (OC_NVRAM_DELETE_MAP, _, __)     , OC_DESTR (OC_NVRAM_DELETE_MAP)) \
   _(OC_NVRAM_LEGACY_MAP        , Legacy            ,     , OC_CONSTR2 (OC_NVRAM_LEGACY_MAP, _, __)     , OC_DESTR (OC_NVRAM_LEGACY_MAP)) \
-  _(BOOLEAN                    , LegacyEnable      ,     , FALSE                                       , () ) \
-  _(BOOLEAN                    , LegacyOverwrite   ,     , FALSE                                       , () ) \
-  _(BOOLEAN                    , WriteFlash        ,     , FALSE                                       , () )
+  _(BOOLEAN                    , LegacyEnable      ,     , FALSE                                       , ()) \
+  _(BOOLEAN                    , LegacyOverwrite   ,     , FALSE                                       , ()) \
+  _(BOOLEAN                    , WriteFlash        ,     , FALSE                                       , ())
   OC_DECLARE (OC_NVRAM_CONFIG)
 
 /**
@@ -408,28 +408,28 @@
 **/
 
 #define OC_PLATFORM_DATA_HUB_CONFIG_FIELDS(_, __) \
-  _(UINT64                      , ARTFrequency        ,     , 0                                , () )                   \
+  _(UINT64                      , ARTFrequency        ,     , 0                                , ())                    \
   _(OC_STRING                   , BoardProduct        ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(UINT8                       , BoardRevision       , [1] , {0}                              , () )                   \
-  _(UINT32                      , DevicePathsSupported,     , 0                                , () )                   \
-  _(UINT64                      , FSBFrequency        ,     , 0                                , () )                   \
-  _(UINT64                      , InitialTSC          ,     , 0                                , () )                   \
+  _(UINT8                       , BoardRevision       , [1] , {0}                              , ())                    \
+  _(UINT32                      , DevicePathsSupported ,    , 0                                , ())                    \
+  _(UINT64                      , FSBFrequency        ,     , 0                                , ())                    \
+  _(UINT64                      , InitialTSC          ,     , 0                                , ())                    \
   _(OC_STRING                   , PlatformName        ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(UINT8                       , SmcBranch           , [8] , {0}                              , () )                   \
-  _(UINT8                       , SmcPlatform         , [8] , {0}                              , () )                   \
-  _(UINT8                       , SmcRevision         , [6] , {0}                              , () )                   \
-  _(UINT64                      , StartupPowerEvents  ,     , 0                                , () )                   \
+  _(UINT8                       , SmcBranch           , [8] , {0}                              , ())                    \
+  _(UINT8                       , SmcPlatform         , [8] , {0}                              , ())                    \
+  _(UINT8                       , SmcRevision         , [6] , {0}                              , ())                    \
+  _(UINT64                      , StartupPowerEvents  ,     , 0                                , ())                    \
   _(OC_STRING                   , SystemProductName   ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SystemSerialNumber  ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SystemUuid          ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_PLATFORM_DATA_HUB_CONFIG)
 
 #define OC_PLATFORM_GENERIC_CONFIG_FIELDS(_, __) \
-  _(BOOLEAN                     , AdviseWindows      ,     , FALSE                                        , () )                   \
-  _(OC_STRING                   , Mlb                ,     , OC_STRING_CONSTR ("OPENCORE_MLB_SN11", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT16                      , ProcessorType      ,     , 0                                            , () )                   \
-  _(UINT8                       , Rom                , [6] , {0}                                          , () )                   \
-  _(BOOLEAN                     , SpoofVendor        ,     , FALSE                                        , () )                   \
+  _(BOOLEAN                     , AdviseWindows      ,     , FALSE                                        , ())                    \
+  _(OC_STRING                   , Mlb                ,     , OC_STRING_CONSTR ("OPENCORE_MLB_SN11", _, __) , OC_DESTR (OC_STRING) ) \
+  _(UINT16                      , ProcessorType      ,     , 0                                            , ())                    \
+  _(UINT8                       , Rom                , [6] , {0}                                          , ())                    \
+  _(BOOLEAN                     , SpoofVendor        ,     , FALSE                                        , ())                    \
   _(OC_STRING                   , SystemMemoryStatus ,     , OC_STRING_CONSTR ("Auto", _, __)             , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SystemProductName  ,     , OC_STRING_CONSTR ("MacPro6,1", _, __)        , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , SystemSerialNumber ,     , OC_STRING_CONSTR ("OPENCORE_SN1", _, __)     , OC_DESTR (OC_STRING) ) \
@@ -437,14 +437,14 @@
   OC_DECLARE (OC_PLATFORM_GENERIC_CONFIG)
 
 #define OC_PLATFORM_MEMORY_DEVICE_ENTRY_FIELDS(_, __) \
-  _(OC_STRING                   , AssetTag            ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , BankLocator         ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , DeviceLocator       ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Manufacturer        ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , PartNumber          ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , SerialNumber        ,     , OC_STRING_CONSTR ("Unknown", _, __), OC_DESTR (OC_STRING) ) \
-  _(UINT32                      , Size                ,     , 0                                  , () ) \
-  _(UINT16                      , Speed               ,     , 0                                  , () )
+  _(OC_STRING                   , AssetTag            ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , BankLocator         ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , DeviceLocator       ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Manufacturer        ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , PartNumber          ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , SerialNumber        ,     , OC_STRING_CONSTR ("Unknown", _, __) , OC_DESTR (OC_STRING) ) \
+  _(UINT32                      , Size                ,     , 0                                  , ()) \
+  _(UINT16                      , Speed               ,     , 0                                  , ())
   OC_DECLARE (OC_PLATFORM_MEMORY_DEVICE_ENTRY)
 
 #define OC_PLATFORM_MEMORY_DEVICES_ARRAY_FIELDS(_, __) \
@@ -452,22 +452,22 @@
   OC_DECLARE (OC_PLATFORM_MEMORY_DEVICES_ARRAY)
 
 #define OC_PLATFORM_MEMORY_CONFIG_FIELDS(_, __) \
-  _(UINT16                          , DataWidth      ,     , 0xFFFF                                              , () ) \
-  _(OC_PLATFORM_MEMORY_DEVICES_ARRAY, Devices        ,     , OC_CONSTR3 (OC_PLATFORM_MEMORY_DEVICES_ARRAY, _, __), OC_DESTR (OC_PLATFORM_MEMORY_DEVICES_ARRAY)) \
-  _(UINT8                           , ErrorCorrection,     , 0x3                                                 , () ) \
-  _(UINT8                           , FormFactor     ,     , 0x2                                                 , () ) \
-  _(UINT64                          , MaxCapacity    ,     , 0                                                   , () ) \
-  _(UINT16                          , TotalWidth     ,     , 0xFFFF                                              , () ) \
-  _(UINT8                           , Type           ,     , 0x2                                                 , () ) \
-  _(UINT16                          , TypeDetail     ,     , 0x4                                                 , () )
+  _(UINT16                          , DataWidth      ,     , 0xFFFF                                              , ()) \
+  _(OC_PLATFORM_MEMORY_DEVICES_ARRAY, Devices        ,     , OC_CONSTR3 (OC_PLATFORM_MEMORY_DEVICES_ARRAY, _, __) , OC_DESTR (OC_PLATFORM_MEMORY_DEVICES_ARRAY)) \
+  _(UINT8                           , ErrorCorrection ,    , 0x3                                                 , ()) \
+  _(UINT8                           , FormFactor     ,     , 0x2                                                 , ()) \
+  _(UINT64                          , MaxCapacity    ,     , 0                                                   , ()) \
+  _(UINT16                          , TotalWidth     ,     , 0xFFFF                                              , ()) \
+  _(UINT8                           , Type           ,     , 0x2                                                 , ()) \
+  _(UINT16                          , TypeDetail     ,     , 0x4                                                 , ())
   OC_DECLARE (OC_PLATFORM_MEMORY_CONFIG)
 
 #define OC_PLATFORM_NVRAM_CONFIG_FIELDS(_, __) \
   _(OC_STRING                   , Bid                   ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(UINT64                      , FirmwareFeatures      ,     , 0                                , ()                   ) \
-  _(UINT64                      , FirmwareFeaturesMask  ,     , 0                                , ()                   ) \
+  _(UINT64                      , FirmwareFeatures      ,     , 0                                , ())                    \
+  _(UINT64                      , FirmwareFeaturesMask  ,     , 0                                , ())                    \
   _(OC_STRING                   , Mlb                   ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(UINT8                       , Rom                   , [6] , {0}                              , ()                   ) \
+  _(UINT8                       , Rom                   , [6] , {0}                              , ())                    \
   _(OC_STRING                   , SystemUuid            ,     , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_PLATFORM_NVRAM_CONFIG)
 
@@ -476,22 +476,22 @@
   _(OC_STRING                    , BIOSVendor            ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , BIOSVersion           ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , BoardAssetTag         ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                    , BoardLocationInChassis,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                    , BoardLocationInChassis , , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , BoardManufacturer     ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , BoardProduct          ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , BoardSerialNumber     ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(UINT8                        , BoardType             ,  , 0                                , ()                   ) \
+  _(UINT8                        , BoardType             ,  , 0                                , ())                    \
   _(OC_STRING                    , BoardVersion          ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                    , ChassisAssetTag       ,  , OC_STRING_CONSTR ("", _, __)     , ()                   ) \
+  _(OC_STRING                    , ChassisAssetTag       ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
   _(OC_STRING                    , ChassisManufacturer   ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                    , ChassisSerialNumber   ,  , OC_STRING_CONSTR ("", _, __)     , ()                   ) \
-  _(UINT8                        , ChassisType           ,  , 0                                , ()                   ) \
-  _(OC_STRING                    , ChassisVersion        ,  , OC_STRING_CONSTR ("", _, __)     , ()                   ) \
-  _(UINT64                       , FirmwareFeatures      ,  , 0                                , ()                   ) \
-  _(UINT64                       , FirmwareFeaturesMask  ,  , 0                                , ()                   ) \
-  _(UINT32                       , PlatformFeature       ,  , 0xFFFFFFFFU                      , ()                   ) \
-  _(UINT16                       , ProcessorType         ,  , 0                                , ()                   ) \
-  _(UINT8                        , SmcVersion            , [16] , {0}                          , ()                   ) \
+  _(OC_STRING                    , ChassisSerialNumber   ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
+  _(UINT8                        , ChassisType           ,  , 0                                , ())                    \
+  _(OC_STRING                    , ChassisVersion        ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
+  _(UINT64                       , FirmwareFeatures      ,  , 0                                , ())                    \
+  _(UINT64                       , FirmwareFeaturesMask  ,  , 0                                , ())                    \
+  _(UINT32                       , PlatformFeature       ,  , 0xFFFFFFFFU                      , ())                    \
+  _(UINT16                       , ProcessorType         ,  , 0                                , ())                    \
+  _(UINT8                        , SmcVersion            , [16] , {0}                          , ())                    \
   _(OC_STRING                    , SystemFamily          ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , SystemManufacturer    ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , SystemProductName     ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
@@ -536,7 +536,7 @@
 ///
 #define OC_UEFI_AUDIO_FIELDS(_, __) \
   _(UINT8                       , AudioCodec         ,     , 0                             , ()) \
-  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
   _(UINT8                       , AudioOut           ,     , 0                             , ()) \
   _(BOOLEAN                     , AudioSupport       ,     , FALSE                         , ()) \
   _(UINT8                       , MinimumVolume      ,     , 0                             , ()) \
@@ -559,10 +559,10 @@
   _(UINT8                       , KeyForgetThreshold ,     , 0                             , ()) \
   _(UINT8                       , KeyMergeThreshold  ,     , 0                             , ()) \
   _(BOOLEAN                     , KeySupport         ,     , FALSE                         , ()) \
-  _(OC_STRING                   , KeySupportMode     ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , KeySupportMode     ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , KeySwap            ,     , FALSE                         , ()) \
   _(BOOLEAN                     , PointerSupport     ,     , FALSE                         , ()) \
-  _(OC_STRING                   , PointerSupportMode ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , PointerSupportMode ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
   _(UINT32                      , TimerResolution    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_INPUT)
 
@@ -571,16 +571,16 @@
 ///
 #define OC_UEFI_OUTPUT_FIELDS(_, __) \
   _(BOOLEAN                     , ClearScreenOnModeSwitch     ,     , FALSE  , ()) \
-  _(OC_STRING                   , ConsoleMode                 ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , ConsoleMode                 ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , DirectGopRendering          ,     , FALSE  , ()) \
   _(BOOLEAN                     , ForceResolution             ,     , FALSE  , ()) \
   _(BOOLEAN                     , IgnoreTextInGraphics        ,     , FALSE  , ()) \
   _(BOOLEAN                     , ProvideConsoleGop           ,     , FALSE  , ()) \
   _(BOOLEAN                     , ReconnectOnResChange        ,     , FALSE  , ()) \
   _(BOOLEAN                     , ReplaceTabWithSpace         ,     , FALSE  , ()) \
-  _(OC_STRING                   , Resolution                  ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , Resolution                  ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , SanitiseClearScreen         ,     , FALSE  , ()) \
-  _(OC_STRING                   , TextRenderer                ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , TextRenderer                ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , UgaPassThrough              ,     , FALSE  , ())
   OC_DECLARE (OC_UEFI_OUTPUT)
 
@@ -625,11 +625,11 @@
 /// Reserved memory entries adds.
 ///
 #define OC_UEFI_RSVD_ENTRY_FIELDS(_, __) \
-  _(UINT64                      , Address          ,     , 0       , () ) \
-  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __), OC_DESTR (OC_STRING) ) \
-  _(BOOLEAN                     , Enabled          ,     , FALSE   , () ) \
-  _(UINT64                      , Size             ,     , 0       , () ) \
-  _(OC_STRING                   , Type             ,     , OC_STRING_CONSTR ("Reserved", _, __), OC_DESTR (OC_STRING) )
+  _(UINT64                      , Address          ,     , 0       , ()) \
+  _(OC_STRING                   , Comment          ,     , OC_STRING_CONSTR ("", _, __) , OC_DESTR (OC_STRING) ) \
+  _(BOOLEAN                     , Enabled          ,     , FALSE   , ()) \
+  _(UINT64                      , Size             ,     , 0       , ()) \
+  _(OC_STRING                   , Type             ,     , OC_STRING_CONSTR ("Reserved", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_UEFI_RSVD_ENTRY)
 
 #define OC_UEFI_RSVD_ARRAY_FIELDS(_, __) \
