@@ -266,19 +266,23 @@ def emit_section(key):
 def emit_root_config_section():
   emit_section_name('Root configuration', 'Root configuration')
 
-def h_path(path):
-  return '_'.join(p.h for p in path)
+def path_to_ref(path):
+  h = '_'.join(p.h for p in path)
+  c = ''.join(p.c for p in path)
+  return hc(h, c)
 
-def set_def_name(elem, elem_type):
+def set_reference(elem, elem_name):
   use_path = elem.path.copy()
-  if len(elem.path) == 0:
-    use_path.append(hc('GLOBAL'))
-  if len(elem.path) <= 1:
-    use_path.append(hc('CONFIG'))
-  elif elem_type is not None:
-    use_path.append(hc(elem_type))
-  upath = h_path(use_path)
-  elem.reference = hc('%s_%s' % (upper_prefix, upath))
+  root = len(elem.path) == 0
+  l1 = len(elem.path) <= 1
+  if root:
+    use_path.append(hc('GLOBAL', 'Root'))
+  if l1:
+    use_path.append(hc('CONFIG', 'Configuration%s' % ('Nodes' if root else 'Schema')))
+  elif elem_name is not None:
+    use_path.append(elem_name)
+  hc_path = path_to_ref(use_path)
+  elem.ref = hc('%s_%s' % (upper_prefix, hc_path.h), 'm%s' % hc_path.c)
 
 def emit_comment(elem):
   if elem.comment is not None:
@@ -286,7 +290,7 @@ def emit_comment(elem):
     print('/// %s.' % elem.comment, file = h_types)
     print('///', file = h_types)
 
-def emit_field(elem, last):
+def emit_field(parent, elem, is_struct, last):
   constructor = None
   destructor = '()'
 
@@ -295,37 +299,38 @@ def emit_field(elem, last):
   tab_destructor = 105
   tab_end = 130
 
-  if elem.schema_type == 'OC_STRING':
+  if elem.schema_type == 'STRING':
     if default is None:
       default = '""'
     constructor = 'OC_STRING_CONSTR (%s, _, __)' % default
     destructor = 'OC_DESTR (OC_STRING)' + ' '
   elif elem.schema_type == 'BOOLEAN':
     constructor = 'FALSE'
-  elif elem.schema_type == 'DATA':
+  elif elem.schema_type == 'DATAF' or elem.schema_type == 'INTEGER':
     if default is None:
       constructor = '0'
     else:
       constructor = default
     if elem.size is not None:
       constructor = '{%s}' % constructor
-  elif elem.schema_type == 'OC_MAP' or elem.schema_type == 'OC_STRUCT' or elem.schema_type == 'OC_ARRAY':
-    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.reference.h)
-    destructor = 'OC_DESTR (%s)' % elem.reference.h
+  elif elem.schema_type == 'MAP' or elem.schema_type == 'STRUCT' or elem.schema_type == 'ARRAY':
+    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.ref.h)
+    destructor = 'OC_DESTR (%s)' % elem.ref.h
     tab_destructor = 112
     tab_end = 149
-  elif elem.schema_type == 'OC_DATA':
+  elif elem.schema_type == 'DATA':
     constructor = 'OC_EDATA_CONSTR (_, __)'
     destructor = 'OC_DESTR (OC_DATA)' + '   '
-  elif elem.schema_type == 'OC_POINTER':
+  elif elem.schema_type == 'POINTER':
     constructor = 'NULL'
     destructor = 'OcFreePointer' + ' '
   else:
     internal_error('Unhandled schema type ', elem.schema_type)
 
+  # .h
   tab_to(2, file = h_types)
   tab_print('_(', file = h_types)
-  tab_print(elem.reference.h, file = h_types)
+  tab_print(elem.ref.h, file = h_types)
 
   tab_to(36, file = h_types)
   tab_print(', ', elem.name, file = h_types)
@@ -353,6 +358,35 @@ def emit_field(elem, last):
 
   tab_nl(file = h_types)
 
+  # .c
+  if elem.remove:
+    return
+
+  if elem.schema_type == 'POINTER':
+    error('element <pointer> cannot appear in .c or .plist output, requires remove="true" on preceding key')
+
+  tab_to(2, file = c_schema)
+  tab_print('OC_SCHEMA_%s_IN' % elem.schema_type, file = c_schema);
+  tab_to(23, file = c_schema)
+  tab_print(' ("%s",' % elem.name, file = c_schema)
+  tab_to(51, file = c_schema)
+  if is_struct:
+    tab_print(' %s_GLOBAL_CONFIG,' % upper_prefix, file = c_schema)
+  else:
+    tab_print(' %s,' % parent.ref.h, file = c_schema)
+  tab_to(70, file = c_schema)
+  if is_struct:
+    tab_print(' %s' % '.'.join(p.c for p in elem.path), file = c_schema)
+  else:
+    tab_print(' %s' % elem.name, file = c_schema)
+
+  if elem.schema_type == 'ARRAY':
+    tab_print(', &%s' % elem.ref.c, file = c_schema)
+
+  tab_print('),', file = c_schema)
+
+  tab_nl(file = c_schema)
+
 def emit_struct(elem, context):
   # skipped elements when outputting original plist
   if elem.path is None:
@@ -360,28 +394,44 @@ def emit_struct(elem, context):
 
   context_print('STRUCT CONTEXT: ', context)
   if context == 'array':
-    set_def_name(elem, 'ENTRY')
+    set_reference(elem, hc('ENTRY', 'SchemaEntry'))
   elif context == 'struct':
-    set_def_name(elem, None)
+    set_reference(elem, None)
   else:
-    set_def_name(elem, 'ARRAY')
+    set_reference(elem, hc('ARRAY', 'Array'))
 
   if len(elem.path) == 0:
     emit_root_config_section()
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
+  # .h
+  print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
 
+  # .c schema
+
+  if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+    print('// STRUCT CONTEXT: %s' % context, file = c_schema)
+
+  print('STATIC', file = c_schema)
+  print('OC_SCHEMA', file = c_schema)
+  print('%s[] = {' % elem.ref.c, file = c_schema)
+
+  is_struct = context == 'struct'
   last = len(elem.of) - 1
   for (i, of) in enumerate(elem.of):
-    emit_field(of, i == last)
+    emit_field(elem, of, is_struct, i == last)
 
-  print('  OC_DECLARE (%s)' % elem.reference.h, file = h_types)
+  # .h
+  print('  OC_DECLARE (%s)' % elem.ref.h, file = h_types)
   print(file = h_types)
 
+  # .c schema
+  print('};', file = c_schema)
+  print(file = c_schema)
+
   # .c structors
-  print('OC_STRUCTORS       (%s, ())' % elem.reference.h, file = c_structors)
+  print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
 
 def emit_array(elem, context):
   # skipped elements when outputting original plist
@@ -390,39 +440,58 @@ def emit_array(elem, context):
 
   context_print('ARRAY CONTEXT: ', context)
   if context == 'map':
-    set_def_name(elem, 'ENTRY')
+    set_reference(elem, hc('ENTRY', 'Entry'))
   else:
-    set_def_name(elem, 'ARRAY')
+    set_reference(elem, hc('ARRAY', 'Schema'))
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
-  print('  OC_ARRAY (%s, _, __)' % elem.of.reference.h, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.reference.h , file = h_types)
+  # .h
+  print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
+  print('  OC_ARRAY (%s, _, __)' % elem.of.ref.h, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
   print(file = h_types)
+
+  # .c
+
+  if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+    print('// ARRAY CONTEXT: %s' % context, file = c_schema)
+
+  print('STATIC', file = c_schema)
+  print('OC_SCHEMA', file = c_schema)
+  print('%s = OC_SCHEMA_DICT (NULL, %s);' % (elem.ref.c, elem.of.ref.c), file = c_schema)
+  print(file = c_schema)
 
   # .c structors
   if context == 'map':
-    print('OC_STRUCTORS       (%s, ())' % elem.reference.h, file = c_structors)
+    print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
   else:
-    print('OC_ARRAY_STRUCTORS (%s)' % elem.reference.h, file = c_structors)
+    print('OC_ARRAY_STRUCTORS (%s)' % elem.ref.h, file = c_structors)
 
 def emit_map(elem):
   # skipped elements when outputting original plist
   if elem.path is None:
     return
 
-  set_def_name(elem, 'MAP')
+  set_reference(elem, hc('MAP', 'Map'))
 
   emit_comment(elem)
 
-  print('#define %s_FIELDS(_, __) \\' % elem.reference.h, file = h_types)
-  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.reference.h, file = h_types)
-  print('  OC_DECLARE (%s)' % elem.reference.h , file = h_types)
+  # .h
+  print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
+  print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.ref.h, file = h_types)
+  print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
   print(file = h_types)
 
+  # .c schema
+
+  if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+    print('// MAP CONTEXT: %s' % None, file = c_schema)
+
+  print(file = c_schema)
+
   # .c structors
-  print('OC_MAP_STRUCTORS   (%s)' % elem.reference.h, file = c_structors)
+  print('OC_MAP_STRUCTORS   (%s)' % elem.ref.h, file = c_structors)
 
 ##
 # Schema objects
@@ -492,7 +561,7 @@ class OcSchemaElement:
   default: str
   of: object
   # .h file definition name, once emitted
-  reference: hc
+  ref: hc
 
   def __init__(
     self,
@@ -505,7 +574,7 @@ class OcSchemaElement:
     remove: bool = None,
     default: str = None,
     of: object = None,
-    reference: hc = None,
+    ref: hc = None,
     tab: int = 0
     ):
 
@@ -518,7 +587,7 @@ class OcSchemaElement:
     self.remove = remove
     self.default = default
     self.of = of
-    self.reference = reference
+    self.ref = ref
 
     oc_schema_print('[OC:', schema_type, tab=tab, end='')
     oc_schema_attr_print('name', name)
@@ -535,7 +604,7 @@ class OcSchemaElement:
       else:
         of_type = of.schema_type
     oc_schema_attr_print('of', of_type)
-    oc_schema_attr_print('reference', reference)
+    oc_schema_attr_print('ref', ref)
     oc_schema_print(']')
 
   def apply_key(
@@ -640,7 +709,7 @@ def parse_key(elem, tab, hide):
 def parse_boolean(elem, tab, path, hide):
   default = consume_attr(elem, 'default', hide)
   plist_stop_then_close(elem, elem.text, hide, quick_close = True)
-  return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, default=default, tab=tab, path=path, reference=hc('BOOLEAN'))
+  return OcSchemaElement(schema_type='BOOLEAN', value=elem.tag, default=default, tab=tab, path=path, ref=hc('BOOLEAN'))
 
 def parse_string(elem, tab, path, hide):
   default = consume_attr(elem, 'default', hide)
@@ -654,7 +723,7 @@ def parse_string(elem, tab, path, hide):
     default = const
 
   plist_stop_then_close(elem, elem.text, hide)
-  return OcSchemaElement(schema_type='OC_STRING', value=elem.text, default=default, tab=tab, path=path, reference=hc('OC_STRING'))
+  return OcSchemaElement(schema_type='STRING', value=elem.text, default=default, tab=tab, path=path, ref=hc('OC_STRING'))
 
 def parse_pointer(elem, tab, path, hide):
   to = consume_attr(elem, 'to', hide)
@@ -663,9 +732,9 @@ def parse_pointer(elem, tab, path, hide):
   if to is None:
     to = 'uint8'
 
-  reference = '%s *' % to.upper()
+  ref = '%s *' % to.upper()
 
-  return OcSchemaElement(schema_type='OC_POINTER', tab=tab, path=path, reference=hc(reference))
+  return OcSchemaElement(schema_type='POINTER', tab=tab, path=path, ref=hc(ref))
 
 def parse_data(elem, tab, path, hide, is_integer = False):
   data_type = elem.attrib.get('type', None)
@@ -723,14 +792,14 @@ def parse_data(elem, tab, path, hide, is_integer = False):
   plist_attr('default', default, hide)
   plist_stop_then_close(elem, data if flags & SHOW_ORIGINAL != 0  else data_print, hide)
 
-  reference = data_type.upper()
-  if reference == 'BLOB':
-    schema_type = 'OC_DATA'
-    reference = 'OC_DATA'
-  else:
+  ref = data_type.upper()
+  if ref == 'BLOB':
     schema_type = 'DATA'
+    ref = 'OC_DATA'
+  else:
+    schema_type = 'INTEGER' if is_integer else 'DATAF'
 
-  return OcSchemaElement(schema_type=schema_type, size=data_size, value=data_print, default=default, tab=tab, path=path, reference=hc(reference))
+  return OcSchemaElement(schema_type=schema_type, size=data_size, value=data_print, default=default, tab=tab, path=path, ref=hc(ref))
 
 def skipping(elem, index, count, hide, tab):
   if flags & SHOW_ORIGINAL != 0:
@@ -755,7 +824,7 @@ def parse_array(elem, tab, path, hide, hide_children, context):
   index = 0
 
   if xref is not None:
-    elem_array = OcSchemaElement(schema_type='OC_ARRAY', tab=tab, path=path, comment=comment, reference=hc(xref))
+    elem_array = OcSchemaElement(schema_type='ARRAY', tab=tab, path=path, comment=comment, ref=hc(xref))
   else:
     if count == 0:
       error('No template for <array>')
@@ -763,7 +832,7 @@ def parse_array(elem, tab, path, hide, hide_children, context):
     child = parse_elem(elem[index], tab, path, hide_children, context='array')
     index += 1
 
-    elem_array = OcSchemaElement(schema_type='OC_ARRAY', of=child, tab=tab, path=path, comment=comment)
+    elem_array = OcSchemaElement(schema_type='ARRAY', of=child, tab=tab, path=path, comment=comment)
     emit_array(elem_array, context)
 
   skipping(elem, index, count, hide_children, tab)
@@ -841,10 +910,10 @@ def parse_map(elem, tab, path, hide, hide_children):
   if not hide_children:
     plist_close(elem, tab, hide)
 
-  if oc_value.schema_type == 'OC_DATA':
-    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, reference = hc('OC_ASSOC'))
+  if oc_value.schema_type == 'DATA':
+    return OcSchemaElement(schema_type='OC_ASSOC', tab=tab, path=replace_path, ref = hc('OC_ASSOC'))
   else:
-    elem_map = OcSchemaElement(schema_type='OC_MAP', of=oc_value, tab=tab, path=replace_path, comment=comment)
+    elem_map = OcSchemaElement(schema_type='MAP', of=oc_value, tab=tab, path=replace_path, comment=comment)
     emit_map(elem_map)
     return elem_map
 
@@ -853,7 +922,7 @@ def parse_struct(elem, tab, path, hide, hide_children, context):
 
   index = 0
   if xref is not None:
-    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', tab=tab, path=replace_path, comment=comment, reference=hc(xref))
+    elem_struct = OcSchemaElement(schema_type='STRUCT', tab=tab, path=replace_path, comment=comment, ref=hc(xref))
   else:
     fields = []
 
@@ -879,7 +948,7 @@ def parse_struct(elem, tab, path, hide, hide_children, context):
 
       fields.append(oc_child)
 
-    elem_struct = OcSchemaElement(schema_type='OC_STRUCT', of=fields, tab=tab, path=replace_path, comment=comment)
+    elem_struct = OcSchemaElement(schema_type='STRUCT', of=fields, tab=tab, path=replace_path, comment=comment)
     emit_struct(elem_struct, context)
 
   skipping(elem, index, count, hide_children, tab)
