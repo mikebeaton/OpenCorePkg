@@ -165,7 +165,7 @@
   OC_DECLARE (OC_BOOTER_CONFIG)
 
 /**
-  DeviceProperties section
+  Device properties section
 **/
 
 ///
