@@ -189,11 +189,11 @@
   OC_DECLARE (OC_DEV_PROP_CONFIG)
 
 /**
-  KernelSpace section
+  Kernel space section
 **/
 
 ///
-/// KernelSpace kext adds.
+/// Kernel space kext adds.
 ///
 #define OC_KERNEL_ADD_ENTRY_FIELDS(_, __) \
   _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
@@ -216,7 +216,7 @@
   OC_DECLARE (OC_KERNEL_ADD_ARRAY)
 
 ///
-/// KernelSpace kext blocks.
+/// Kernel space kext blocks.
 ///
 #define OC_KERNEL_BLOCK_ENTRY_FIELDS(_, __) \
   _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
@@ -243,14 +243,14 @@
   OC_DECLARE (OC_KERNEL_EMULATE)
 
 ///
-/// KernelSpace forced loaded kexts.
+/// Kernel space forced loaded kexts.
 ///
 #define OC_KERNEL_FORCE_ARRAY_FIELDS(_, __) \
   OC_ARRAY (OC_KERNEL_ADD_ENTRY, _, __)
   OC_DECLARE (OC_KERNEL_FORCE_ARRAY)
 
 ///
-/// KernelSpace patches.
+/// Kernel space patches.
 ///
 #define OC_KERNEL_PATCH_ENTRY_FIELDS(_, __) \
   _(OC_STRING                   , Arch             ,     , OC_STRING_CONSTR ("Any", _, __) , OC_DESTR (OC_STRING) ) \
@@ -274,7 +274,7 @@
   OC_DECLARE (OC_KERNEL_PATCH_ARRAY)
 
 ///
-/// KernelSpace quirks.
+/// Kernel space quirks.
 ///
 #define OC_KERNEL_QUIRKS_FIELDS(_, __) \
   _(BOOLEAN                     , AppleCpuPmCfgLock           ,     , FALSE  , ()) \
@@ -298,7 +298,7 @@
   OC_DECLARE (OC_KERNEL_QUIRKS)
 
 ///
-/// KernelSpace operation scheme.
+/// Kernel space operation scheme.
 ///
 #define OC_KERNEL_SCHEME_FIELDS(_, __) \
   _(BOOLEAN                     , FuzzyMatch       ,     , FALSE  , ()) \
