@@ -246,7 +246,7 @@ mDevicePropertiesDeleteSchema = OC_SCHEMA_ARRAY (NULL, &mDevicePropertiesDeleteE
 
 STATIC
 OC_SCHEMA
-mDevicePropertiesSchema[] = {
+mDevicePropertiesConfigurationSchema[] = {
   OC_SCHEMA_MAP_IN      ("Add",                OC_GLOBAL_CONFIG, DeviceProperties.Add, &mDevicePropertiesAddSchema),
   OC_SCHEMA_MAP_IN      ("Delete",             OC_GLOBAL_CONFIG, DeviceProperties.Delete, &mDevicePropertiesDeleteSchema)
 };
@@ -631,7 +631,7 @@ mPlatformConfigurationSmbiosSchema[] = {
 
 STATIC
 OC_SCHEMA
-mPlatformConfigurationSchema[] = {
+mPlatformInfoConfigurationSchema[] = {
   OC_SCHEMA_BOOLEAN_IN ("Automatic",        OC_GLOBAL_CONFIG, PlatformInfo.Automatic),
   OC_SCHEMA_BOOLEAN_IN ("CustomMemory",     OC_GLOBAL_CONFIG, PlatformInfo.CustomMemory),
   OC_SCHEMA_DICT_OPT   ("DataHub",          mPlatformConfigurationDataHubSchema),
@@ -779,12 +779,12 @@ OC_SCHEMA
 mRootConfigurationNodes[] = {
   OC_SCHEMA_DICT    ("ACPI",             mAcpiConfigurationSchema),
   OC_SCHEMA_DICT    ("Booter",           mBooterConfigurationSchema),
-  OC_SCHEMA_DICT    ("DeviceProperties", mDevicePropertiesSchema),
+  OC_SCHEMA_DICT    ("DeviceProperties", mDevicePropertiesConfigurationSchema),
   OC_SCHEMA_DICT    ("Kernel",           mKernelConfigurationSchema),
   OC_SCHEMA_DICT    ("Misc",             mMiscConfigurationSchema),
   OC_SCHEMA_DICT    ("NVRAM",            mNvramConfigurationSchema),
-  OC_SCHEMA_DICT    ("PlatformInfo",     mPlatformConfigurationSchema),
-  OC_SCHEMA_DICT    ("UEFI",             mUefiConfigurationSchema)
+  OC_SCHEMA_DICT    ("PlatformInfo",     mPlatformInfoConfigurationSchema),
+  OC_SCHEMA_DICT    ("UEFI",             mUefiConfigurationSchema),
 };
 
 STATIC
