@@ -1,0 +1,23 @@
+targets := mapped.plist test.c test.h
+debug_targets := _test.c _test.h _OcConfigurationLib.c _OcConfigurationLib.h
+
+.PHONY: all
+all: $(targets)
+
+.PHONY: debug
+debug: $(debug_targets)
+
+.PHONY: clean
+clean:
+	rm -f $(targets) $(debug_targets)
+
+mapped.plist test.c test.h &: PlistToConfig.py Template.plist
+	./PlistToConfig.py -f 0x1f Template.plist -c test.c -h test.h > mapped.plist
+
+vpath %.h ../../Include/Acidanthera/Library
+
+_%.c: %.c
+	./StripSpace.py $^ > $@
+
+_%.h: %.h
+	./StripSpace.py $^ > $@
