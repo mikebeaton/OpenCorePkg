@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key name="Acpi">ACPI</key>
+	<key node_c="Acpi">ACPI</key>
 	<dict>
 		<key>Add</key>
 		<array>
@@ -211,9 +211,9 @@
 			<false/>
 		</dict>
 	</dict>
-	<key comment="Apple bootloader">Booter</key>
+	<key section="Apple bootloader">Booter</key>
 	<dict comment="Apple bootloader config">
-		<key node="WL">MmioWhitelist</key>
+		<key node_h="WL">MmioWhitelist</key>
 		<array>
 			<dict comment="MMIO whitelist">
 				<key>Address</key>
@@ -299,7 +299,7 @@
 			<false/>
 		</dict>
 	</dict>
-	<key node="DEV_PROP">DeviceProperties</key>
+	<key node_h="DEV_PROP" section="Device properties">DeviceProperties</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map" comment="Device properties is an associative map of devices with their property key value maps">
@@ -317,11 +317,11 @@
 			</array>
 		</dict>
 	</dict>
-	<key comment="KernelSpace">Kernel</key>
+	<key section="Kernel space">Kernel</key>
 	<dict>
 		<key>Add</key>
 		<array>
-			<dict comment="KernelSpace kext adds">
+			<dict comment="Kernel space kext adds">
 				<key>Arch</key>
 				<string default="Any">x86_64</string>
 				<key>BundlePath</key>
@@ -335,7 +335,7 @@
 				<key remove="true">Identifier</key>
 				<string/>
 				<key remove="true">ImageData</key>
-				<pointer to="uint8"/>
+				<pointer type="uint8 *"/>
 				<key remove="true">ImageDataSize</key>
 				<data type="uint32"/>
 				<key>MaxKernel</key>
@@ -343,7 +343,7 @@
 				<key>MinKernel</key>
 				<string>10.0.0</string>
 				<key remove="true">PlistData</key>
-				<pointer to="char8"/>
+				<pointer type="char8 *"/>
 				<key remove="true">PlistDataSize</key>
 				<data type="uint32"/>
 				<key>PlistPath</key>
@@ -460,7 +460,7 @@
 		</array>
 		<key>Block</key>
 		<array>
-			<dict comment="KernelSpace kext blocks">
+			<dict comment="Kernel space kext blocks">
 				<key>Arch</key>
 				<string default="Any">Any</string>
 				<key>Comment</key>
@@ -489,7 +489,7 @@
 			<string></string>
 		</dict>
 		<key>Force</key>
-		<array comment="KernelSpace forced loaded kexts">
+		<array comment="Kernel space forced loaded kexts">
 			<dict xref="OC_KERNEL_ADD_ENTRY">
 				<key>Arch</key>
 				<string>Any</string>
@@ -513,7 +513,7 @@
 		</array>
 		<key>Patch</key>
 		<array>
-			<dict comment="KernelSpace patches">
+			<dict comment="Kernel space patches">
 				<key>Arch</key>
 				<string default="Any">Any</string>
 				<key>Base</key>
@@ -695,7 +695,7 @@
 			</dict>
 		</array>
 		<key>Quirks</key>
-		<dict comment="KernelSpace quirks">
+		<dict comment="Kernel space quirks">
 			<key>AppleCpuPmCfgLock</key>
 			<false/>
 			<key>AppleXcpmCfgLock</key>
@@ -704,7 +704,7 @@
 			<false/>
 			<key>AppleXcpmForceBoost</key>
 			<false/>
-			<key name="CustomSmbiosGuid">CustomSMBIOSGuid</key>
+			<key node_c="CustomSmbiosGuid">CustomSMBIOSGuid</key>
 			<false/>
 			<key>DisableIoMapper</key>
 			<false/>
@@ -734,7 +734,7 @@
 			<false/>
 		</dict>
 		<key>Scheme</key>
-		<dict comment="KernelSpace operation scheme">
+		<dict comment="Kernel space operation scheme">
 			<key>FuzzyMatch</key>
 			<true/>
 			<key>KernelArch</key>
@@ -745,7 +745,7 @@
 	</dict>
 	<key>Misc</key>
 	<dict>
-		<key node="BLESS">BlessOverride</key>
+		<key node_h="BLESS">BlessOverride</key>
 		<array hide="children">
 			<string></string>
 		</array>
@@ -901,7 +901,7 @@
 			</dict>
 		</array>
 	</dict>
-	<key name="Nvram">NVRAM</key>
+	<key node_c="Nvram">NVRAM</key>
 	<dict>
 		<key>Add</key>
 		<dict type="map" comment="NVRAM values is an associative map of GUIDS with their property key value maps">
@@ -951,7 +951,7 @@
 		<false/>
 		<key>LegacyOverwrite</key>
 		<false/>
-		<key node="LEGACY" name="Legacy">LegacySchema</key>
+		<key node_h="LEGACY" node_c="Legacy">LegacySchema</key>
 		<dict type="map">
 			<key>7C436110-AB2A-4BBB-A880-FE41995C9F82</key>
 			<array>
@@ -982,13 +982,13 @@
 		<key>WriteFlash</key>
 		<true/>
 	</dict>
-	<key node="PLATFORM" comment="Platform information">PlatformInfo</key>
+	<key node_h="PLATFORM" section="Platform information">PlatformInfo</key>
 	<dict>
 		<key>Automatic</key>
 		<false/>
 		<key>CustomMemory</key>
 		<true/>
-		<key node="DATA_HUB_CONFIG">DataHub</key>
+		<key node_h="DATA_HUB_CONFIG">DataHub</key>
 		<dict>
 			<key>ARTFrequency</key>
 			<integer type="uint64">0</integer>
@@ -1016,18 +1016,18 @@
 			<string>iMac19,1</string>
 			<key>SystemSerialNumber</key>
 			<string>W00000000001</string>
-			<key name="SystemUuid">SystemUUID</key>
+			<key node_c="SystemUuid">SystemUUID</key>
 			<string>00000000-0000-0000-0000-000000000000</string>
 		</dict>
-		<key node="GENERIC_CONFIG">Generic</key>
+		<key node_h="GENERIC_CONFIG">Generic</key>
 		<dict>
 			<key>AdviseWindows</key>
 			<false/>
-			<key name="Mlb">MLB</key>
+			<key node_c="Mlb">MLB</key>
 			<string default="OPENCORE_MLB_SN11"></string>
 			<key>ProcessorType</key>
 			<integer type="uint16">0</integer>
-			<key name="Rom">ROM</key>
+			<key node_c="Rom">ROM</key>
 			<data type="uint8" size="6"></data>
 			<key>SpoofVendor</key>
 			<true/>
@@ -1037,16 +1037,16 @@
 			<string default="MacPro6,1"></string>
 			<key>SystemSerialNumber</key>
 			<string default="OPENCORE_SN1"></string>
-			<key name="SystemUuid">SystemUUID</key>
+			<key node_c="SystemUuid">SystemUUID</key>
 			<string></string>
 		</dict>
-		<key>Memory</key>
-		<dict node="MEMORY_CONFIG">
+		<key node_h="MEMORY_CONFIG">Memory</key>
+		<dict>
 			<key>DataWidth</key>
 			<integer default="0xFFFF" type="uint16">64</integer>
 			<key>Devices</key>
-			<array>
-				<dict node="DEVICE">
+			<array singular="Device">
+				<dict>
 					<key>AssetTag</key>
 					<string default="Unknown">123456789</string>
 					<key>BankLocator</key>
@@ -1132,22 +1132,22 @@
 			<key>TypeDetail</key>
 			<integer default="0x4" type="uint16">128</integer>
 		</dict>
-		<key node="NVRAM_CONFIG" name="Nvram">PlatformNVRAM</key>
+		<key node_h="NVRAM_CONFIG" node_c="Nvram">PlatformNVRAM</key>
 		<dict>
-			<key name="Bid">BID</key>
+			<key node_c="Bid">BID</key>
 			<string>Mac-AA95B1DDAB278B95</string>
 			<key>FirmwareFeatures</key>
 			<data>dvWP/QAAAAA=</data>
 			<key>FirmwareFeaturesMask</key>
 			<data>f//f/wAAAAA=</data>
-			<key name="Mlb">MLB</key>
+			<key node_c="Mlb">MLB</key>
 			<string>M0000000000000001</string>
-			<key name="Rom">ROM</key>
+			<key node_c="Rom">ROM</key>
 			<data>ESIzRFVm</data>
-			<key name="SystemUuid">SystemUUID</key>
+			<key node_c="SystemUuid">SystemUUID</key>
 			<string>00000000-0000-0000-0000-000000000000</string>
 		</dict>
-		<key node="SMBIOS_CONFIG" name="Smbios">SMBIOS</key>
+		<key node_h="SMBIOS_CONFIG" node_c="Smbios">SMBIOS</key>
 		<dict>
 			<key>BIOSReleaseDate</key>
 			<string>10/19/2020</string>
@@ -1199,23 +1199,23 @@
 			<string></string>
 			<key>SystemSerialNumber</key>
 			<string>W00000000001</string>
-			<key name="SystemUuid">SystemUUID</key>
+			<key node_c="SystemUuid">SystemUUID</key>
 			<string>00000000-0000-0000-0000-000000000000</string>
 			<key>SystemVersion</key>
 			<string>1.0</string>
 		</dict>
 		<key>UpdateDataHub</key>
 		<true/>
-		<key name="UpdateNvram">UpdateNVRAM</key>
+		<key node_c="UpdateNvram">UpdateNVRAM</key>
 		<true/>
-		<key name="UpdateSmbios">UpdateSMBIOS</key>
+		<key node_c="UpdateSmbios">UpdateSMBIOS</key>
 		<true/>
-		<key name="UpdateSmbiosMode">UpdateSMBIOSMode</key>
+		<key node_c="UpdateSmbiosMode">UpdateSMBIOSMode</key>
 		<string default="Create">Create</string>
 	</dict>
-	<key name="Uefi" comment="Uefi">UEFI</key>
+	<key node_c="Uefi" section="Uefi">UEFI</key>
 	<dict comment="Uefi contains firmware tweaks and extra drivers">
-		<key name="Apfs">APFS</key>
+		<key node_c="Apfs">APFS</key>
 		<dict comment="APFS is a set of options for APFS file system support">
 			<key>EnableJumpstart</key>
 			<true/>
@@ -1249,7 +1249,7 @@
 		</dict>
 		<key>ConnectDrivers</key>
 		<true/>
-		<key node="DRIVER">Drivers</key>
+		<key node_h="DRIVER">Drivers</key>
 		<array comment="Drivers is a sorted array of strings containing driver paths">
 			<string>HfsPlus.efi</string>
 			<string>OpenRuntime.efi</string>
@@ -1314,7 +1314,7 @@
 			<key>UgaPassThrough</key>
 			<false/>
 		</dict>
-		<key node="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
+		<key node_h="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
 		<dict comment="Prefer own protocol implementation for these protocols">
 			<key>AppleAudio</key>
 			<false/>
@@ -1370,7 +1370,7 @@
 			<key>UnblockFsConnect</key>
 			<false/>
 		</dict>
-		<key node="RSVD">ReservedMemory</key>
+		<key node_h="RSVD">ReservedMemory</key>
 		<array>
 			<dict comment="Reserved memory entries adds">
 				<key>Address</key>
