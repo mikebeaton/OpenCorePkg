@@ -11,7 +11,7 @@ import io
 import sys
 import xml.etree.ElementTree as et
 
-# dataclass prints nicely
+# dataclasses print nicely
 from dataclasses import dataclass
 
 # Available flags for -f:
@@ -313,7 +313,7 @@ def parse_type_or_array(elem, path, tab):
 def parse_map(elem, path, tab):
   index = 0
 
-  key = parse_key(elem[index], tab + 1, False)
+  parse_key(elem[index], tab + 1, False) ###
   index += 1
 
   value = parse_type_or_array(elem[1], path, tab + 1)
