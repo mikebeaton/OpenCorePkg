@@ -27,7 +27,7 @@ SHOW_DEBUG = 0x08
 # use with SHOW_PLIST to recreate original plist (i.e. with extra features and hidden elements removed)
 SHOW_ORIGINAL = 0x20
 
-flags = 0x21
+flags = 0x1
 
 # passed around parsing to determine which files to write to
 OUTPUT_PLIST = 0x1
@@ -221,12 +221,12 @@ def parse_out_attr(elem, out_flags):
     use_flags &= ~OUTPUT_H
     
   if attr_flags.pop('p', None) is None:
-    # don't stop showing plist output if we are outputting the debug plist
+    # only stop showing plist output if we are recreating the original plist
     if flags & SHOW_ORIGINAL != 0:
       use_flags &= ~OUTPUT_PLIST
 
   if len(attr_flags) > 0:
-    error('unknown flags in attr output="%s", \'c\', \'h\' & \'p\' allowed' % out_attr)
+    error('unknown letter flags in attr output="%s", \'c\', \'h\' & \'p\' are allowed' % out_attr)
 
   return (use_flags, out_attr)
 
