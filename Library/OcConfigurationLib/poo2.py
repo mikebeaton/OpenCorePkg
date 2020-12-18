@@ -7,7 +7,9 @@
 Generate OpenCore .c and .h plist config definition files from template plist file.
 """
 
+import argparse
 import io
+import os
 import sys
 import xml.etree.ElementTree as et
 
@@ -27,18 +29,18 @@ SHOW_DEBUG = 0x08
 # use with SHOW_PLIST to recreate original plist (i.e. with extra features and hidden elements removed)
 SHOW_ORIGINAL = 0x20
 
-flags = 0x1
+# default flags value
+DEFAULT_FLAGS = SHOW_ORIGINAL | SHOW_XML
 
-# passed around parsing to determine which files to write to
+# prefix can be changed, to support non-default applications
+DEFAULT_PREFIX = 'Oc'
+
+# internal flags passed around during parsing to specify which files we are writing to
 OUTPUT_PLIST = 0x1
 OUTPUT_C = 0x2
 OUTPUT_H = 0x4
 OUTPUT_NONE = 0x0
 OUTPUT_ALL = OUTPUT_H | OUTPUT_C | OUTPUT_PLIST
-
-# emit comment in into .h file
-def emit_comment(comment):
-  pass
 
 # hold .h and .c nodes
 @dataclass
@@ -233,7 +235,7 @@ def parse_out_attr(elem, out_flags):
   return (use_flags, out_attr)
 
 # plist key; option not to use value for is for keys in maps
-def parse_key(elem, out_flags, tab, use_value = True):
+def parse_key(elem, path, out_flags, tab, use_value = True):
   (use_flags, out_attr) = parse_out_attr(elem, out_flags)
 
   start_tag(elem, 'key', use_flags, tab)
@@ -243,10 +245,12 @@ def parse_key(elem, out_flags, tab, use_value = True):
   section = consume_attr(elem, 'section', use_flags)
   end_and_close_tag(elem, use_flags)
 
-  if section is not None and tab != 1:
-    error('section attr in tag <key> only expected at level 1 nesting')
-
   key = plist_key('key', elem.text if use_value else None, hc(h, c), tab)
+
+  if len(path) == 0:
+    emit_section(use_flags, key.value if section is None else section)
+  elif section is not None:
+    error('section attr in tag <key> only expected at level 1 nesting')
 
   return (use_flags, key)
 
@@ -341,7 +345,7 @@ def parse_array(elem, path, out_flags, tab):
   (hiding, use_flags) = hide_children(elem, out_flags)
 
   if comment is not None:
-    emit_comment(comment)
+    emit_comment(out_flags, comment)
 
   if singular is not None or c is not None or h is not None:
     if singular is None:
@@ -398,7 +402,7 @@ def map_skip(elem, start, path, out_flags, tab):
   use_flags = skip_msg(elem, start, out_flags, tab)
   index = start
   while index < len(elem):
-    (next_flags, _) = parse_key(elem[index], use_flags, tab + 1, False)
+    (next_flags, _) = parse_key(elem[index], path, use_flags, tab + 1, False)
     index += 1
 
     parse_type_in_dict(elem[index], path, next_flags, tab + 1)
@@ -416,7 +420,7 @@ def array_skip(elem, start, path, out_flags, tab):
 def parse_map(elem, path, hiding, out_flags, use_flags, tab):
   index = 0
 
-  (next_flags, _) = parse_key(elem[index], use_flags, tab + 1, False)
+  (next_flags, _) = parse_key(elem[index], path, use_flags, tab + 1, False)
   index += 1
 
   value = parse_type_in_dict(elem[1], path, next_flags, tab + 1)
@@ -437,7 +441,7 @@ def parse_struct(elem, path, hiding, out_flags, use_flags, tab):
   count = len(elem)
 
   while index < count:
-    (next_flags, key) = parse_key(elem[index], use_flags, tab + 1)
+    (next_flags, key) = parse_key(elem[index], path, use_flags, tab + 1)
     index += 1
 
     new_path = path.copy()
@@ -465,7 +469,7 @@ def parse_dict(elem, path, out_flags, tab):
   (hiding, use_flags) = hide_children(elem, out_flags)
 
   if comment is not None:
-    emit_comment(comment)
+    emit_comment(out_flags, comment)
 
   if dict_type == 'map':
     retval = parse_map(elem, path, hiding, out_flags, use_flags, tab)
@@ -490,6 +494,30 @@ def parse_plist(elem, output):
 
   close_tag(elem, output, 0)
 
+# emit new section name
+def emit_section(out_flags, section_name):
+  if out_flags & OUTPUT_H != 0:
+    print('/**', file = h_types)
+    print('  %s section' % section_name, file = h_types)
+    print('**/', file = h_types)
+    print(file = h_types)
+
+  if out_flags & OUTPUT_C != 0:
+    # add line space here
+    print(file = c_structors)
+
+    print('//', file = c_schema)
+    print('// %s configuration support' % section_name, file = c_schema)
+    print('//', file = c_schema)
+    print(file = c_schema)
+
+# emit comment in into .h file
+def emit_comment(out_flags, comment):
+  if out_flags & OUTPUT_H != 0:
+    print('///', file = h_types)
+    print('/// %s.' % comment, file = h_types)
+    print('///', file = h_types)
+
 # if recreating original plist, emit first two lines of template file,
 # which otherwise don't show up in processing
 def emit_plist_header(filename):
@@ -498,18 +526,156 @@ def emit_plist_header(filename):
       for _ in range(2):
         print(next(plist_file), end = '')
 
+# flags
+def set_flags(args):
+  global flags
+  
+  if args.f.lower().startswith('0x'):
+    flags = int(args.f, 16)
+  else:
+    flags = int(args.f)
+  debug('flags=0x%02X' % flags)
+
+# prefix
+def set_prefix(args):
+  global camel_prefix
+  global upper_prefix
+
+  camel_prefix = args.prefix
+  upper_prefix = camel_prefix.upper()
+  debug('prefix=\'%s\'/\'%s\'' % (upper_prefix, camel_prefix))
+
+# read file fragment from fragments directory into string
+def read_fragment(dir, filename):
+  with open(os.path.join(dir, filename), 'r') as file:
+    return file.read()
+
+# .h file and templates
+def set_h_file(args):
+  global h_file
+  global h_intro
+  global h_outro
+
+  if args.h is None:
+    h_file = None
+  else:
+    h_file = args.h
+    debug('.h=%s' % h_file)
+    h_intro = read_fragment(args.fragments, 'intro.h')
+    h_outro = read_fragment(args.fragments, 'outro.h')
+
+# .c file and templates
+def set_c_file(args):
+  global c_file
+  global c_intro
+  global c_outro
+
+  if args.c is None:
+    c_file = None
+  else:
+    c_file = args.c
+    debug('.c=%s' % c_file)
+    c_intro = read_fragment(args.fragments, 'intro.c')
+    c_outro = read_fragment(args.fragments, 'outro.c')
+
+# string buffers
+def init_string_buffers():
+  global h_types
+  global c_structors
+  global c_schema
+
+  h_types = io.StringIO()
+  c_structors = io.StringIO()
+  c_schema = io.StringIO()
+
+# use argparse library to parse arguments
+def parse_args():
+  parser = argparse.ArgumentParser(description='Generate OpenCore .c and .h plist config definition files from template plist file.', conflict_handler='resolve')
+  parser.add_argument('infile', type=str, help='filename of input template .plist file')
+  parser.add_argument('-c', type=argparse.FileType('w'), metavar='c_file', help='filename of output .c file')
+  parser.add_argument('-h', type=argparse.FileType('w'), metavar='h_file', help='filename of output .h file')
+  default_flags_str = '0x%02x' % DEFAULT_FLAGS
+  parser.add_argument('-f', type=str, default=default_flags_str, metavar='flags', help='flags to control stdout; options at start of source, default=%s' % default_flags_str, )
+  parser.add_argument('--fragments', type=str, default='fragments', metavar='frags-dir', help='directory for .c/.h intro/outro templates')
+  parser.add_argument('--prefix', type=str, default=DEFAULT_PREFIX, metavar='prefix', help='prefix for non-default applications; default=\'%s\'' % DEFAULT_PREFIX)
+
+  args = parser.parse_args()
+
+  # set flags first
+  set_flags(args)
+  set_prefix(args)
+  set_h_file(args)
+  set_c_file(args)
+
+  debug('.plist="%s"' % args.infile)
+
+  return args.infile
+
+# customise template with prefix
+def customise_template(template):
+  return template \
+    .replace('[[Prefix]]', camel_prefix) \
+    .replace('[[PREFIX]]', upper_prefix)
+
+# output .h and .c files from accumulated buffers
+# (.plist file - which depending on options can be re-generation of unmodified plist - is output to stdout as we go)
+#
+
+def output_h():
+  global h_file
+  global h_types
+  
+  if h_file != None:
+    h_types.seek(0)
+
+    debug('writing .h')
+    print(customise_template(h_intro), file=h_file, end='')
+    print(h_types.read(), file=h_file, end='')
+    print(customise_template(h_outro), file=h_file, end='')
+
+    debug('closing .h=%s' % h_file)
+    h_file.close()
+    h_file = None
+
+  h_types = None
+
+def output_c():
+  global c_file
+  global c_structors
+  global c_schema
+
+  if c_file != None:
+    c_structors.seek(0)
+    c_schema.seek(0)
+
+    debug('writing .c')
+    print(customise_template(c_intro), file=c_file, end='')
+    print(c_structors.read(), file=c_file, end='')
+    print(c_schema.read(), file=c_file, end='')
+    print(customise_template(c_outro), file=c_file, end='')
+
+    debug('closing .c=%s' % c_file)
+    c_file.close()
+    c_file = None
+
+  c_structors = None
+  c_schema = None
+
 # main()
 def main():
-  if len(sys.argv) < 2:
-    print('provide plist filename to parse')
-    return
+  infile = parse_args()
 
-  plist = et.parse(sys.argv[1]).getroot()
+  plist = et.parse(infile).getroot()
 
-  # do this after the above, once we know input file was a valid plist
-  emit_plist_header(sys.argv[1])
+  # do this after the above, once we know infile was a valid plist
+  emit_plist_header(infile)
+
+  init_string_buffers()
 
   parse_plist(plist, OUTPUT_ALL)
+  
+  output_h()
+  output_c()
 
 # go
 main()
