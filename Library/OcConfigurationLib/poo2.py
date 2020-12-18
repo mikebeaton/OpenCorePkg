@@ -116,14 +116,16 @@ def debug(*args, **kwargs):
   if flags & SHOW_DEBUG != 0:
     print('DEBUG:', *args, **kwargs)
 
-# print with tab stops
+# print with tab stops and flags
 def info_print(*args, **kwargs):
   if kwargs.pop('info_flags', 0) & flags != 0:
     for _ in range(0, kwargs.pop('tab', 0)):
       print(end='\t')
     print(*args, **kwargs)
 
-# display generated objects
+#
+# optionally display objects generated during processing
+#
 
 def plist_key_print(*args, **kwargs):
   info_print(*args, info_flags = SHOW_KEYS, **kwargs)
@@ -272,7 +274,7 @@ def parse_boolean(elem, out_flags, tab, value):
   end_and_close_tag(elem, out_flags)
   return oc_type('boolean', tab, default = default)
 
-# boolean
+# string
 def parse_string(elem, out_flags, tab):
   default = consume_attr(elem, 'default', out_flags)
   end_and_close_tag(elem, out_flags, quick_close = False)
@@ -285,7 +287,7 @@ def parse_pointer(elem, out_flags, tab):
   end_and_close_tag(elem, out_flags)
   return oc_type('pointer', tab, ref=hc(data_type))
 
-# plist basic type
+# plist basic types
 def parse_basic_type(elem, out_flags, tab):
   start_tag(elem, elem.tag, out_flags, tab)
 
@@ -304,7 +306,7 @@ def parse_basic_type(elem, out_flags, tab):
 
   return retval
 
-# check for hide="children": remove all child tags when outputting original plist
+# check for hide="children", meaning remove all child tags when outputting original plist
 def hide_children(elem, out_flags):
   hide = consume_attr(elem, 'hide', out_flags)
   if hide is None:
@@ -314,8 +316,9 @@ def hide_children(elem, out_flags):
   else:
     error('invalid value for attr hide="%s" in <%s>' % (hide, elem.tag))
 
-  #if flags & SHOW_ORIGINAL == 0:
-  #  hiding = False
+  # only hide when recreating original plist
+  if flags & SHOW_ORIGINAL == 0:
+    hiding = False
 
   if hiding:
     end_and_close_tag(elem, out_flags, kill_content = True)
@@ -379,6 +382,7 @@ def parse_type_in_array(elem, path, out_flags, tab):
   else:
     return parse_basic_type(elem, out_flags, tab)
 
+# emit message describing skip (and sort out flags describing what to do)
 def skip_msg(elem, start, out_flags, tab):
   if flags & SHOW_ORIGINAL == 0:
     use_flags = OUTPUT_NONE
@@ -389,6 +393,7 @@ def skip_msg(elem, start, out_flags, tab):
     use_flags = OUTPUT_PLIST
   return use_flags
 
+# skip unused elements
 def map_skip(elem, start, path, out_flags, tab):
   use_flags = skip_msg(elem, start, out_flags, tab)
   index = start
@@ -399,6 +404,7 @@ def map_skip(elem, start, path, out_flags, tab):
     parse_type_in_dict(elem[index], path, next_flags, tab + 1)
     index += 1
 
+# skip unused elements
 def array_skip(elem, start, path, out_flags, tab):
   use_flags = skip_msg(elem, start, out_flags, tab)
   index = start
@@ -484,8 +490,8 @@ def parse_plist(elem, output):
 
   close_tag(elem, output, 0)
 
-# if recreating original plist emit first two lines of template file, which
-# otherwise don't show up in processing, to stdout
+# if recreating original plist, emit first two lines of template file,
+# which otherwise don't show up in processing
 def emit_plist_header(filename):
   if flags & SHOW_ORIGINAL != 0:
     with open(filename) as plist_file:
@@ -500,6 +506,7 @@ def main():
 
   plist = et.parse(sys.argv[1]).getroot()
 
+  # do this after the above, once we know input file was a valid plist
   emit_plist_header(sys.argv[1])
 
   parse_plist(plist, OUTPUT_ALL)
