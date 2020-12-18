@@ -543,7 +543,7 @@ def set_prefix(args):
 
   camel_prefix = args.prefix
   upper_prefix = camel_prefix.upper()
-  debug('prefix=\'%s\'/\'%s\'' % (upper_prefix, camel_prefix))
+  debug('prefix="%s"/"%s"' % (upper_prefix, camel_prefix))
 
 # read file fragment from fragments directory into string
 def read_fragment(dir, filename):
@@ -596,8 +596,8 @@ def parse_args():
   parser.add_argument('-h', type=argparse.FileType('w'), metavar='h_file', help='filename of output .h file')
   default_flags_str = '0x%02x' % DEFAULT_FLAGS
   parser.add_argument('-f', type=str, default=default_flags_str, metavar='flags', help='flags to control stdout; options at start of source, default=%s' % default_flags_str, )
-  parser.add_argument('--fragments', type=str, default='fragments', metavar='frags-dir', help='directory for .c/.h intro/outro templates')
-  parser.add_argument('--prefix', type=str, default=DEFAULT_PREFIX, metavar='prefix', help='prefix for non-default applications; default=\'%s\'' % DEFAULT_PREFIX)
+  parser.add_argument('--fragments', type=str, default='fragments', metavar='frag-dir', help='directory for .c/.h intro/outro templates')
+  parser.add_argument('--prefix', type=str, default=DEFAULT_PREFIX, metavar='prefix', help='prefix for non-default applications; default="%s"' % DEFAULT_PREFIX)
 
   args = parser.parse_args()
 
