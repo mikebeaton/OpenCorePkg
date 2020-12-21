@@ -420,9 +420,9 @@
 #define OC_NVRAM_CONFIG_FIELDS(_, __) \
   _(OC_NVRAM_ADD_MAP           , Add               ,     , OC_CONSTR2 (OC_NVRAM_ADD_MAP, _, __)        , OC_DESTR (OC_NVRAM_ADD_MAP)) \
   _(OC_NVRAM_DELETE_MAP        , Delete            ,     , OC_CONSTR2 (OC_NVRAM_DELETE_MAP, _, __)     , OC_DESTR (OC_NVRAM_DELETE_MAP)) \
-  _(OC_NVRAM_LEGACY_MAP        , Legacy            ,     , OC_CONSTR2 (OC_NVRAM_LEGACY_MAP, _, __)     , OC_DESTR (OC_NVRAM_LEGACY_MAP)) \
   _(BOOLEAN                    , LegacyEnable      ,     , FALSE                                       , ()) \
   _(BOOLEAN                    , LegacyOverwrite   ,     , FALSE                                       , ()) \
+  _(OC_NVRAM_LEGACY_MAP        , Legacy            ,     , OC_CONSTR2 (OC_NVRAM_LEGACY_MAP, _, __)     , OC_DESTR (OC_NVRAM_LEGACY_MAP)) \
   _(BOOLEAN                    , WriteFlash        ,     , FALSE                                       , ())
   OC_DECLARE (OC_NVRAM_CONFIG)
 

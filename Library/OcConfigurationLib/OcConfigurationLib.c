@@ -412,8 +412,24 @@ mMiscConfigurationDebugSchema[] = {
   OC_SCHEMA_INTEGER_IN ("DisplayLevel",     OC_GLOBAL_CONFIG, Misc.Debug.DisplayLevel),
   OC_SCHEMA_BOOLEAN_IN ("SerialInit",       OC_GLOBAL_CONFIG, Misc.Debug.SerialInit),
   OC_SCHEMA_BOOLEAN_IN ("SysReport",        OC_GLOBAL_CONFIG, Misc.Debug.SysReport),
-  OC_SCHEMA_INTEGER_IN ("Target",           OC_GLOBAL_CONFIG, Misc.Debug.Target)
+  OC_SCHEMA_INTEGER_IN ("Target",           OC_GLOBAL_CONFIG, Misc.Debug.Target),
 };
+
+STATIC
+OC_SCHEMA
+mMiscEntriesSchemaEntry[] = {
+  OC_SCHEMA_STRING_IN  ("Arguments", OC_MISC_TOOLS_ENTRY, Arguments),
+  OC_SCHEMA_BOOLEAN_IN ("Auxiliary", OC_MISC_TOOLS_ENTRY, Auxiliary),
+  OC_SCHEMA_STRING_IN  ("Comment",   OC_MISC_TOOLS_ENTRY, Comment),
+  OC_SCHEMA_BOOLEAN_IN ("Enabled",   OC_MISC_TOOLS_ENTRY, Enabled),
+  OC_SCHEMA_STRING_IN  ("Name",      OC_MISC_TOOLS_ENTRY, Name),
+  OC_SCHEMA_STRING_IN  ("Path",      OC_MISC_TOOLS_ENTRY, Path),
+  OC_SCHEMA_BOOLEAN_IN ("TextMode",  OC_MISC_TOOLS_ENTRY, TextMode),
+};
+
+STATIC
+OC_SCHEMA
+mMiscEntriesSchema = OC_SCHEMA_DICT (NULL, mMiscEntriesSchemaEntry);
 
 STATIC
 OC_SCHEMA
@@ -434,22 +450,6 @@ mMiscConfigurationSecuritySchema[] = {
   OC_SCHEMA_STRING_IN  ("SecureBootModel",      OC_GLOBAL_CONFIG, Misc.Security.SecureBootModel),
   OC_SCHEMA_STRING_IN  ("Vault",                OC_GLOBAL_CONFIG, Misc.Security.Vault),
 };
-
-STATIC
-OC_SCHEMA
-mMiscEntriesSchemaEntry[] = {
-  OC_SCHEMA_STRING_IN  ("Arguments", OC_MISC_TOOLS_ENTRY, Arguments),
-  OC_SCHEMA_BOOLEAN_IN ("Auxiliary", OC_MISC_TOOLS_ENTRY, Auxiliary),
-  OC_SCHEMA_STRING_IN  ("Comment",   OC_MISC_TOOLS_ENTRY, Comment),
-  OC_SCHEMA_BOOLEAN_IN ("Enabled",   OC_MISC_TOOLS_ENTRY, Enabled),
-  OC_SCHEMA_STRING_IN  ("Name",      OC_MISC_TOOLS_ENTRY, Name),
-  OC_SCHEMA_STRING_IN  ("Path",      OC_MISC_TOOLS_ENTRY, Path),
-  OC_SCHEMA_BOOLEAN_IN ("TextMode",  OC_MISC_TOOLS_ENTRY, TextMode),
-};
-
-STATIC
-OC_SCHEMA
-mMiscEntriesSchema = OC_SCHEMA_DICT (NULL, mMiscEntriesSchemaEntry);
 
 STATIC
 OC_SCHEMA
