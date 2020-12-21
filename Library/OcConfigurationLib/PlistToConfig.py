@@ -91,20 +91,35 @@ class plist_key:
 
 # oc type
 class oc_type:
-  def __init__(self, schema_type, tab, path, out_flags, default = None, size = None, of = None, ref = None, context = None, comment = None, suffix = None):
+  def __init__(
+    self,
+    schema_type,
+    tab,
+    path,
+    out_flags,
+    default = None,
+    size = None,
+    of = None,
+    ref = None,
+    context = None,
+    comment = None,
+    suffix = None,
+    opt = None
+    ):
     if ref is None:
       ref = hc()
     self.name = None
     self.schema_type = schema_type
     self.default = default
     self.path = path
+    self.out_flags = out_flags
     self.size = size
     self.of = of
     self.ref = ref
     self.context = context
     self.comment = comment
     self.suffix = suffix
-    self.out_flags = out_flags
+    self.opt = opt
 
     oc_type_print('[oc:%s' % schema_type, tab=tab, end='')
     oc_type_attr_print('default', default)
@@ -121,7 +136,8 @@ class oc_type:
     oc_type_attr_print('context', context)
     oc_type_attr_print('comment', comment)
     oc_type_attr_print('suffix', suffix)
-    oc_type_attr_print('out_flags', out_flags)
+    oc_type_attr_print('opt', opt)
+    oc_type_attr_print('out_flags', out_flags) # displaying last for visibility
     oc_type_print(']')
 
 # error and stop
@@ -262,9 +278,9 @@ def bool_from_str(str_bool):
     bool_bool = None
   else:
     lower = str_bool.lower()
-    if str_bool == "0" or lower == "false" or lower == "no":
+    if str_bool == '0' or lower == 'false' or lower == 'no':
       bool_bool = False
-    elif str_bool == "1" or lower == "true" or lower == "yes":
+    elif str_bool == '1' or lower == 'true' or lower == 'yes':
       bool_bool = True
     else:
       error('illegal bool value="', str_bool, '"')
@@ -563,7 +579,7 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
   return m
 
 # parse contents of dict as struct
-def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab):
+def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, tab):
   fields = []
 
   index = 0
@@ -586,20 +602,28 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix)
+  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt)
 
   emit_struct(s)
 
   return s
+
+# error if unsopported attr
+def unsupported(attr, attr_name, tag_name):
+  if attr is not None:
+    error('attr %s not supported on <%s>' % (attr_name, tag_name))
 
 # parse dict (with sub-types struct and map)
 def parse_dict(elem, path, out_flags, context, tab):
   start_tag(elem, 'dict', out_flags, tab)
   dict_type = consume_attr(elem, 'type', out_flags)
   comment = consume_attr(elem, 'comment', out_flags)
+  str_opt = consume_attr(elem, 'opt', out_flags)
   xref = consume_attr(elem, 'xref', out_flags)
   child = fake_node(elem, 'child', out_flags)
   suffix = fake_node(elem, 'suffix', out_flags)
+
+  opt = bool_from_str(str_opt)
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
@@ -607,12 +631,12 @@ def parse_dict(elem, path, out_flags, context, tab):
 
   if dict_type == 'map':
     retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab)
-    if xref is not None:
-      error('attr xref not supported on <dict type="map">')
+    unsupported(xref, 'xref', 'dict type="map"')
+    unsupported(opt, 'opt', 'dict type="map"')
   elif dict_type is not None:
     error('unknown value of attr type="%s" in <dict>' % dict_type)
   else:
-    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab)
+    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, tab)
     if xref is not None:
       retval.ref.h = xref
 
@@ -767,7 +791,7 @@ def emit_field(elem, parent, inside_struct, last):
     # .c schema
     tab_to(2, file = c_schema)
 
-    tab_print('OC_SCHEMA_%s%s' % (oc_schema_type, '_IN' if oc_schema_type != 'DICT' else ''), file = c_schema)
+    tab_print('OC_SCHEMA_%s%s' % (oc_schema_type, '_IN' if oc_schema_type != 'DICT' else ('_OPT' if elem.opt else '')), file = c_schema)
 
     tab_to(23, file = c_schema)
     tab_print(' ("%s",' % elem.name, file = c_schema)
@@ -1174,8 +1198,12 @@ def output_c(out_flags):
 
 # main()
 def main():
-  ###(out_flags, infile) = (0, 'Template.plist')
-  (out_flags, infile) = parse_args()
+  ###
+  if len(sys.argv) == 1:
+    (out_flags, infile) = (0, 'Template.plist')
+  else:
+  ###
+    (out_flags, infile) = parse_args()
 
   plist = et.parse(infile).getroot()
 

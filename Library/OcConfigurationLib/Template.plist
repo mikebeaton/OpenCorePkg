@@ -989,7 +989,7 @@
 		<key>CustomMemory</key>
 		<true/>
 		<key h="DATA_HUB_CONFIG">DataHub</key>
-		<dict>
+		<dict opt="true">
 			<key>ARTFrequency</key>
 			<integer type="UINT64">0</integer>
 			<key>BoardProduct</key>
@@ -1041,7 +1041,7 @@
 			<string></string>
 		</dict>
 		<key h="MEMORY_CONFIG">Memory</key>
-		<dict>
+		<dict child_h="MEMORY" opt="true">
 			<key>DataWidth</key>
 			<integer default="0xFFFF" type="UINT16">64</integer>
 			<key>Devices</key>
@@ -1133,7 +1133,7 @@
 			<integer default="0x4" type="UINT16">128</integer>
 		</dict>
 		<key h="NVRAM_CONFIG" c="Nvram">PlatformNVRAM</key>
-		<dict>
+		<dict opt="true">
 			<key c="Bid">BID</key>
 			<string>Mac-AA95B1DDAB278B95</string>
 			<key>FirmwareFeatures</key>
@@ -1148,7 +1148,7 @@
 			<string>00000000-0000-0000-0000-000000000000</string>
 		</dict>
 		<key h="SMBIOS_CONFIG" c="Smbios">SMBIOS</key>
-		<dict>
+		<dict opt="true">
 			<key>BIOSReleaseDate</key>
 			<string>10/19/2020</string>
 			<key>BIOSVendor</key>
