@@ -499,10 +499,10 @@
 				<string></string>
 				<key>Enabled</key>
 				<false/>
-				<key>Identifier</key>
-				<string>com.apple.iokit.IONetworkingFamily</string>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/IONetworkingFamily</string>
+				<key>Identifier</key>
+				<string>com.apple.iokit.IONetworkingFamily</string>
 				<key>MaxKernel</key>
 				<string>13.99.99</string>
 				<key>MinKernel</key>
@@ -792,8 +792,8 @@
 			<integer>3</integer>
 		</dict>
 		<key>Entries</key>
-		<array child_h="TOOLS" xref="OC_MISC_TOOLS_ARRAY">
-			<dict>
+		<array xref="OC_MISC_TOOLS_ARRAY">
+			<dict xref="OC_MISC_TOOLS_ENTRY">
 				<key>Arguments</key>
 				<string></string>
 				<key>Auxiliary</key>

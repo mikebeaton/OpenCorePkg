@@ -103,6 +103,7 @@ class oc_type:
     ref = None,
     context = None,
     comment = None,
+    xref = None,
     suffix = None,
     opt = None
     ):
@@ -118,6 +119,7 @@ class oc_type:
     self.ref = ref
     self.context = context
     self.comment = comment
+    self.xref = xref
     self.suffix = suffix
     self.opt = opt
 
@@ -135,6 +137,7 @@ class oc_type:
     oc_type_attr_print('ref', ref)
     oc_type_attr_print('context', context)
     oc_type_attr_print('comment', comment)
+    oc_type_attr_print('xref', xref)
     oc_type_attr_print('suffix', suffix)
     oc_type_attr_print('opt', opt)
     oc_type_attr_print('out_flags', out_flags) # displaying last for visibility
@@ -503,7 +506,7 @@ def parse_array(elem, path, out_flags, context, tab):
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix)
+  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix, xref = xref)
 
   emit_array(a)
 
@@ -558,7 +561,7 @@ def array_skip(elem, start, path, out_flags, context, tab):
     index += 1
 
 # parse contents of dict as map
-def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab):
+def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, xref, tab):
   index = 0
 
   (next_flags, _) = parse_key(elem[index], child_path, use_flags, tab + 1, False)
@@ -572,14 +575,14 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix)
+  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix, xref = xref)
 
   emit_map(m)
 
   return m
 
 # parse contents of dict as struct
-def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, tab):
+def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, xref, tab):
   fields = []
 
   index = 0
@@ -602,7 +605,7 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt)
+  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt, xref = xref)
 
   emit_struct(s)
 
@@ -630,15 +633,12 @@ def parse_dict(elem, path, out_flags, context, tab):
   child_path = make_child_path(child, path)
 
   if dict_type == 'map':
-    retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab)
-    unsupported(xref, 'xref', 'dict type="map"')
+    retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, xref, tab)
     unsupported(opt, 'opt', 'dict type="map"')
   elif dict_type is not None:
     error('unknown value of attr type="%s" in <dict>' % dict_type)
   else:
-    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, tab)
-    if xref is not None:
-      retval.ref.h = xref
+    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, xref, tab)
 
   return retval
 
@@ -703,8 +703,8 @@ def get_structors(elem):
     if elem.size is not None:
       constructor = '{%s}' % constructor
   elif elem.schema_type == 'map' or elem.schema_type == 'struct' or elem.schema_type == 'array':
-    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.ref.h)
-    destructor = 'OC_DESTR (%s)' % elem.ref.h
+    constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.xref if elem.xref is not None else elem.ref.h)
+    destructor = 'OC_DESTR (%s)' % (elem.xref if elem.xref is not None else elem.ref.h)
     long_destructor = True
   elif elem.schema_type == 'blob':
     constructor = 'OC_EDATA_CONSTR (_, __)'
@@ -753,11 +753,11 @@ def emit_field(elem, parent, inside_struct, last):
     tab_destructor = 105
     tab_end = 130
 
-  if out_flags & OUTPUT_H != 0:
+  if parent.xref is None and out_flags & OUTPUT_H != 0:
     # .h
     tab_to(2, file = h_types)
     tab_print('_(', file = h_types)
-    tab_print(elem.ref.h, file = h_types)
+    tab_print(elem.xref if elem.xref is not None else elem.ref.h, file = h_types)
 
     tab_to(36, file = h_types)
     tab_print(', ', elem.path[-1].c, file = h_types)
@@ -804,7 +804,7 @@ def emit_field(elem, parent, inside_struct, last):
       if inside_struct:
         tab_print(' %s_GLOBAL_CONFIG,' % upper_prefix, file = c_schema)
       else:
-        tab_print(' %s,' % parent.ref.h, file = c_schema)
+        tab_print(' %s,' % (parent.xref if parent.xref is not None else parent.ref.h), file = c_schema)
       tab_to(70, file = c_schema)
       if inside_struct:
         tab_print(' %s' % '.'.join(p.c for p in elem.path), file = c_schema)
@@ -818,9 +818,16 @@ def emit_field(elem, parent, inside_struct, last):
 
     tab_nl(file = c_schema)
 
+# make these much easier to find in debug output
+def add_xref(xref):
+  if xref is None:
+    return ''
+  else:
+    return ' xref=%s' % xref
+
 # emit struct
 def emit_struct(elem):
-  context_print('emit_struct() parent=%s suffix=%s' % (elem.context, elem.suffix))
+  context_print('emit_struct() parent=%s suffix=%s%s' % (elem.context, elem.suffix, add_xref(elem.xref)))
 
   out_flags = elem.out_flags
   context = elem.context
@@ -843,14 +850,21 @@ def emit_struct(elem):
 
   emit_comment(elem)
 
+  # show struct context
+  def struct_context(file):
+    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+      print('// STRUCT parent=%s%s' % (context, add_xref(elem.xref)), file = file)
+
   if out_flags & OUTPUT_H != 0:
     # .h
-    print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
+    struct_context(h_types)
+
+    if elem.xref is None:
+      print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
 
   if out_flags & OUTPUT_C != 0:
     # .c schema
-    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
-      print('// STRUCT CONTEXT: %s' % context, file = c_schema)
+    struct_context(c_schema)
 
     print('STATIC', file = c_schema)
     print('OC_SCHEMA', file = c_schema)
@@ -863,12 +877,16 @@ def emit_struct(elem):
 
   if out_flags & OUTPUT_H != 0:
     # .h
-    print('  OC_DECLARE (%s)' % elem.ref.h, file = h_types)
-    print(file = h_types)
+    if elem.xref is None:
+      print('  OC_DECLARE (%s)' % elem.ref.h, file = h_types)
+      print(file = h_types)
 
   if out_flags & OUTPUT_C != 0:
     # .c structors
-    print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
+    struct_context(c_structors)
+
+    if elem.xref is None:
+      print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
 
     # .c schema
     print('};', file = c_schema)
@@ -876,7 +894,7 @@ def emit_struct(elem):
 
 # emit array
 def emit_array(elem):
-  context_print('emit_array() of=%s parent=%s suffix=%s' % (elem.of.schema_type, elem.context, elem.suffix))
+  context_print('emit_array() of=%s parent=%s suffix=%s%s' % (elem.of.schema_type, elem.context, elem.suffix, add_xref(elem.xref)))
 
   out_flags = elem.out_flags
   context = elem.context
@@ -896,23 +914,33 @@ def emit_array(elem):
 
   emit_comment(elem)
 
+  # show array context
+  def array_context(file):
+    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+      print('// ARRAY of=%s parent=%s%s' % (elem.of.schema_type, context, add_xref(elem.xref)), file = file)
+
   if out_flags & OUTPUT_H != 0:
     # .h
-    print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
-    print('  OC_ARRAY (%s, _, __)' % elem.of.ref.h, file = h_types)
-    print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
-    print(file = h_types)
+    array_context(h_types)
+
+    if elem.xref is None:
+      print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
+      print('  OC_ARRAY (%s, _, __)' % (elem.of.xref if elem.of.xref is not None else elem.of.ref.h), file = h_types)
+      print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
+      print(file = h_types)
 
   if out_flags & OUTPUT_C != 0:
     # .c structors
-    if context == 'map':
-      print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
-    else:
-      print('OC_ARRAY_STRUCTORS (%s)' % elem.ref.h, file = c_structors)
+    array_context(c_structors)
+
+    if elem.xref is None:
+      if context == 'map':
+        print('OC_STRUCTORS       (%s, ())' % elem.ref.h, file = c_structors)
+      else:
+        print('OC_ARRAY_STRUCTORS (%s)' % elem.ref.h, file = c_structors)
 
     # .c schema
-    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
-      print('// ARRAY OF %s; PARENT IS %s' % (elem.of.schema_type, context), file = c_schema)
+    array_context(c_schema)
 
     if context != 'map':
       print('STATIC', file = c_schema)
@@ -942,7 +970,7 @@ def emit_map_subtype(elem, parent, grandparent, is_map):
 # emit map
 def emit_map(elem):
   # (context does not actually effect map o/p)
-  context_print('emit_map() of=%s parent=%s suffix=%s' % (elem.of.schema_type, elem.context, elem.suffix))
+  context_print('emit_map() of=%s parent=%s suffix=%s%s' % (elem.of.schema_type, elem.context, elem.suffix, add_xref(elem.xref)))
 
   out_flags = elem.out_flags
   of = elem.of.schema_type
@@ -968,22 +996,33 @@ def emit_map(elem):
     error('unhandled map -> %s', of)
 
   # currently only support map->array->type or map->map->type
-  emit_map_subtype(elem.of.of, elem.of, elem, is_map)
+  if elem.xref is None:
+    emit_map_subtype(elem.of.of, elem.of, elem, is_map)
+
+  # show map context
+  def map_context(file):
+    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+      print('// MAP of=%s%s' % (of, add_xref(elem.xref)), file = file)
 
   if out_flags & OUTPUT_H != 0:
     # .h
-    print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
-    print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.ref.h, file = h_types)
-    print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
-    print(file = h_types)
+    map_context(h_types)
+
+    if elem.xref is None:
+      print('#define %s_FIELDS(_, __) \\' % elem.ref.h, file = h_types)
+      print('  OC_MAP (OC_STRING, %s, _, __)' % elem.of.ref.h, file = h_types)
+      print('  OC_DECLARE (%s)' % elem.ref.h , file = h_types)
+      print(file = h_types)
 
   if out_flags & OUTPUT_C != 0:
     # .c structors
-    print('OC_MAP_STRUCTORS   (%s)' % elem.ref.h, file = c_structors)
+    map_context(c_structors)
+
+    if elem.xref is None:
+      print('OC_MAP_STRUCTORS   (%s)' % elem.ref.h, file = c_structors)
 
     # .c schema
-    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
-      print('// MAP OF %s' % of, file = c_schema)
+    map_context(c_schema)
 
     print('STATIC' , file = c_schema)
     print('OC_SCHEMA' , file = c_schema)
