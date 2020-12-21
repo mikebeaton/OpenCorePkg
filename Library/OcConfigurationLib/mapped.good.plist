@@ -1,0 +1,2682 @@
+DEBUG: flags = 0x1f
+DEBUG: input: 'Template.plist'
+DEBUG: -c <_io.TextIOWrapper name='test.c' mode='w' encoding='UTF-8'>
+DEBUG: -h <_io.TextIOWrapper name='test.h' mode='w' encoding='UTF-8'>
+DEBUG: Reading plist XML from 'Template.plist'
+DEBUG: Parsing plist in memory
+CONTEXT: None
+<plist>
+CONTEXT: None
+<dict>
+	CONTEXT: None
+	<key name="Acpi">ACPI</key>
+	[plist:key value="ACPI" node=hc(h='ACPI', c='Acpi') name="Acpi"]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key>Add</key>
+		[plist:key value="Add" node=hc(h='ADD', c='Add')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="ACPI added tables">
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>My custom DSDT</string>
+				[OC:STRING path=[hc(h='ACPI', c='Acpi'), hc(h='ADD', c='Add'), hc(h='COMMENT', c='Comment')] value="My custom DSDT" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='ADD', c='Add'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Path</key>
+				[plist:key value="Path" node=hc(h='PATH', c='Path')]
+				CONTEXT: struct
+				<string>DSDT.aml</string>
+				[OC:STRING path=[hc(h='ACPI', c='Acpi'), hc(h='ADD', c='Add'), hc(h='PATH', c='Path')] value="DSDT.aml" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Path"]
+			[OC:STRUCT path=[hc(h='ACPI', c='Acpi'), hc(h='ADD', c='Add')] comment="ACPI added tables" of="list[3]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='ACPI', c='Acpi'), hc(h='ADD', c='Add')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 12 items)
+		</array>
+		[OC: ... name="Add"]
+		CONTEXT: None
+		<key>Delete</key>
+		[plist:key value="Delete" node=hc(h='DELETE', c='Delete')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="ACPI table deletion">
+				CONTEXT: None
+				<key>All</key>
+				[plist:key value="All" node=hc(h='ALL', c='All')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='ALL', c='All')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="All"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>Delete CpuPm</string>
+				[OC:STRING path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='COMMENT', c='Comment')] value="Delete CpuPm" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>OemTableId</key>
+				[plist:key value="OemTableId" node=hc(h='OEMTABLEID', c='OemTableId')]
+				CONTEXT: struct
+				<data type="uint8" size="8">0x437075506d000000</data>
+				[OC:DATAF path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='OEMTABLEID', c='OemTableId')] size="8" value="0x437075506d000000" ref=hc(h='UINT8', c=None)]
+				[OC: ... name="OemTableId"]
+				CONTEXT: None
+				<key>TableLength</key>
+				[plist:key value="TableLength" node=hc(h='TABLELENGTH', c='TableLength')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='TABLELENGTH', c='TableLength')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="TableLength"]
+				CONTEXT: None
+				<key>TableSignature</key>
+				[plist:key value="TableSignature" node=hc(h='TABLESIGNATURE', c='TableSignature')]
+				CONTEXT: struct
+				<data type="uint8" size="4">0x53534454</data>
+				[OC:DATAF path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete'), hc(h='TABLESIGNATURE', c='TableSignature')] size="4" value="0x53534454" ref=hc(h='UINT8', c=None)]
+				[OC: ... name="TableSignature"]
+			[OC:STRUCT path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete')] comment="ACPI table deletion" of="list[6]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='ACPI', c='Acpi'), hc(h='DELETE', c='Delete')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 1 item)
+		</array>
+		[OC: ... name="Delete"]
+		CONTEXT: None
+		<key>Patch</key>
+		[plist:key value="Patch" node=hc(h='PATCH', c='Patch')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="ACPI patches">
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>_Q11 to XQ11</string>
+				[OC:STRING path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='COMMENT', c='Comment')] value="_Q11 to XQ11" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Count</key>
+				[plist:key value="Count" node=hc(h='COUNT', c='Count')]
+				CONTEXT: struct
+				<integer type="uint32">0x       1</integer>
+				[OC:INTEGER path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='COUNT', c='Count')] value="0x       1" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Count"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Find</key>
+				[plist:key value="Find" node=hc(h='FIND', c='Find')]
+				CONTEXT: struct
+				<data type="blob">0x5f513131</data>
+				[OC:DATA path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='FIND', c='Find')] value="0x5f513131" ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Find"]
+				CONTEXT: None
+				<key>Limit</key>
+				[plist:key value="Limit" node=hc(h='LIMIT', c='Limit')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='LIMIT', c='Limit')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Limit"]
+				CONTEXT: None
+				<key>Mask</key>
+				[plist:key value="Mask" node=hc(h='MASK', c='Mask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='MASK', c='Mask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Mask"]
+				CONTEXT: None
+				<key>OemTableId</key>
+				[plist:key value="OemTableId" node=hc(h='OEMTABLEID', c='OemTableId')]
+				CONTEXT: struct
+				<data type="uint8" size="8"/>
+				[OC:DATAF path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='OEMTABLEID', c='OemTableId')] size="8" ref=hc(h='UINT8', c=None)]
+				[OC: ... name="OemTableId"]
+				CONTEXT: None
+				<key>Replace</key>
+				[plist:key value="Replace" node=hc(h='REPLACE', c='Replace')]
+				CONTEXT: struct
+				<data type="blob">0x58513131</data>
+				[OC:DATA path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='REPLACE', c='Replace')] value="0x58513131" ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Replace"]
+				CONTEXT: None
+				<key>ReplaceMask</key>
+				[plist:key value="ReplaceMask" node=hc(h='REPLACEMASK', c='ReplaceMask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='REPLACEMASK', c='ReplaceMask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="ReplaceMask"]
+				CONTEXT: None
+				<key>Skip</key>
+				[plist:key value="Skip" node=hc(h='SKIP', c='Skip')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='SKIP', c='Skip')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Skip"]
+				CONTEXT: None
+				<key>TableLength</key>
+				[plist:key value="TableLength" node=hc(h='TABLELENGTH', c='TableLength')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='TABLELENGTH', c='TableLength')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="TableLength"]
+				CONTEXT: None
+				<key>TableSignature</key>
+				[plist:key value="TableSignature" node=hc(h='TABLESIGNATURE', c='TableSignature')]
+				CONTEXT: struct
+				<data type="uint8" size="4"/>
+				[OC:DATAF path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch'), hc(h='TABLESIGNATURE', c='TableSignature')] size="4" ref=hc(h='UINT8', c=None)]
+				[OC: ... name="TableSignature"]
+			[OC:STRUCT path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch')] comment="ACPI patches" of="list[12]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='ACPI', c='Acpi'), hc(h='PATCH', c='Patch')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 1 item)
+		</array>
+		[OC: ... name="Patch"]
+		CONTEXT: None
+		<key>Quirks</key>
+		[plist:key value="Quirks" node=hc(h='QUIRKS', c='Quirks')]
+		CONTEXT: struct
+		<dict comment="ACPI quirks">
+			CONTEXT: None
+			<key>FadtEnableReset</key>
+			[plist:key value="FadtEnableReset" node=hc(h='FADTENABLERESET', c='FadtEnableReset')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks'), hc(h='FADTENABLERESET', c='FadtEnableReset')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="FadtEnableReset"]
+			CONTEXT: None
+			<key>NormalizeHeaders</key>
+			[plist:key value="NormalizeHeaders" node=hc(h='NORMALIZEHEADERS', c='NormalizeHeaders')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks'), hc(h='NORMALIZEHEADERS', c='NormalizeHeaders')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="NormalizeHeaders"]
+			CONTEXT: None
+			<key>RebaseRegions</key>
+			[plist:key value="RebaseRegions" node=hc(h='REBASEREGIONS', c='RebaseRegions')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks'), hc(h='REBASEREGIONS', c='RebaseRegions')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="RebaseRegions"]
+			CONTEXT: None
+			<key>ResetHwSig</key>
+			[plist:key value="ResetHwSig" node=hc(h='RESETHWSIG', c='ResetHwSig')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks'), hc(h='RESETHWSIG', c='ResetHwSig')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ResetHwSig"]
+			CONTEXT: None
+			<key>ResetLogoStatus</key>
+			[plist:key value="ResetLogoStatus" node=hc(h='RESETLOGOSTATUS', c='ResetLogoStatus')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks'), hc(h='RESETLOGOSTATUS', c='ResetLogoStatus')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ResetLogoStatus"]
+		[OC:STRUCT path=[hc(h='ACPI', c='Acpi'), hc(h='QUIRKS', c='Quirks')] comment="ACPI quirks" of="list[5]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Quirks"]
+	[OC:STRUCT path=[hc(h='ACPI', c='Acpi')] of="list[4]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Acpi"]
+	CONTEXT: None
+	<key comment="Apple bootloader">Booter</key>
+	[plist:key comment="Apple bootloader" value="Booter" node=hc(h='BOOTER', c='Booter')]
+	CONTEXT: struct
+	<dict comment="Apple bootloader config">
+		CONTEXT: None
+		<key node="WL">MmioWhitelist</key>
+		[plist:key value="MmioWhitelist" node=hc(h='WL', c='MmioWhitelist')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="MMIO whitelist">
+				CONTEXT: None
+				<key>Address</key>
+				[plist:key value="Address" node=hc(h='ADDRESS', c='Address')]
+				CONTEXT: struct
+				<integer type="uint64">0x        fed1c000</integer>
+				[OC:INTEGER path=[hc(h='BOOTER', c='Booter'), hc(h='WL', c='MmioWhitelist'), hc(h='ADDRESS', c='Address')] value="0x        fed1c000" ref=hc(h='UINT64', c=None)]
+				[OC: ... name="Address"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>Haswell: SB_RCBA is a 0x4 page memory region, containing SPI_BASE at 0x3800 (SPI_BASE_ADDRESS)</string>
+				[OC:STRING path=[hc(h='BOOTER', c='Booter'), hc(h='WL', c='MmioWhitelist'), hc(h='COMMENT', c='Comment')] value="Haswell: SB_RCBA is a 0x4 page memory region, containing SPI_BASE at 0x3800 (SPI_BASE_ADDRESS)" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='WL', c='MmioWhitelist'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+			[OC:STRUCT path=[hc(h='BOOTER', c='Booter'), hc(h='WL', c='MmioWhitelist')] comment="MMIO whitelist" of="list[3]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='BOOTER', c='Booter'), hc(h='WL', c='MmioWhitelist')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 1 item)
+		</array>
+		[OC: ... name="MmioWhitelist"]
+		CONTEXT: None
+		<key>Patch</key>
+		[plist:key value="Patch" node=hc(h='PATCH', c='Patch')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="Bootloader patches">
+				CONTEXT: None
+				<key>Arch</key>
+				[plist:key value="Arch" node=hc(h='ARCH', c='Arch')]
+				CONTEXT: struct
+				<string default="Any">Any</string>
+				[OC:STRING path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='ARCH', c='Arch')] value="Any" default=""Any"" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Arch"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>macOS to hacOS</string>
+				[OC:STRING path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='COMMENT', c='Comment')] value="macOS to hacOS" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Count</key>
+				[plist:key value="Count" node=hc(h='COUNT', c='Count')]
+				CONTEXT: struct
+				<integer type="uint32">0x       1</integer>
+				[OC:INTEGER path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='COUNT', c='Count')] value="0x       1" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Count"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Find</key>
+				[plist:key value="Find" node=hc(h='FIND', c='Find')]
+				CONTEXT: struct
+				<data type="blob">0x6d61634f53</data>
+				[OC:DATA path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='FIND', c='Find')] value="0x6d61634f53" ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Find"]
+				CONTEXT: None
+				<key>Identifier</key>
+				[plist:key value="Identifier" node=hc(h='IDENTIFIER', c='Identifier')]
+				CONTEXT: struct
+				<string>Apple</string>
+				[OC:STRING path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='IDENTIFIER', c='Identifier')] value="Apple" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Identifier"]
+				CONTEXT: None
+				<key>Limit</key>
+				[plist:key value="Limit" node=hc(h='LIMIT', c='Limit')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='LIMIT', c='Limit')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Limit"]
+				CONTEXT: None
+				<key>Mask</key>
+				[plist:key value="Mask" node=hc(h='MASK', c='Mask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='MASK', c='Mask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Mask"]
+				CONTEXT: None
+				<key>Replace</key>
+				[plist:key value="Replace" node=hc(h='REPLACE', c='Replace')]
+				CONTEXT: struct
+				<data type="blob">0x6861634f53</data>
+				[OC:DATA path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='REPLACE', c='Replace')] value="0x6861634f53" ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Replace"]
+				CONTEXT: None
+				<key>ReplaceMask</key>
+				[plist:key value="ReplaceMask" node=hc(h='REPLACEMASK', c='ReplaceMask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='REPLACEMASK', c='ReplaceMask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="ReplaceMask"]
+				CONTEXT: None
+				<key>Skip</key>
+				[plist:key value="Skip" node=hc(h='SKIP', c='Skip')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch'), hc(h='SKIP', c='Skip')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Skip"]
+			[OC:STRUCT path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch')] comment="Bootloader patches" of="list[11]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='BOOTER', c='Booter'), hc(h='PATCH', c='Patch')] of="STRUCT"]
+ARRAY CONTEXT: struct
+		</array>
+		[OC: ... name="Patch"]
+		CONTEXT: None
+		<key>Quirks</key>
+		[plist:key value="Quirks" node=hc(h='QUIRKS', c='Quirks')]
+		CONTEXT: struct
+		<dict comment="Apple bootloader quirks">
+			CONTEXT: None
+			<key>AllowRelocationBlock</key>
+			[plist:key value="AllowRelocationBlock" node=hc(h='ALLOWRELOCATIONBLOCK', c='AllowRelocationBlock')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='ALLOWRELOCATIONBLOCK', c='AllowRelocationBlock')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AllowRelocationBlock"]
+			CONTEXT: None
+			<key>AvoidRuntimeDefrag</key>
+			[plist:key value="AvoidRuntimeDefrag" node=hc(h='AVOIDRUNTIMEDEFRAG', c='AvoidRuntimeDefrag')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='AVOIDRUNTIMEDEFRAG', c='AvoidRuntimeDefrag')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AvoidRuntimeDefrag"]
+			CONTEXT: None
+			<key>DevirtualiseMmio</key>
+			[plist:key value="DevirtualiseMmio" node=hc(h='DEVIRTUALISEMMIO', c='DevirtualiseMmio')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='DEVIRTUALISEMMIO', c='DevirtualiseMmio')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DevirtualiseMmio"]
+			CONTEXT: None
+			<key>DisableSingleUser</key>
+			[plist:key value="DisableSingleUser" node=hc(h='DISABLESINGLEUSER', c='DisableSingleUser')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='DISABLESINGLEUSER', c='DisableSingleUser')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableSingleUser"]
+			CONTEXT: None
+			<key>DisableVariableWrite</key>
+			[plist:key value="DisableVariableWrite" node=hc(h='DISABLEVARIABLEWRITE', c='DisableVariableWrite')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='DISABLEVARIABLEWRITE', c='DisableVariableWrite')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableVariableWrite"]
+			CONTEXT: None
+			<key>DiscardHibernateMap</key>
+			[plist:key value="DiscardHibernateMap" node=hc(h='DISCARDHIBERNATEMAP', c='DiscardHibernateMap')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='DISCARDHIBERNATEMAP', c='DiscardHibernateMap')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DiscardHibernateMap"]
+			CONTEXT: None
+			<key>EnableSafeModeSlide</key>
+			[plist:key value="EnableSafeModeSlide" node=hc(h='ENABLESAFEMODESLIDE', c='EnableSafeModeSlide')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='ENABLESAFEMODESLIDE', c='EnableSafeModeSlide')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="EnableSafeModeSlide"]
+			CONTEXT: None
+			<key>EnableWriteUnprotector</key>
+			[plist:key value="EnableWriteUnprotector" node=hc(h='ENABLEWRITEUNPROTECTOR', c='EnableWriteUnprotector')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='ENABLEWRITEUNPROTECTOR', c='EnableWriteUnprotector')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="EnableWriteUnprotector"]
+			CONTEXT: None
+			<key>ForceExitBootServices</key>
+			[plist:key value="ForceExitBootServices" node=hc(h='FORCEEXITBOOTSERVICES', c='ForceExitBootServices')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='FORCEEXITBOOTSERVICES', c='ForceExitBootServices')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ForceExitBootServices"]
+			CONTEXT: None
+			<key>ProtectMemoryRegions</key>
+			[plist:key value="ProtectMemoryRegions" node=hc(h='PROTECTMEMORYREGIONS', c='ProtectMemoryRegions')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='PROTECTMEMORYREGIONS', c='ProtectMemoryRegions')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ProtectMemoryRegions"]
+			CONTEXT: None
+			<key>ProtectSecureBoot</key>
+			[plist:key value="ProtectSecureBoot" node=hc(h='PROTECTSECUREBOOT', c='ProtectSecureBoot')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='PROTECTSECUREBOOT', c='ProtectSecureBoot')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ProtectSecureBoot"]
+			CONTEXT: None
+			<key>ProtectUefiServices</key>
+			[plist:key value="ProtectUefiServices" node=hc(h='PROTECTUEFISERVICES', c='ProtectUefiServices')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='PROTECTUEFISERVICES', c='ProtectUefiServices')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ProtectUefiServices"]
+			CONTEXT: None
+			<key>ProvideCustomSlide</key>
+			[plist:key value="ProvideCustomSlide" node=hc(h='PROVIDECUSTOMSLIDE', c='ProvideCustomSlide')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='PROVIDECUSTOMSLIDE', c='ProvideCustomSlide')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ProvideCustomSlide"]
+			CONTEXT: None
+			<key>ProvideMaxSlide</key>
+			[plist:key value="ProvideMaxSlide" node=hc(h='PROVIDEMAXSLIDE', c='ProvideMaxSlide')]
+			CONTEXT: struct
+			<integer type="uint8">0x 0</integer>
+			[OC:INTEGER path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='PROVIDEMAXSLIDE', c='ProvideMaxSlide')] value="0x 0" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="ProvideMaxSlide"]
+			CONTEXT: None
+			<key>RebuildAppleMemoryMap</key>
+			[plist:key value="RebuildAppleMemoryMap" node=hc(h='REBUILDAPPLEMEMORYMAP', c='RebuildAppleMemoryMap')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='REBUILDAPPLEMEMORYMAP', c='RebuildAppleMemoryMap')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="RebuildAppleMemoryMap"]
+			CONTEXT: None
+			<key>SetupVirtualMap</key>
+			[plist:key value="SetupVirtualMap" node=hc(h='SETUPVIRTUALMAP', c='SetupVirtualMap')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='SETUPVIRTUALMAP', c='SetupVirtualMap')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SetupVirtualMap"]
+			CONTEXT: None
+			<key>SignalAppleOS</key>
+			[plist:key value="SignalAppleOS" node=hc(h='SIGNALAPPLEOS', c='SignalAppleOS')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='SIGNALAPPLEOS', c='SignalAppleOS')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SignalAppleOS"]
+			CONTEXT: None
+			<key>SyncRuntimePermissions</key>
+			[plist:key value="SyncRuntimePermissions" node=hc(h='SYNCRUNTIMEPERMISSIONS', c='SyncRuntimePermissions')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks'), hc(h='SYNCRUNTIMEPERMISSIONS', c='SyncRuntimePermissions')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SyncRuntimePermissions"]
+		[OC:STRUCT path=[hc(h='BOOTER', c='Booter'), hc(h='QUIRKS', c='Quirks')] comment="Apple bootloader quirks" of="list[18]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Quirks"]
+	[OC:STRUCT path=[hc(h='BOOTER', c='Booter')] comment="Apple bootloader config" of="list[3]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Booter"]
+	CONTEXT: None
+	<key node="DEV_PROP">DeviceProperties</key>
+	[plist:key value="DeviceProperties" node=hc(h='DEV_PROP', c='DeviceProperties')]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key>Add</key>
+		[plist:key value="Add" node=hc(h='ADD', c='Add')]
+		CONTEXT: struct
+		<dict type="map" comment="Device properties is an associative map of devices with their property key value maps">
+			CONTEXT: None
+			<key>PciRoot(0x0)/Pci(0x1b,0x0)</key>
+			[plist:key value="PciRoot(0x0)/Pci(0x1b,0x0)" node=hc(h='PCIROOT(0X0)/PCI(0X1B,0X0)', c='PciRoot(0x0)/Pci(0x1b,0x0)')]
+			CONTEXT: map
+			<dict type="map">
+				CONTEXT: None
+				<key>layout-id</key>
+				[plist:key value="layout-id" node=hc(h='LAYOUT-ID', c='layout-id')]
+				CONTEXT: map
+				<data type="blob">0x01000000</data>
+				[OC:DATA path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='ADD', c='Add')] value="0x01000000" ref=hc(h='OC_DATA', c=None)]
+			</dict>
+			[OC:OC_ASSOC path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='ADD', c='Add')] ref=hc(h='OC_ASSOC', c=None)]
+		</dict>
+		[OC:MAP path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='ADD', c='Add')] comment="Device properties is an associative map of devices with their property key value maps" of="OC_ASSOC"]
+		[OC: ... name="Add"]
+		CONTEXT: None
+		<key>Delete</key>
+		[plist:key value="Delete" node=hc(h='DELETE', c='Delete')]
+		CONTEXT: struct
+		<dict type="map"/>
+			CONTEXT: None
+			[plist:key value="PciRoot(0x0)/Pci(0x1b,0x0)" hide=True node=hc(h='PCIROOT(0X0)/PCI(0X1B,0X0)', c='PciRoot(0x0)/Pci(0x1b,0x0)')]
+			CONTEXT: map
+				CONTEXT: array
+				[OC:STRING path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='DELETE', c='Delete')] value="layout-id" ref=hc(h='OC_STRING', c=None)]
+			[OC:ARRAY path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='DELETE', c='Delete')] of="STRING"]
+ARRAY CONTEXT: map
+		[OC:MAP path=[hc(h='DEV_PROP', c='DeviceProperties'), hc(h='DELETE', c='Delete')] of="ARRAY"]
+		[OC: ... name="Delete"]
+	[OC:STRUCT path=[hc(h='DEV_PROP', c='DeviceProperties')] of="list[2]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="DeviceProperties"]
+	CONTEXT: None
+	<key comment="KernelSpace">Kernel</key>
+	[plist:key comment="KernelSpace" value="Kernel" node=hc(h='KERNEL', c='Kernel')]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key>Add</key>
+		[plist:key value="Add" node=hc(h='ADD', c='Add')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="KernelSpace kext adds">
+				CONTEXT: None
+				<key>Arch</key>
+				[plist:key value="Arch" node=hc(h='ARCH', c='Arch')]
+				CONTEXT: struct
+				<string default="Any">x86_64</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='ARCH', c='Arch')] value="x86_64" default=""Any"" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Arch"]
+				CONTEXT: None
+				<key>BundlePath</key>
+				[plist:key value="BundlePath" node=hc(h='BUNDLEPATH', c='BundlePath')]
+				CONTEXT: struct
+				<string>Lilu.kext</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='BUNDLEPATH', c='BundlePath')] value="Lilu.kext" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="BundlePath"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>Patch engine</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='COMMENT', c='Comment')] value="Patch engine" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<true/>
+				[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='ENABLED', c='Enabled')] value="true" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>ExecutablePath</key>
+				[plist:key value="ExecutablePath" node=hc(h='EXECUTABLEPATH', c='ExecutablePath')]
+				CONTEXT: struct
+				<string>Contents/MacOS/Lilu</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='EXECUTABLEPATH', c='ExecutablePath')] value="Contents/MacOS/Lilu" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="ExecutablePath"]
+				CONTEXT: None
+				[plist:key value="Identifier" remove=True hide=True node=hc(h='IDENTIFIER', c='Identifier')]
+				CONTEXT: struct
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='IDENTIFIER', c='Identifier')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Identifier" remove=True]
+				CONTEXT: None
+				[plist:key value="ImageData" remove=True hide=True node=hc(h='IMAGEDATA', c='ImageData')]
+				CONTEXT: struct
+				[OC:POINTER path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='IMAGEDATA', c='ImageData')] ref=hc(h='UINT8 *', c=None)]
+				[OC: ... name="ImageData" remove=True]
+				CONTEXT: None
+				[plist:key value="ImageDataSize" remove=True hide=True node=hc(h='IMAGEDATASIZE', c='ImageDataSize')]
+				CONTEXT: struct
+				[OC:DATAF path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='IMAGEDATASIZE', c='ImageDataSize')] ref=hc(h='UINT32', c=None)]
+				[OC: ... name="ImageDataSize" remove=True]
+				CONTEXT: None
+				<key>MaxKernel</key>
+				[plist:key value="MaxKernel" node=hc(h='MAXKERNEL', c='MaxKernel')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='MAXKERNEL', c='MaxKernel')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MaxKernel"]
+				CONTEXT: None
+				<key>MinKernel</key>
+				[plist:key value="MinKernel" node=hc(h='MINKERNEL', c='MinKernel')]
+				CONTEXT: struct
+				<string>10.0.0</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='MINKERNEL', c='MinKernel')] value="10.0.0" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MinKernel"]
+				CONTEXT: None
+				[plist:key value="PlistData" remove=True hide=True node=hc(h='PLISTDATA', c='PlistData')]
+				CONTEXT: struct
+				[OC:POINTER path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='PLISTDATA', c='PlistData')] ref=hc(h='CHAR8 *', c=None)]
+				[OC: ... name="PlistData" remove=True]
+				CONTEXT: None
+				[plist:key value="PlistDataSize" remove=True hide=True node=hc(h='PLISTDATASIZE', c='PlistDataSize')]
+				CONTEXT: struct
+				[OC:DATAF path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='PLISTDATASIZE', c='PlistDataSize')] ref=hc(h='UINT32', c=None)]
+				[OC: ... name="PlistDataSize" remove=True]
+				CONTEXT: None
+				<key>PlistPath</key>
+				[plist:key value="PlistPath" node=hc(h='PLISTPATH', c='PlistPath')]
+				CONTEXT: struct
+				<string>Contents/Info.plist</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add'), hc(h='PLISTPATH', c='PlistPath')] value="Contents/Info.plist" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="PlistPath"]
+			[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add')] comment="KernelSpace kext adds" of="list[13]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='KERNEL', c='Kernel'), hc(h='ADD', c='Add')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 6 items)
+		</array>
+		[OC: ... name="Add"]
+		CONTEXT: None
+		<key>Block</key>
+		[plist:key value="Block" node=hc(h='BLOCK', c='Block')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="KernelSpace kext blocks">
+				CONTEXT: None
+				<key>Arch</key>
+				[plist:key value="Arch" node=hc(h='ARCH', c='Arch')]
+				CONTEXT: struct
+				<string default="Any">Any</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='ARCH', c='Arch')] value="Any" default=""Any"" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Arch"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='COMMENT', c='Comment')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Identifier</key>
+				[plist:key value="Identifier" node=hc(h='IDENTIFIER', c='Identifier')]
+				CONTEXT: struct
+				<string>com.apple.driver.AppleTyMCEDriver</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='IDENTIFIER', c='Identifier')] value="com.apple.driver.AppleTyMCEDriver" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Identifier"]
+				CONTEXT: None
+				<key>MaxKernel</key>
+				[plist:key value="MaxKernel" node=hc(h='MAXKERNEL', c='MaxKernel')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='MAXKERNEL', c='MaxKernel')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MaxKernel"]
+				CONTEXT: None
+				<key>MinKernel</key>
+				[plist:key value="MinKernel" node=hc(h='MINKERNEL', c='MinKernel')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block'), hc(h='MINKERNEL', c='MinKernel')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MinKernel"]
+			[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block')] comment="KernelSpace kext blocks" of="list[6]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='KERNEL', c='Kernel'), hc(h='BLOCK', c='Block')] of="STRUCT"]
+ARRAY CONTEXT: struct
+		</array>
+		[OC: ... name="Block"]
+		CONTEXT: None
+		<key>Emulate</key>
+		[plist:key value="Emulate" node=hc(h='EMULATE', c='Emulate')]
+		CONTEXT: struct
+		<dict comment="Kernel emulation preferences">
+			CONTEXT: None
+			<key>Cpuid1Data</key>
+			[plist:key value="Cpuid1Data" node=hc(h='CPUID1DATA', c='Cpuid1Data')]
+			CONTEXT: struct
+			<data type="uint32" size="4"/>
+			[OC:DATAF path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate'), hc(h='CPUID1DATA', c='Cpuid1Data')] size="4" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="Cpuid1Data"]
+			CONTEXT: None
+			<key>Cpuid1Mask</key>
+			[plist:key value="Cpuid1Mask" node=hc(h='CPUID1MASK', c='Cpuid1Mask')]
+			CONTEXT: struct
+			<data type="uint32" size="4"/>
+			[OC:DATAF path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate'), hc(h='CPUID1MASK', c='Cpuid1Mask')] size="4" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="Cpuid1Mask"]
+			CONTEXT: None
+			<key>DummyPowerManagement</key>
+			[plist:key value="DummyPowerManagement" node=hc(h='DUMMYPOWERMANAGEMENT', c='DummyPowerManagement')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate'), hc(h='DUMMYPOWERMANAGEMENT', c='DummyPowerManagement')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DummyPowerManagement"]
+			CONTEXT: None
+			<key>MaxKernel</key>
+			[plist:key value="MaxKernel" node=hc(h='MAXKERNEL', c='MaxKernel')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate'), hc(h='MAXKERNEL', c='MaxKernel')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="MaxKernel"]
+			CONTEXT: None
+			<key>MinKernel</key>
+			[plist:key value="MinKernel" node=hc(h='MINKERNEL', c='MinKernel')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate'), hc(h='MINKERNEL', c='MinKernel')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="MinKernel"]
+		[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='EMULATE', c='Emulate')] comment="Kernel emulation preferences" of="list[5]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Emulate"]
+		CONTEXT: None
+		<key>Force</key>
+		[plist:key value="Force" node=hc(h='FORCE', c='Force')]
+		CONTEXT: struct
+		<array comment="KernelSpace forced loaded kexts">
+			CONTEXT: array
+			<dict xref="OC_KERNEL_ADD_ENTRY">
+			[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='FORCE', c='Force')] ref=hc(h='OC_KERNEL_ADD_ENTRY', c=None)]
+				(skipping 18 items)
+			</dict>
+		[OC:ARRAY path=[hc(h='KERNEL', c='Kernel'), hc(h='FORCE', c='Force')] comment="KernelSpace forced loaded kexts" of="STRUCT"]
+ARRAY CONTEXT: struct
+		</array>
+		[OC: ... name="Force"]
+		CONTEXT: None
+		<key>Patch</key>
+		[plist:key value="Patch" node=hc(h='PATCH', c='Patch')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="KernelSpace patches">
+				CONTEXT: None
+				<key>Arch</key>
+				[plist:key value="Arch" node=hc(h='ARCH', c='Arch')]
+				CONTEXT: struct
+				<string default="Any">Any</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='ARCH', c='Arch')] value="Any" default=""Any"" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Arch"]
+				CONTEXT: None
+				<key>Base</key>
+				[plist:key value="Base" node=hc(h='BASE', c='Base')]
+				CONTEXT: struct
+				<string>__ZN8AppleRTC18setupDateTimeAlarmEPK11RTCDateTime</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='BASE', c='Base')] value="__ZN8AppleRTC18setupDateTimeAlarmEPK11RTCDateTime" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Base"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>Disable RTC wake scheduling</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='COMMENT', c='Comment')] value="Disable RTC wake scheduling" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Count</key>
+				[plist:key value="Count" node=hc(h='COUNT', c='Count')]
+				CONTEXT: struct
+				<integer type="uint32">0x       1</integer>
+				[OC:INTEGER path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='COUNT', c='Count')] value="0x       1" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Count"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Find</key>
+				[plist:key value="Find" node=hc(h='FIND', c='Find')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='FIND', c='Find')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Find"]
+				CONTEXT: None
+				<key>Identifier</key>
+				[plist:key value="Identifier" node=hc(h='IDENTIFIER', c='Identifier')]
+				CONTEXT: struct
+				<string>com.apple.driver.AppleRTC</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='IDENTIFIER', c='Identifier')] value="com.apple.driver.AppleRTC" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Identifier"]
+				CONTEXT: None
+				<key>Limit</key>
+				[plist:key value="Limit" node=hc(h='LIMIT', c='Limit')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='LIMIT', c='Limit')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Limit"]
+				CONTEXT: None
+				<key>Mask</key>
+				[plist:key value="Mask" node=hc(h='MASK', c='Mask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='MASK', c='Mask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Mask"]
+				CONTEXT: None
+				<key>MaxKernel</key>
+				[plist:key value="MaxKernel" node=hc(h='MAXKERNEL', c='MaxKernel')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='MAXKERNEL', c='MaxKernel')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MaxKernel"]
+				CONTEXT: None
+				<key>MinKernel</key>
+				[plist:key value="MinKernel" node=hc(h='MINKERNEL', c='MinKernel')]
+				CONTEXT: struct
+				<string>19.0.0</string>
+				[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='MINKERNEL', c='MinKernel')] value="19.0.0" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="MinKernel"]
+				CONTEXT: None
+				<key>Replace</key>
+				[plist:key value="Replace" node=hc(h='REPLACE', c='Replace')]
+				CONTEXT: struct
+				<data type="blob">0xc3</data>
+				[OC:DATA path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='REPLACE', c='Replace')] value="0xc3" ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="Replace"]
+				CONTEXT: None
+				<key>ReplaceMask</key>
+				[plist:key value="ReplaceMask" node=hc(h='REPLACEMASK', c='ReplaceMask')]
+				CONTEXT: struct
+				<data type="blob"/>
+				[OC:DATA path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='REPLACEMASK', c='ReplaceMask')] ref=hc(h='OC_DATA', c=None)]
+				[OC: ... name="ReplaceMask"]
+				CONTEXT: None
+				<key>Skip</key>
+				[plist:key value="Skip" node=hc(h='SKIP', c='Skip')]
+				CONTEXT: struct
+				<integer type="uint32">0x       0</integer>
+				[OC:INTEGER path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch'), hc(h='SKIP', c='Skip')] value="0x       0" ref=hc(h='UINT32', c=None)]
+				[OC: ... name="Skip"]
+			[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch')] comment="KernelSpace patches" of="list[14]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='KERNEL', c='Kernel'), hc(h='PATCH', c='Patch')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 5 items)
+		</array>
+		[OC: ... name="Patch"]
+		CONTEXT: None
+		<key>Quirks</key>
+		[plist:key value="Quirks" node=hc(h='QUIRKS', c='Quirks')]
+		CONTEXT: struct
+		<dict comment="KernelSpace quirks">
+			CONTEXT: None
+			<key>AppleCpuPmCfgLock</key>
+			[plist:key value="AppleCpuPmCfgLock" node=hc(h='APPLECPUPMCFGLOCK', c='AppleCpuPmCfgLock')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='APPLECPUPMCFGLOCK', c='AppleCpuPmCfgLock')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleCpuPmCfgLock"]
+			CONTEXT: None
+			<key>AppleXcpmCfgLock</key>
+			[plist:key value="AppleXcpmCfgLock" node=hc(h='APPLEXCPMCFGLOCK', c='AppleXcpmCfgLock')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='APPLEXCPMCFGLOCK', c='AppleXcpmCfgLock')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleXcpmCfgLock"]
+			CONTEXT: None
+			<key>AppleXcpmExtraMsrs</key>
+			[plist:key value="AppleXcpmExtraMsrs" node=hc(h='APPLEXCPMEXTRAMSRS', c='AppleXcpmExtraMsrs')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='APPLEXCPMEXTRAMSRS', c='AppleXcpmExtraMsrs')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleXcpmExtraMsrs"]
+			CONTEXT: None
+			<key>AppleXcpmForceBoost</key>
+			[plist:key value="AppleXcpmForceBoost" node=hc(h='APPLEXCPMFORCEBOOST', c='AppleXcpmForceBoost')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='APPLEXCPMFORCEBOOST', c='AppleXcpmForceBoost')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleXcpmForceBoost"]
+			CONTEXT: None
+			<key name="CustomSmbiosGuid">CustomSMBIOSGuid</key>
+			[plist:key value="CustomSMBIOSGuid" node=hc(h='CUSTOMSMBIOSGUID', c='CustomSmbiosGuid') name="CustomSmbiosGuid"]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='CUSTOMSMBIOSGUID', c='CustomSmbiosGuid')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="CustomSmbiosGuid"]
+			CONTEXT: None
+			<key>DisableIoMapper</key>
+			[plist:key value="DisableIoMapper" node=hc(h='DISABLEIOMAPPER', c='DisableIoMapper')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='DISABLEIOMAPPER', c='DisableIoMapper')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableIoMapper"]
+			CONTEXT: None
+			<key>DisableLinkeditJettison</key>
+			[plist:key value="DisableLinkeditJettison" node=hc(h='DISABLELINKEDITJETTISON', c='DisableLinkeditJettison')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='DISABLELINKEDITJETTISON', c='DisableLinkeditJettison')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableLinkeditJettison"]
+			CONTEXT: None
+			<key>DisableRtcChecksum</key>
+			[plist:key value="DisableRtcChecksum" node=hc(h='DISABLERTCCHECKSUM', c='DisableRtcChecksum')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='DISABLERTCCHECKSUM', c='DisableRtcChecksum')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableRtcChecksum"]
+			CONTEXT: None
+			<key>ExtendBTFeatureFlags</key>
+			[plist:key value="ExtendBTFeatureFlags" node=hc(h='EXTENDBTFEATUREFLAGS', c='ExtendBTFeatureFlags')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='EXTENDBTFEATUREFLAGS', c='ExtendBTFeatureFlags')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ExtendBTFeatureFlags"]
+			CONTEXT: None
+			<key>ExternalDiskIcons</key>
+			[plist:key value="ExternalDiskIcons" node=hc(h='EXTERNALDISKICONS', c='ExternalDiskIcons')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='EXTERNALDISKICONS', c='ExternalDiskIcons')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ExternalDiskIcons"]
+			CONTEXT: None
+			<key>ForceSecureBootScheme</key>
+			[plist:key value="ForceSecureBootScheme" node=hc(h='FORCESECUREBOOTSCHEME', c='ForceSecureBootScheme')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='FORCESECUREBOOTSCHEME', c='ForceSecureBootScheme')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ForceSecureBootScheme"]
+			CONTEXT: None
+			<key>IncreasePciBarSize</key>
+			[plist:key value="IncreasePciBarSize" node=hc(h='INCREASEPCIBARSIZE', c='IncreasePciBarSize')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='INCREASEPCIBARSIZE', c='IncreasePciBarSize')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="IncreasePciBarSize"]
+			CONTEXT: None
+			<key>LapicKernelPanic</key>
+			[plist:key value="LapicKernelPanic" node=hc(h='LAPICKERNELPANIC', c='LapicKernelPanic')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='LAPICKERNELPANIC', c='LapicKernelPanic')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="LapicKernelPanic"]
+			CONTEXT: None
+			<key>LegacyCommpage</key>
+			[plist:key value="LegacyCommpage" node=hc(h='LEGACYCOMMPAGE', c='LegacyCommpage')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='LEGACYCOMMPAGE', c='LegacyCommpage')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="LegacyCommpage"]
+			CONTEXT: None
+			<key>PanicNoKextDump</key>
+			[plist:key value="PanicNoKextDump" node=hc(h='PANICNOKEXTDUMP', c='PanicNoKextDump')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='PANICNOKEXTDUMP', c='PanicNoKextDump')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="PanicNoKextDump"]
+			CONTEXT: None
+			<key>PowerTimeoutKernelPanic</key>
+			[plist:key value="PowerTimeoutKernelPanic" node=hc(h='POWERTIMEOUTKERNELPANIC', c='PowerTimeoutKernelPanic')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='POWERTIMEOUTKERNELPANIC', c='PowerTimeoutKernelPanic')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="PowerTimeoutKernelPanic"]
+			CONTEXT: None
+			<key>ThirdPartyDrives</key>
+			[plist:key value="ThirdPartyDrives" node=hc(h='THIRDPARTYDRIVES', c='ThirdPartyDrives')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='THIRDPARTYDRIVES', c='ThirdPartyDrives')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ThirdPartyDrives"]
+			CONTEXT: None
+			<key>XhciPortLimit</key>
+			[plist:key value="XhciPortLimit" node=hc(h='XHCIPORTLIMIT', c='XhciPortLimit')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks'), hc(h='XHCIPORTLIMIT', c='XhciPortLimit')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="XhciPortLimit"]
+		[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='QUIRKS', c='Quirks')] comment="KernelSpace quirks" of="list[18]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Quirks"]
+		CONTEXT: None
+		<key>Scheme</key>
+		[plist:key value="Scheme" node=hc(h='SCHEME', c='Scheme')]
+		CONTEXT: struct
+		<dict comment="KernelSpace operation scheme">
+			CONTEXT: None
+			<key>FuzzyMatch</key>
+			[plist:key value="FuzzyMatch" node=hc(h='FUZZYMATCH', c='FuzzyMatch')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='KERNEL', c='Kernel'), hc(h='SCHEME', c='Scheme'), hc(h='FUZZYMATCH', c='FuzzyMatch')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="FuzzyMatch"]
+			CONTEXT: None
+			<key>KernelArch</key>
+			[plist:key value="KernelArch" node=hc(h='KERNELARCH', c='KernelArch')]
+			CONTEXT: struct
+			<string default="Auto">x86_64</string>
+			[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='SCHEME', c='Scheme'), hc(h='KERNELARCH', c='KernelArch')] value="x86_64" default=""Auto"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="KernelArch"]
+			CONTEXT: None
+			<key>KernelCache</key>
+			[plist:key value="KernelCache" node=hc(h='KERNELCACHE', c='KernelCache')]
+			CONTEXT: struct
+			<string default="Auto">Auto</string>
+			[OC:STRING path=[hc(h='KERNEL', c='Kernel'), hc(h='SCHEME', c='Scheme'), hc(h='KERNELCACHE', c='KernelCache')] value="Auto" default=""Auto"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="KernelCache"]
+		[OC:STRUCT path=[hc(h='KERNEL', c='Kernel'), hc(h='SCHEME', c='Scheme')] comment="KernelSpace operation scheme" of="list[3]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Scheme"]
+	[OC:STRUCT path=[hc(h='KERNEL', c='Kernel')] of="list[7]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Kernel"]
+	CONTEXT: None
+	<key>Misc</key>
+	[plist:key value="Misc" node=hc(h='MISC', c='Misc')]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key node="BLESS">BlessOverride</key>
+		[plist:key value="BlessOverride" node=hc(h='BLESS', c='BlessOverride')]
+		CONTEXT: struct
+		<array/>
+			CONTEXT: array
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='BLESS', c='BlessOverride')] ref=hc(h='OC_STRING', c=None)]
+		[OC:ARRAY path=[hc(h='MISC', c='Misc'), hc(h='BLESS', c='BlessOverride')] of="STRING"]
+ARRAY CONTEXT: struct
+		[OC: ... name="BlessOverride"]
+		CONTEXT: None
+		<key>Boot</key>
+		[plist:key value="Boot" node=hc(h='BOOT', c='Boot')]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>ConsoleAttributes</key>
+			[plist:key value="ConsoleAttributes" node=hc(h='CONSOLEATTRIBUTES', c='ConsoleAttributes')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='CONSOLEATTRIBUTES', c='ConsoleAttributes')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="ConsoleAttributes"]
+			CONTEXT: None
+			<key>HibernateMode</key>
+			[plist:key value="HibernateMode" node=hc(h='HIBERNATEMODE', c='HibernateMode')]
+			CONTEXT: struct
+			<string default="None">None</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='HIBERNATEMODE', c='HibernateMode')] value="None" default=""None"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="HibernateMode"]
+			CONTEXT: None
+			<key>HideAuxiliary</key>
+			[plist:key value="HideAuxiliary" node=hc(h='HIDEAUXILIARY', c='HideAuxiliary')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='HIDEAUXILIARY', c='HideAuxiliary')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="HideAuxiliary"]
+			CONTEXT: None
+			<key>PickerAttributes</key>
+			[plist:key value="PickerAttributes" node=hc(h='PICKERATTRIBUTES', c='PickerAttributes')]
+			CONTEXT: struct
+			<integer type="uint32">0x      11</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='PICKERATTRIBUTES', c='PickerAttributes')] value="0x      11" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="PickerAttributes"]
+			CONTEXT: None
+			<key>PickerAudioAssist</key>
+			[plist:key value="PickerAudioAssist" node=hc(h='PICKERAUDIOASSIST', c='PickerAudioAssist')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='PICKERAUDIOASSIST', c='PickerAudioAssist')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="PickerAudioAssist"]
+			CONTEXT: None
+			<key>PickerMode</key>
+			[plist:key value="PickerMode" node=hc(h='PICKERMODE', c='PickerMode')]
+			CONTEXT: struct
+			<string default="Builtin">Builtin</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='PICKERMODE', c='PickerMode')] value="Builtin" default=""Builtin"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="PickerMode"]
+			CONTEXT: None
+			<key>PollAppleHotKeys</key>
+			[plist:key value="PollAppleHotKeys" node=hc(h='POLLAPPLEHOTKEYS', c='PollAppleHotKeys')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='POLLAPPLEHOTKEYS', c='PollAppleHotKeys')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="PollAppleHotKeys"]
+			CONTEXT: None
+			<key>ShowPicker</key>
+			[plist:key value="ShowPicker" node=hc(h='SHOWPICKER', c='ShowPicker')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='SHOWPICKER', c='ShowPicker')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ShowPicker"]
+			CONTEXT: None
+			<key>TakeoffDelay</key>
+			[plist:key value="TakeoffDelay" node=hc(h='TAKEOFFDELAY', c='TakeoffDelay')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='TAKEOFFDELAY', c='TakeoffDelay')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="TakeoffDelay"]
+			CONTEXT: None
+			<key>Timeout</key>
+			[plist:key value="Timeout" node=hc(h='TIMEOUT', c='Timeout')]
+			CONTEXT: struct
+			<integer type="uint32">0x       5</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot'), hc(h='TIMEOUT', c='Timeout')] value="0x       5" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="Timeout"]
+		[OC:STRUCT path=[hc(h='MISC', c='Misc'), hc(h='BOOT', c='Boot')] of="list[10]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Boot"]
+		CONTEXT: None
+		<key>Debug</key>
+		[plist:key value="Debug" node=hc(h='DEBUG', c='Debug')]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>AppleDebug</key>
+			[plist:key value="AppleDebug" node=hc(h='APPLEDEBUG', c='AppleDebug')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='APPLEDEBUG', c='AppleDebug')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleDebug"]
+			CONTEXT: None
+			<key>ApplePanic</key>
+			[plist:key value="ApplePanic" node=hc(h='APPLEPANIC', c='ApplePanic')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='APPLEPANIC', c='ApplePanic')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ApplePanic"]
+			CONTEXT: None
+			<key>DisableWatchDog</key>
+			[plist:key value="DisableWatchDog" node=hc(h='DISABLEWATCHDOG', c='DisableWatchDog')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='DISABLEWATCHDOG', c='DisableWatchDog')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DisableWatchDog"]
+			CONTEXT: None
+			<key>DisplayDelay</key>
+			[plist:key value="DisplayDelay" node=hc(h='DISPLAYDELAY', c='DisplayDelay')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='DISPLAYDELAY', c='DisplayDelay')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="DisplayDelay"]
+			CONTEXT: None
+			<key>DisplayLevel</key>
+			[plist:key value="DisplayLevel" node=hc(h='DISPLAYLEVEL', c='DisplayLevel')]
+			CONTEXT: struct
+			<integer type="uint64">0x        80000002</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='DISPLAYLEVEL', c='DisplayLevel')] value="0x        80000002" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="DisplayLevel"]
+			CONTEXT: None
+			<key>SerialInit</key>
+			[plist:key value="SerialInit" node=hc(h='SERIALINIT', c='SerialInit')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='SERIALINIT', c='SerialInit')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SerialInit"]
+			CONTEXT: None
+			<key>SysReport</key>
+			[plist:key value="SysReport" node=hc(h='SYSREPORT', c='SysReport')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='SYSREPORT', c='SysReport')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SysReport"]
+			CONTEXT: None
+			<key>Target</key>
+			[plist:key value="Target" node=hc(h='TARGET', c='Target')]
+			CONTEXT: struct
+			<integer type="uint32">0x       3</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug'), hc(h='TARGET', c='Target')] value="0x       3" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="Target"]
+		[OC:STRUCT path=[hc(h='MISC', c='Misc'), hc(h='DEBUG', c='Debug')] of="list[8]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Debug"]
+		CONTEXT: None
+		<key>Entries</key>
+		[plist:key value="Entries" node=hc(h='ENTRIES', c='Entries')]
+		CONTEXT: struct
+		<array xref="OC_MISC_TOOLS_ARRAY">
+		[OC:ARRAY path=[hc(h='MISC', c='Misc'), hc(h='ENTRIES', c='Entries')] ref=hc(h='OC_MISC_TOOLS_ARRAY', c=None)]
+			(skipping 1 item)
+		</array>
+		[OC: ... name="Entries"]
+		CONTEXT: None
+		<key>Security</key>
+		[plist:key value="Security" node=hc(h='SECURITY', c='Security')]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>AllowNvramReset</key>
+			[plist:key value="AllowNvramReset" node=hc(h='ALLOWNVRAMRESET', c='AllowNvramReset')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='ALLOWNVRAMRESET', c='AllowNvramReset')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AllowNvramReset"]
+			CONTEXT: None
+			<key>AllowSetDefault</key>
+			[plist:key value="AllowSetDefault" node=hc(h='ALLOWSETDEFAULT', c='AllowSetDefault')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='ALLOWSETDEFAULT', c='AllowSetDefault')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AllowSetDefault"]
+			CONTEXT: None
+			<key>ApECID</key>
+			[plist:key value="ApECID" node=hc(h='APECID', c='ApECID')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='APECID', c='ApECID')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="ApECID"]
+			CONTEXT: None
+			<key>AuthRestart</key>
+			[plist:key value="AuthRestart" node=hc(h='AUTHRESTART', c='AuthRestart')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='AUTHRESTART', c='AuthRestart')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AuthRestart"]
+			CONTEXT: None
+			<key>BlacklistAppleUpdate</key>
+			[plist:key value="BlacklistAppleUpdate" node=hc(h='BLACKLISTAPPLEUPDATE', c='BlacklistAppleUpdate')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='BLACKLISTAPPLEUPDATE', c='BlacklistAppleUpdate')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="BlacklistAppleUpdate"]
+			CONTEXT: None
+			<key>BootProtect</key>
+			[plist:key value="BootProtect" node=hc(h='BOOTPROTECT', c='BootProtect')]
+			CONTEXT: struct
+			<string default="None">None</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='BOOTPROTECT', c='BootProtect')] value="None" default=""None"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BootProtect"]
+			CONTEXT: None
+			<key>DmgLoading</key>
+			[plist:key value="DmgLoading" node=hc(h='DMGLOADING', c='DmgLoading')]
+			CONTEXT: struct
+			<string default="Signed">Signed</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='DMGLOADING', c='DmgLoading')] value="Signed" default=""Signed"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="DmgLoading"]
+			CONTEXT: None
+			<key>EnablePassword</key>
+			[plist:key value="EnablePassword" node=hc(h='ENABLEPASSWORD', c='EnablePassword')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='ENABLEPASSWORD', c='EnablePassword')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="EnablePassword"]
+			CONTEXT: None
+			<key>ExposeSensitiveData</key>
+			[plist:key value="ExposeSensitiveData" node=hc(h='EXPOSESENSITIVEDATA', c='ExposeSensitiveData')]
+			CONTEXT: struct
+			<integer type="uint32" default="OCS_EXPOSE_VERSION">0x       6</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='EXPOSESENSITIVEDATA', c='ExposeSensitiveData')] value="0x       6" default="OCS_EXPOSE_VERSION" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="ExposeSensitiveData"]
+			CONTEXT: None
+			<key>HaltLevel</key>
+			[plist:key value="HaltLevel" node=hc(h='HALTLEVEL', c='HaltLevel')]
+			CONTEXT: struct
+			<integer type="uint64" default="0x80000000">0x        80000000</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='HALTLEVEL', c='HaltLevel')] value="0x        80000000" default="0x80000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="HaltLevel"]
+			CONTEXT: None
+			<key>PasswordHash</key>
+			[plist:key value="PasswordHash" node=hc(h='PASSWORDHASH', c='PasswordHash')]
+			CONTEXT: struct
+			<data type="uint8" size="64"/>
+			[OC:DATAF path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='PASSWORDHASH', c='PasswordHash')] size="64" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="PasswordHash"]
+			CONTEXT: None
+			<key>PasswordSalt</key>
+			[plist:key value="PasswordSalt" node=hc(h='PASSWORDSALT', c='PasswordSalt')]
+			CONTEXT: struct
+			<data type="blob"/>
+			[OC:DATA path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='PASSWORDSALT', c='PasswordSalt')] ref=hc(h='OC_DATA', c=None)]
+			[OC: ... name="PasswordSalt"]
+			CONTEXT: None
+			<key>ScanPolicy</key>
+			[plist:key value="ScanPolicy" node=hc(h='SCANPOLICY', c='ScanPolicy')]
+			CONTEXT: struct
+			<integer type="uint32" default="OC_SCAN_DEFAULT_POLICY">0x 10f0103</integer>
+			[OC:INTEGER path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='SCANPOLICY', c='ScanPolicy')] value="0x 10f0103" default="OC_SCAN_DEFAULT_POLICY" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="ScanPolicy"]
+			CONTEXT: None
+			<key>SecureBootModel</key>
+			[plist:key value="SecureBootModel" node=hc(h='SECUREBOOTMODEL', c='SecureBootModel')]
+			CONTEXT: struct
+			<string default="Default">Default</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='SECUREBOOTMODEL', c='SecureBootModel')] value="Default" default=""Default"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SecureBootModel"]
+			CONTEXT: None
+			<key>Vault</key>
+			[plist:key value="Vault" node=hc(h='VAULT', c='Vault')]
+			CONTEXT: struct
+			<string default="Secure">Secure</string>
+			[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security'), hc(h='VAULT', c='Vault')] value="Secure" default=""Secure"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="Vault"]
+		[OC:STRUCT path=[hc(h='MISC', c='Misc'), hc(h='SECURITY', c='Security')] of="list[15]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Security"]
+		CONTEXT: None
+		<key>Tools</key>
+		[plist:key value="Tools" node=hc(h='TOOLS', c='Tools')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict>
+				CONTEXT: None
+				<key>Arguments</key>
+				[plist:key value="Arguments" node=hc(h='ARGUMENTS', c='Arguments')]
+				CONTEXT: struct
+				<string/>
+				[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='ARGUMENTS', c='Arguments')] ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Arguments"]
+				CONTEXT: None
+				<key>Auxiliary</key>
+				[plist:key value="Auxiliary" node=hc(h='AUXILIARY', c='Auxiliary')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='AUXILIARY', c='Auxiliary')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Auxiliary"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>Not signed for security reasons</string>
+				[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='COMMENT', c='Comment')] value="Not signed for security reasons" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Name</key>
+				[plist:key value="Name" node=hc(h='NAME', c='Name')]
+				CONTEXT: struct
+				<string>UEFI Shell</string>
+				[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='NAME', c='Name')] value="UEFI Shell" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Name"]
+				CONTEXT: None
+				<key>Path</key>
+				[plist:key value="Path" node=hc(h='PATH', c='Path')]
+				CONTEXT: struct
+				<string>OpenShell.efi</string>
+				[OC:STRING path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='PATH', c='Path')] value="OpenShell.efi" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Path"]
+				CONTEXT: None
+				<key>RealPath</key>
+				[plist:key value="RealPath" node=hc(h='REALPATH', c='RealPath')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='REALPATH', c='RealPath')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="RealPath"]
+				CONTEXT: None
+				<key>TextMode</key>
+				[plist:key value="TextMode" node=hc(h='TEXTMODE', c='TextMode')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools'), hc(h='TEXTMODE', c='TextMode')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="TextMode"]
+			[OC:STRUCT path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools')] of="list[8]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='MISC', c='Misc'), hc(h='TOOLS', c='Tools')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 2 items)
+		</array>
+		[OC: ... name="Tools"]
+	[OC:STRUCT path=[hc(h='MISC', c='Misc')] of="list[6]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Misc"]
+	CONTEXT: None
+	<key name="Nvram">NVRAM</key>
+	[plist:key value="NVRAM" node=hc(h='NVRAM', c='Nvram') name="Nvram"]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key>Add</key>
+		[plist:key value="Add" node=hc(h='ADD', c='Add')]
+		CONTEXT: struct
+		<dict type="map" comment="NVRAM values is an associative map of GUIDS with their property key value maps">
+			CONTEXT: None
+			<key>4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14</key>
+			[plist:key value="4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14" node=hc(h='4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14', c='4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14')]
+			CONTEXT: map
+			<dict type="map">
+				CONTEXT: None
+				<key>DefaultBackgroundColor</key>
+				[plist:key value="DefaultBackgroundColor" node=hc(h='DEFAULTBACKGROUNDCOLOR', c='DefaultBackgroundColor')]
+				CONTEXT: map
+				<data type="blob">0x00000000</data>
+				[OC:DATA path=[hc(h='NVRAM', c='Nvram'), hc(h='ADD', c='Add')] value="0x00000000" ref=hc(h='OC_DATA', c=None)]
+				(skipping 2 items)
+			</dict>
+			[OC:OC_ASSOC path=[hc(h='NVRAM', c='Nvram'), hc(h='ADD', c='Add')] ref=hc(h='OC_ASSOC', c=None)]
+			(skipping 4 items)
+		</dict>
+		[OC:MAP path=[hc(h='NVRAM', c='Nvram'), hc(h='ADD', c='Add')] comment="NVRAM values is an associative map of GUIDS with their property key value maps" of="OC_ASSOC"]
+		[OC: ... name="Add"]
+		CONTEXT: None
+		<key>Delete</key>
+		[plist:key value="Delete" node=hc(h='DELETE', c='Delete')]
+		CONTEXT: struct
+		<dict type="map">
+			CONTEXT: None
+			<key>4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14</key>
+			[plist:key value="4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14" node=hc(h='4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14', c='4D1EDE05-38C7-4A6A-9CC6-4BCCA8B38C14')]
+			CONTEXT: map
+			<array>
+				CONTEXT: array
+				<string>UIScale</string>
+				[OC:STRING path=[hc(h='NVRAM', c='Nvram'), hc(h='DELETE', c='Delete')] value="UIScale" ref=hc(h='OC_STRING', c=None)]
+			[OC:ARRAY path=[hc(h='NVRAM', c='Nvram'), hc(h='DELETE', c='Delete')] of="STRING"]
+ARRAY CONTEXT: map
+				(skipping 1 item)
+			</array>
+			(skipping 4 items)
+		</dict>
+		[OC:MAP path=[hc(h='NVRAM', c='Nvram'), hc(h='DELETE', c='Delete')] of="ARRAY"]
+		[OC: ... name="Delete"]
+		CONTEXT: None
+		<key>LegacyEnable</key>
+		[plist:key value="LegacyEnable" node=hc(h='LEGACYENABLE', c='LegacyEnable')]
+		CONTEXT: struct
+		<false/>
+		[OC:BOOLEAN path=[hc(h='NVRAM', c='Nvram'), hc(h='LEGACYENABLE', c='LegacyEnable')] value="false" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="LegacyEnable"]
+		CONTEXT: None
+		<key>LegacyOverwrite</key>
+		[plist:key value="LegacyOverwrite" node=hc(h='LEGACYOVERWRITE', c='LegacyOverwrite')]
+		CONTEXT: struct
+		<false/>
+		[OC:BOOLEAN path=[hc(h='NVRAM', c='Nvram'), hc(h='LEGACYOVERWRITE', c='LegacyOverwrite')] value="false" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="LegacyOverwrite"]
+		CONTEXT: None
+		<key name="Legacy" node="LEGACY">LegacySchema</key>
+		[plist:key value="LegacySchema" node=hc(h='LEGACY', c='Legacy') name="Legacy"]
+		CONTEXT: struct
+		<dict type="map">
+			CONTEXT: None
+			<key>7C436110-AB2A-4BBB-A880-FE41995C9F82</key>
+			[plist:key value="7C436110-AB2A-4BBB-A880-FE41995C9F82" node=hc(h='7C436110-AB2A-4BBB-A880-FE41995C9F82', c='7C436110-AB2A-4BBB-A880-FE41995C9F82')]
+			CONTEXT: map
+			<array>
+				CONTEXT: array
+				<string>EFILoginHiDPI</string>
+				[OC:STRING path=[hc(h='NVRAM', c='Nvram'), hc(h='LEGACY', c='Legacy')] value="EFILoginHiDPI" ref=hc(h='OC_STRING', c=None)]
+			[OC:ARRAY path=[hc(h='NVRAM', c='Nvram'), hc(h='LEGACY', c='Legacy')] of="STRING"]
+ARRAY CONTEXT: map
+				(skipping 13 items)
+			</array>
+			(skipping 2 items)
+		</dict>
+		[OC:MAP path=[hc(h='NVRAM', c='Nvram'), hc(h='LEGACY', c='Legacy')] of="ARRAY"]
+		[OC: ... name="Legacy"]
+		CONTEXT: None
+		<key>WriteFlash</key>
+		[plist:key value="WriteFlash" node=hc(h='WRITEFLASH', c='WriteFlash')]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='NVRAM', c='Nvram'), hc(h='WRITEFLASH', c='WriteFlash')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="WriteFlash"]
+	[OC:STRUCT path=[hc(h='NVRAM', c='Nvram')] of="list[6]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Nvram"]
+	CONTEXT: None
+	<key node="PLATFORM" comment="Platform information">PlatformInfo</key>
+	[plist:key comment="Platform information" value="PlatformInfo" node=hc(h='PLATFORM', c='PlatformInfo')]
+	CONTEXT: struct
+	<dict>
+		CONTEXT: None
+		<key>Automatic</key>
+		[plist:key value="Automatic" node=hc(h='AUTOMATIC', c='Automatic')]
+		CONTEXT: struct
+		<false/>
+		[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='AUTOMATIC', c='Automatic')] value="false" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="Automatic"]
+		CONTEXT: None
+		<key>CustomMemory</key>
+		[plist:key value="CustomMemory" node=hc(h='CUSTOMMEMORY', c='CustomMemory')]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='CUSTOMMEMORY', c='CustomMemory')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="CustomMemory"]
+		CONTEXT: None
+		<key node="DATA_HUB_CONFIG">DataHub</key>
+		[plist:key value="DataHub" node=hc(h='DATA_HUB_CONFIG', c='DataHub')]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>ARTFrequency</key>
+			[plist:key value="ARTFrequency" node=hc(h='ARTFREQUENCY', c='ARTFrequency')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='ARTFREQUENCY', c='ARTFrequency')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="ARTFrequency"]
+			CONTEXT: None
+			<key>BoardProduct</key>
+			[plist:key value="BoardProduct" node=hc(h='BOARDPRODUCT', c='BoardProduct')]
+			CONTEXT: struct
+			<string>Mac-AA95B1DDAB278B95</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='BOARDPRODUCT', c='BoardProduct')] value="Mac-AA95B1DDAB278B95" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardProduct"]
+			CONTEXT: None
+			<key>BoardRevision</key>
+			[plist:key value="BoardRevision" node=hc(h='BOARDREVISION', c='BoardRevision')]
+			CONTEXT: struct
+			<data type="uint8" size="1">0x07</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='BOARDREVISION', c='BoardRevision')] size="1" value="0x07" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="BoardRevision"]
+			CONTEXT: None
+			<key>DevicePathsSupported</key>
+			[plist:key value="DevicePathsSupported" node=hc(h='DEVICEPATHSSUPPORTED', c='DevicePathsSupported')]
+			CONTEXT: struct
+			<integer type="uint32">0x       1</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='DEVICEPATHSSUPPORTED', c='DevicePathsSupported')] value="0x       1" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="DevicePathsSupported"]
+			CONTEXT: None
+			<key>FSBFrequency</key>
+			[plist:key value="FSBFrequency" node=hc(h='FSBFREQUENCY', c='FSBFrequency')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='FSBFREQUENCY', c='FSBFrequency')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="FSBFrequency"]
+			CONTEXT: None
+			<key>InitialTSC</key>
+			[plist:key value="InitialTSC" node=hc(h='INITIALTSC', c='InitialTSC')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='INITIALTSC', c='InitialTSC')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="InitialTSC"]
+			CONTEXT: None
+			<key>PlatformName</key>
+			[plist:key value="PlatformName" node=hc(h='PLATFORMNAME', c='PlatformName')]
+			CONTEXT: struct
+			<string>platform</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='PLATFORMNAME', c='PlatformName')] value="platform" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="PlatformName"]
+			CONTEXT: None
+			<key>SmcBranch</key>
+			[plist:key value="SmcBranch" node=hc(h='SMCBRANCH', c='SmcBranch')]
+			CONTEXT: struct
+			<data type="uint8" size="8">0x6a3133385f390000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SMCBRANCH', c='SmcBranch')] size="8" value="0x6a3133385f390000" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="SmcBranch"]
+			CONTEXT: None
+			<key>SmcPlatform</key>
+			[plist:key value="SmcPlatform" node=hc(h='SMCPLATFORM', c='SmcPlatform')]
+			CONTEXT: struct
+			<data type="uint8" size="8">0x6a31333800000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SMCPLATFORM', c='SmcPlatform')] size="8" value="0x6a31333800000000" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="SmcPlatform"]
+			CONTEXT: None
+			<key>SmcRevision</key>
+			[plist:key value="SmcRevision" node=hc(h='SMCREVISION', c='SmcRevision')]
+			CONTEXT: struct
+			<data type="uint8" size="6">0x02460f000012</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SMCREVISION', c='SmcRevision')] size="6" value="0x02460f000012" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="SmcRevision"]
+			CONTEXT: None
+			<key>StartupPowerEvents</key>
+			[plist:key value="StartupPowerEvents" node=hc(h='STARTUPPOWEREVENTS', c='StartupPowerEvents')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='STARTUPPOWEREVENTS', c='StartupPowerEvents')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="StartupPowerEvents"]
+			CONTEXT: None
+			<key>SystemProductName</key>
+			[plist:key value="SystemProductName" node=hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')]
+			CONTEXT: struct
+			<string>iMac19,1</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')] value="iMac19,1" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemProductName"]
+			CONTEXT: None
+			<key>SystemSerialNumber</key>
+			[plist:key value="SystemSerialNumber" node=hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')]
+			CONTEXT: struct
+			<string>W00000000001</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')] value="W00000000001" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemSerialNumber"]
+			CONTEXT: None
+			<key name="SystemUuid">SystemUUID</key>
+			[plist:key value="SystemUUID" node=hc(h='SYSTEMUUID', c='SystemUuid') name="SystemUuid"]
+			CONTEXT: struct
+			<string>00000000-0000-0000-0000-000000000000</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub'), hc(h='SYSTEMUUID', c='SystemUuid')] value="00000000-0000-0000-0000-000000000000" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemUuid"]
+		[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='DATA_HUB_CONFIG', c='DataHub')] of="list[14]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="DataHub"]
+		CONTEXT: None
+		<key node="GENERIC_CONFIG">Generic</key>
+		[plist:key value="Generic" node=hc(h='GENERIC_CONFIG', c='Generic')]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>AdviseWindows</key>
+			[plist:key value="AdviseWindows" node=hc(h='ADVISEWINDOWS', c='AdviseWindows')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='ADVISEWINDOWS', c='AdviseWindows')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AdviseWindows"]
+			CONTEXT: None
+			<key name="Mlb">MLB</key>
+			[plist:key value="MLB" node=hc(h='MLB', c='Mlb') name="Mlb"]
+			CONTEXT: struct
+			<string default="OPENCORE_MLB_SN11"/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='MLB', c='Mlb')] default=""OPENCORE_MLB_SN11"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="Mlb"]
+			CONTEXT: None
+			<key>ProcessorType</key>
+			[plist:key value="ProcessorType" node=hc(h='PROCESSORTYPE', c='ProcessorType')]
+			CONTEXT: struct
+			<integer type="uint16">0x   0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='PROCESSORTYPE', c='ProcessorType')] value="0x   0" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="ProcessorType"]
+			CONTEXT: None
+			<key name="Rom">ROM</key>
+			[plist:key value="ROM" node=hc(h='ROM', c='Rom') name="Rom"]
+			CONTEXT: struct
+			<data type="uint8" size="6"/>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='ROM', c='Rom')] size="6" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="Rom"]
+			CONTEXT: None
+			<key>SpoofVendor</key>
+			[plist:key value="SpoofVendor" node=hc(h='SPOOFVENDOR', c='SpoofVendor')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='SPOOFVENDOR', c='SpoofVendor')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SpoofVendor"]
+			CONTEXT: None
+			<key>SystemMemoryStatus</key>
+			[plist:key value="SystemMemoryStatus" node=hc(h='SYSTEMMEMORYSTATUS', c='SystemMemoryStatus')]
+			CONTEXT: struct
+			<string default="Auto">Auto</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='SYSTEMMEMORYSTATUS', c='SystemMemoryStatus')] value="Auto" default=""Auto"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemMemoryStatus"]
+			CONTEXT: None
+			<key>SystemProductName</key>
+			[plist:key value="SystemProductName" node=hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')]
+			CONTEXT: struct
+			<string default="MacPro6,1"/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')] default=""MacPro6,1"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemProductName"]
+			CONTEXT: None
+			<key>SystemSerialNumber</key>
+			[plist:key value="SystemSerialNumber" node=hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')]
+			CONTEXT: struct
+			<string default="OPENCORE_SN1"/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')] default=""OPENCORE_SN1"" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemSerialNumber"]
+			CONTEXT: None
+			<key name="SystemUuid">SystemUUID</key>
+			[plist:key value="SystemUUID" node=hc(h='SYSTEMUUID', c='SystemUuid') name="SystemUuid"]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic'), hc(h='SYSTEMUUID', c='SystemUuid')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemUuid"]
+		[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='GENERIC_CONFIG', c='Generic')] of="list[9]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Generic"]
+		CONTEXT: None
+		<key>Memory</key>
+		[plist:key value="Memory" node=hc(h='MEMORY', c='Memory')]
+		CONTEXT: struct
+		<dict node="MEMORY_CONFIG">
+			CONTEXT: None
+			<key>DataWidth</key>
+			[plist:key value="DataWidth" node=hc(h='DATAWIDTH', c='DataWidth')]
+			CONTEXT: struct
+			<integer type="uint16" default="0xFFFF">0x  40</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DATAWIDTH', c='DataWidth')] value="0x  40" default="0xFFFF" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="DataWidth"]
+			CONTEXT: None
+			<key>Devices</key>
+			[plist:key value="Devices" node=hc(h='DEVICES', c='Devices')]
+			CONTEXT: struct
+			<array>
+				CONTEXT: array
+				<dict node="DEVICE">
+					CONTEXT: None
+					<key>AssetTag</key>
+					[plist:key value="AssetTag" node=hc(h='ASSETTAG', c='AssetTag')]
+					CONTEXT: struct
+					<string default="Unknown">123456789</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='ASSETTAG', c='AssetTag')] value="123456789" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="AssetTag"]
+					CONTEXT: None
+					<key>BankLocator</key>
+					[plist:key value="BankLocator" node=hc(h='BANKLOCATOR', c='BankLocator')]
+					CONTEXT: struct
+					<string default="Unknown">BANK 0</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='BANKLOCATOR', c='BankLocator')] value="BANK 0" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="BankLocator"]
+					CONTEXT: None
+					<key>DeviceLocator</key>
+					[plist:key value="DeviceLocator" node=hc(h='DEVICELOCATOR', c='DeviceLocator')]
+					CONTEXT: struct
+					<string default="Unknown">ChannelA-DIMM0</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='DEVICELOCATOR', c='DeviceLocator')] value="ChannelA-DIMM0" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="DeviceLocator"]
+					CONTEXT: None
+					<key>Manufacturer</key>
+					[plist:key value="Manufacturer" node=hc(h='MANUFACTURER', c='Manufacturer')]
+					CONTEXT: struct
+					<string default="Unknown">Acidanthera</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='MANUFACTURER', c='Manufacturer')] value="Acidanthera" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="Manufacturer"]
+					CONTEXT: None
+					<key>PartNumber</key>
+					[plist:key value="PartNumber" node=hc(h='PARTNUMBER', c='PartNumber')]
+					CONTEXT: struct
+					<string default="Unknown">M00001-4GB</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='PARTNUMBER', c='PartNumber')] value="M00001-4GB" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="PartNumber"]
+					CONTEXT: None
+					<key>SerialNumber</key>
+					[plist:key value="SerialNumber" node=hc(h='SERIALNUMBER', c='SerialNumber')]
+					CONTEXT: struct
+					<string default="Unknown">AAA000000001</string>
+					[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='SERIALNUMBER', c='SerialNumber')] value="AAA000000001" default=""Unknown"" ref=hc(h='OC_STRING', c=None)]
+					[OC: ... name="SerialNumber"]
+					CONTEXT: None
+					<key>Size</key>
+					[plist:key value="Size" node=hc(h='SIZE', c='Size')]
+					CONTEXT: struct
+					<integer type="uint32">0x    1000</integer>
+					[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='SIZE', c='Size')] value="0x    1000" ref=hc(h='UINT32', c=None)]
+					[OC: ... name="Size"]
+					CONTEXT: None
+					<key>Speed</key>
+					[plist:key value="Speed" node=hc(h='SPEED', c='Speed')]
+					CONTEXT: struct
+					<integer type="uint16">0x a6a</integer>
+					[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices'), hc(h='SPEED', c='Speed')] value="0x a6a" ref=hc(h='UINT16', c=None)]
+					[OC: ... name="Speed"]
+				[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICE', c='DEVICE')] of="list[8]"]
+STRUCT CONTEXT: array
+				</dict>
+			[OC:ARRAY path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='DEVICES', c='Devices')] of="STRUCT"]
+ARRAY CONTEXT: struct
+				(skipping 3 items)
+			</array>
+			[OC: ... name="Devices"]
+			CONTEXT: None
+			<key>ErrorCorrection</key>
+			[plist:key value="ErrorCorrection" node=hc(h='ERRORCORRECTION', c='ErrorCorrection')]
+			CONTEXT: struct
+			<integer type="uint8" default="0x3">0x 3</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='ERRORCORRECTION', c='ErrorCorrection')] value="0x 3" default="0x3" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="ErrorCorrection"]
+			CONTEXT: None
+			<key>FormFactor</key>
+			[plist:key value="FormFactor" node=hc(h='FORMFACTOR', c='FormFactor')]
+			CONTEXT: struct
+			<integer type="uint8" default="0x2">0x 9</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='FORMFACTOR', c='FormFactor')] value="0x 9" default="0x2" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="FormFactor"]
+			CONTEXT: None
+			<key>MaxCapacity</key>
+			[plist:key value="MaxCapacity" node=hc(h='MAXCAPACITY', c='MaxCapacity')]
+			CONTEXT: struct
+			<integer type="uint64">0x      1000000000</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='MAXCAPACITY', c='MaxCapacity')] value="0x      1000000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="MaxCapacity"]
+			CONTEXT: None
+			<key>TotalWidth</key>
+			[plist:key value="TotalWidth" node=hc(h='TOTALWIDTH', c='TotalWidth')]
+			CONTEXT: struct
+			<integer type="uint16" default="0xFFFF">0x  40</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='TOTALWIDTH', c='TotalWidth')] value="0x  40" default="0xFFFF" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="TotalWidth"]
+			CONTEXT: None
+			<key>Type</key>
+			[plist:key value="Type" node=hc(h='TYPE', c='Type')]
+			CONTEXT: struct
+			<integer type="uint8" default="0x2">0x1a</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='TYPE', c='Type')] value="0x1a" default="0x2" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="Type"]
+			CONTEXT: None
+			<key>TypeDetail</key>
+			[plist:key value="TypeDetail" node=hc(h='TYPEDETAIL', c='TypeDetail')]
+			CONTEXT: struct
+			<integer type="uint16" default="0x4">0x  80</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY', c='Memory'), hc(h='TYPEDETAIL', c='TypeDetail')] value="0x  80" default="0x4" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="TypeDetail"]
+		[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='MEMORY_CONFIG', c='MEMORY_CONFIG')] of="list[8]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Memory"]
+		CONTEXT: None
+		<key name="Nvram" node="NVRAM_CONFIG">PlatformNVRAM</key>
+		[plist:key value="PlatformNVRAM" node=hc(h='NVRAM_CONFIG', c='Nvram') name="Nvram"]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key name="Bid">BID</key>
+			[plist:key value="BID" node=hc(h='BID', c='Bid') name="Bid"]
+			CONTEXT: struct
+			<string>Mac-AA95B1DDAB278B95</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='BID', c='Bid')] value="Mac-AA95B1DDAB278B95" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="Bid"]
+			CONTEXT: None
+			<key>FirmwareFeatures</key>
+			[plist:key value="FirmwareFeatures" node=hc(h='FIRMWAREFEATURES', c='FirmwareFeatures')]
+			CONTEXT: struct
+			<data type="uint64">0x76f58ffd00000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='FIRMWAREFEATURES', c='FirmwareFeatures')] value="0x76f58ffd00000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="FirmwareFeatures"]
+			CONTEXT: None
+			<key>FirmwareFeaturesMask</key>
+			[plist:key value="FirmwareFeaturesMask" node=hc(h='FIRMWAREFEATURESMASK', c='FirmwareFeaturesMask')]
+			CONTEXT: struct
+			<data type="uint64">0x7fffdfff00000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='FIRMWAREFEATURESMASK', c='FirmwareFeaturesMask')] value="0x7fffdfff00000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="FirmwareFeaturesMask"]
+			CONTEXT: None
+			<key name="Mlb">MLB</key>
+			[plist:key value="MLB" node=hc(h='MLB', c='Mlb') name="Mlb"]
+			CONTEXT: struct
+			<string>M0000000000000001</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='MLB', c='Mlb')] value="M0000000000000001" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="Mlb"]
+			CONTEXT: None
+			<key name="Rom">ROM</key>
+			[plist:key value="ROM" node=hc(h='ROM', c='Rom') name="Rom"]
+			CONTEXT: struct
+			<data type="uint8" size="6">0x112233445566</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='ROM', c='Rom')] size="6" value="0x112233445566" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="Rom"]
+			CONTEXT: None
+			<key name="SystemUuid">SystemUUID</key>
+			[plist:key value="SystemUUID" node=hc(h='SYSTEMUUID', c='SystemUuid') name="SystemUuid"]
+			CONTEXT: struct
+			<string>00000000-0000-0000-0000-000000000000</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram'), hc(h='SYSTEMUUID', c='SystemUuid')] value="00000000-0000-0000-0000-000000000000" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemUuid"]
+		[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='NVRAM_CONFIG', c='Nvram')] of="list[6]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Nvram"]
+		CONTEXT: None
+		<key name="Smbios" node="SMBIOS_CONFIG">SMBIOS</key>
+		[plist:key value="SMBIOS" node=hc(h='SMBIOS_CONFIG', c='Smbios') name="Smbios"]
+		CONTEXT: struct
+		<dict>
+			CONTEXT: None
+			<key>BIOSReleaseDate</key>
+			[plist:key value="BIOSReleaseDate" node=hc(h='BIOSRELEASEDATE', c='BIOSReleaseDate')]
+			CONTEXT: struct
+			<string>10/19/2020</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BIOSRELEASEDATE', c='BIOSReleaseDate')] value="10/19/2020" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BIOSReleaseDate"]
+			CONTEXT: None
+			<key>BIOSVendor</key>
+			[plist:key value="BIOSVendor" node=hc(h='BIOSVENDOR', c='BIOSVendor')]
+			CONTEXT: struct
+			<string>Acidanthera</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BIOSVENDOR', c='BIOSVendor')] value="Acidanthera" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BIOSVendor"]
+			CONTEXT: None
+			<key>BIOSVersion</key>
+			[plist:key value="BIOSVersion" node=hc(h='BIOSVERSION', c='BIOSVersion')]
+			CONTEXT: struct
+			<string>1554.50.2.0.0</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BIOSVERSION', c='BIOSVersion')] value="1554.50.2.0.0" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BIOSVersion"]
+			CONTEXT: None
+			<key>BoardAssetTag</key>
+			[plist:key value="BoardAssetTag" node=hc(h='BOARDASSETTAG', c='BoardAssetTag')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDASSETTAG', c='BoardAssetTag')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardAssetTag"]
+			CONTEXT: None
+			<key>BoardLocationInChassis</key>
+			[plist:key value="BoardLocationInChassis" node=hc(h='BOARDLOCATIONINCHASSIS', c='BoardLocationInChassis')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDLOCATIONINCHASSIS', c='BoardLocationInChassis')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardLocationInChassis"]
+			CONTEXT: None
+			<key>BoardManufacturer</key>
+			[plist:key value="BoardManufacturer" node=hc(h='BOARDMANUFACTURER', c='BoardManufacturer')]
+			CONTEXT: struct
+			<string>Acidanthera</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDMANUFACTURER', c='BoardManufacturer')] value="Acidanthera" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardManufacturer"]
+			CONTEXT: None
+			<key>BoardProduct</key>
+			[plist:key value="BoardProduct" node=hc(h='BOARDPRODUCT', c='BoardProduct')]
+			CONTEXT: struct
+			<string>Mac-AA95B1DDAB278B95</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDPRODUCT', c='BoardProduct')] value="Mac-AA95B1DDAB278B95" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardProduct"]
+			CONTEXT: None
+			<key>BoardSerialNumber</key>
+			[plist:key value="BoardSerialNumber" node=hc(h='BOARDSERIALNUMBER', c='BoardSerialNumber')]
+			CONTEXT: struct
+			<string>M0000000000000001</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDSERIALNUMBER', c='BoardSerialNumber')] value="M0000000000000001" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardSerialNumber"]
+			CONTEXT: None
+			<key>BoardType</key>
+			[plist:key value="BoardType" node=hc(h='BOARDTYPE', c='BoardType')]
+			CONTEXT: struct
+			<integer type="uint8">0x a</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDTYPE', c='BoardType')] value="0x a" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="BoardType"]
+			CONTEXT: None
+			<key>BoardVersion</key>
+			[plist:key value="BoardVersion" node=hc(h='BOARDVERSION', c='BoardVersion')]
+			CONTEXT: struct
+			<string>iMac19,1</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='BOARDVERSION', c='BoardVersion')] value="iMac19,1" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="BoardVersion"]
+			CONTEXT: None
+			<key>ChassisAssetTag</key>
+			[plist:key value="ChassisAssetTag" node=hc(h='CHASSISASSETTAG', c='ChassisAssetTag')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='CHASSISASSETTAG', c='ChassisAssetTag')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="ChassisAssetTag"]
+			CONTEXT: None
+			<key>ChassisManufacturer</key>
+			[plist:key value="ChassisManufacturer" node=hc(h='CHASSISMANUFACTURER', c='ChassisManufacturer')]
+			CONTEXT: struct
+			<string>Acidanthera</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='CHASSISMANUFACTURER', c='ChassisManufacturer')] value="Acidanthera" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="ChassisManufacturer"]
+			CONTEXT: None
+			<key>ChassisSerialNumber</key>
+			[plist:key value="ChassisSerialNumber" node=hc(h='CHASSISSERIALNUMBER', c='ChassisSerialNumber')]
+			CONTEXT: struct
+			<string>W00000000001</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='CHASSISSERIALNUMBER', c='ChassisSerialNumber')] value="W00000000001" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="ChassisSerialNumber"]
+			CONTEXT: None
+			<key>ChassisType</key>
+			[plist:key value="ChassisType" node=hc(h='CHASSISTYPE', c='ChassisType')]
+			CONTEXT: struct
+			<integer type="uint8">0x d</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='CHASSISTYPE', c='ChassisType')] value="0x d" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="ChassisType"]
+			CONTEXT: None
+			<key>ChassisVersion</key>
+			[plist:key value="ChassisVersion" node=hc(h='CHASSISVERSION', c='ChassisVersion')]
+			CONTEXT: struct
+			<string>Mac-AA95B1DDAB278B95</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='CHASSISVERSION', c='ChassisVersion')] value="Mac-AA95B1DDAB278B95" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="ChassisVersion"]
+			CONTEXT: None
+			<key>FirmwareFeatures</key>
+			[plist:key value="FirmwareFeatures" node=hc(h='FIRMWAREFEATURES', c='FirmwareFeatures')]
+			CONTEXT: struct
+			<data type="uint64">0x76f58ffd00000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='FIRMWAREFEATURES', c='FirmwareFeatures')] value="0x76f58ffd00000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="FirmwareFeatures"]
+			CONTEXT: None
+			<key>FirmwareFeaturesMask</key>
+			[plist:key value="FirmwareFeaturesMask" node=hc(h='FIRMWAREFEATURESMASK', c='FirmwareFeaturesMask')]
+			CONTEXT: struct
+			<data type="uint64">0x7fffdfff00000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='FIRMWAREFEATURESMASK', c='FirmwareFeaturesMask')] value="0x7fffdfff00000000" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="FirmwareFeaturesMask"]
+			CONTEXT: None
+			<key>PlatformFeature</key>
+			[plist:key value="PlatformFeature" node=hc(h='PLATFORMFEATURE', c='PlatformFeature')]
+			CONTEXT: struct
+			<integer type="uint32" default="0xFFFFFFFFU">0x      20</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='PLATFORMFEATURE', c='PlatformFeature')] value="0x      20" default="0xFFFFFFFFU" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="PlatformFeature"]
+			CONTEXT: None
+			<key>ProcessorType</key>
+			[plist:key value="ProcessorType" node=hc(h='PROCESSORTYPE', c='ProcessorType')]
+			CONTEXT: struct
+			<integer type="uint16">0x   0</integer>
+			[OC:INTEGER path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='PROCESSORTYPE', c='ProcessorType')] value="0x   0" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="ProcessorType"]
+			CONTEXT: None
+			<key>SmcVersion</key>
+			[plist:key value="SmcVersion" node=hc(h='SMCVERSION', c='SmcVersion')]
+			CONTEXT: struct
+			<data type="uint8" size="16">0x322e3436463031320000000000000000</data>
+			[OC:DATAF path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SMCVERSION', c='SmcVersion')] size="16" value="0x322e3436463031320000000000000000" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="SmcVersion"]
+			CONTEXT: None
+			<key>SystemFamily</key>
+			[plist:key value="SystemFamily" node=hc(h='SYSTEMFAMILY', c='SystemFamily')]
+			CONTEXT: struct
+			<string>iMac</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMFAMILY', c='SystemFamily')] value="iMac" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemFamily"]
+			CONTEXT: None
+			<key>SystemManufacturer</key>
+			[plist:key value="SystemManufacturer" node=hc(h='SYSTEMMANUFACTURER', c='SystemManufacturer')]
+			CONTEXT: struct
+			<string>Acidanthera</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMMANUFACTURER', c='SystemManufacturer')] value="Acidanthera" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemManufacturer"]
+			CONTEXT: None
+			<key>SystemProductName</key>
+			[plist:key value="SystemProductName" node=hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')]
+			CONTEXT: struct
+			<string>iMac19,1</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMPRODUCTNAME', c='SystemProductName')] value="iMac19,1" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemProductName"]
+			CONTEXT: None
+			<key>SystemSKUNumber</key>
+			[plist:key value="SystemSKUNumber" node=hc(h='SYSTEMSKUNUMBER', c='SystemSKUNumber')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMSKUNUMBER', c='SystemSKUNumber')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemSKUNumber"]
+			CONTEXT: None
+			<key>SystemSerialNumber</key>
+			[plist:key value="SystemSerialNumber" node=hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')]
+			CONTEXT: struct
+			<string>W00000000001</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMSERIALNUMBER', c='SystemSerialNumber')] value="W00000000001" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemSerialNumber"]
+			CONTEXT: None
+			<key name="SystemUuid">SystemUUID</key>
+			[plist:key value="SystemUUID" node=hc(h='SYSTEMUUID', c='SystemUuid') name="SystemUuid"]
+			CONTEXT: struct
+			<string>00000000-0000-0000-0000-000000000000</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMUUID', c='SystemUuid')] value="00000000-0000-0000-0000-000000000000" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemUuid"]
+			CONTEXT: None
+			<key>SystemVersion</key>
+			[plist:key value="SystemVersion" node=hc(h='SYSTEMVERSION', c='SystemVersion')]
+			CONTEXT: struct
+			<string>1.0</string>
+			[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios'), hc(h='SYSTEMVERSION', c='SystemVersion')] value="1.0" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="SystemVersion"]
+		[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='SMBIOS_CONFIG', c='Smbios')] of="list[27]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Smbios"]
+		CONTEXT: None
+		<key>UpdateDataHub</key>
+		[plist:key value="UpdateDataHub" node=hc(h='UPDATEDATAHUB', c='UpdateDataHub')]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='UPDATEDATAHUB', c='UpdateDataHub')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="UpdateDataHub"]
+		CONTEXT: None
+		<key name="UpdateNvram">UpdateNVRAM</key>
+		[plist:key value="UpdateNVRAM" node=hc(h='UPDATENVRAM', c='UpdateNvram') name="UpdateNvram"]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='UPDATENVRAM', c='UpdateNvram')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="UpdateNvram"]
+		CONTEXT: None
+		<key name="UpdateSmbios">UpdateSMBIOS</key>
+		[plist:key value="UpdateSMBIOS" node=hc(h='UPDATESMBIOS', c='UpdateSmbios') name="UpdateSmbios"]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='UPDATESMBIOS', c='UpdateSmbios')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="UpdateSmbios"]
+		CONTEXT: None
+		<key name="UpdateSmbiosMode">UpdateSMBIOSMode</key>
+		[plist:key value="UpdateSMBIOSMode" node=hc(h='UPDATESMBIOSMODE', c='UpdateSmbiosMode') name="UpdateSmbiosMode"]
+		CONTEXT: struct
+		<string default="Create">Create</string>
+		[OC:STRING path=[hc(h='PLATFORM', c='PlatformInfo'), hc(h='UPDATESMBIOSMODE', c='UpdateSmbiosMode')] value="Create" default=""Create"" ref=hc(h='OC_STRING', c=None)]
+		[OC: ... name="UpdateSmbiosMode"]
+	[OC:STRUCT path=[hc(h='PLATFORM', c='PlatformInfo')] of="list[11]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="PlatformInfo"]
+	CONTEXT: None
+	<key name="Uefi" comment="Uefi">UEFI</key>
+	[plist:key comment="Uefi" value="UEFI" node=hc(h='UEFI', c='Uefi') name="Uefi"]
+	CONTEXT: struct
+	<dict comment="Uefi contains firmware tweaks and extra drivers">
+		CONTEXT: None
+		<key name="Apfs">APFS</key>
+		[plist:key value="APFS" node=hc(h='APFS', c='Apfs') name="Apfs"]
+		CONTEXT: struct
+		<dict comment="APFS is a set of options for APFS file system support">
+			CONTEXT: None
+			<key>EnableJumpstart</key>
+			[plist:key value="EnableJumpstart" node=hc(h='ENABLEJUMPSTART', c='EnableJumpstart')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='ENABLEJUMPSTART', c='EnableJumpstart')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="EnableJumpstart"]
+			CONTEXT: None
+			<key>GlobalConnect</key>
+			[plist:key value="GlobalConnect" node=hc(h='GLOBALCONNECT', c='GlobalConnect')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='GLOBALCONNECT', c='GlobalConnect')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="GlobalConnect"]
+			CONTEXT: None
+			<key>HideVerbose</key>
+			[plist:key value="HideVerbose" node=hc(h='HIDEVERBOSE', c='HideVerbose')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='HIDEVERBOSE', c='HideVerbose')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="HideVerbose"]
+			CONTEXT: None
+			<key>JumpstartHotPlug</key>
+			[plist:key value="JumpstartHotPlug" node=hc(h='JUMPSTARTHOTPLUG', c='JumpstartHotPlug')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='JUMPSTARTHOTPLUG', c='JumpstartHotPlug')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="JumpstartHotPlug"]
+			CONTEXT: None
+			<key>MinDate</key>
+			[plist:key value="MinDate" node=hc(h='MINDATE', c='MinDate')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='MINDATE', c='MinDate')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="MinDate"]
+			CONTEXT: None
+			<key>MinVersion</key>
+			[plist:key value="MinVersion" node=hc(h='MINVERSION', c='MinVersion')]
+			CONTEXT: struct
+			<integer type="uint64">0x               0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs'), hc(h='MINVERSION', c='MinVersion')] value="0x               0" ref=hc(h='UINT64', c=None)]
+			[OC: ... name="MinVersion"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='APFS', c='Apfs')] comment="APFS is a set of options for APFS file system support" of="list[6]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Apfs"]
+		CONTEXT: None
+		<key>Audio</key>
+		[plist:key value="Audio" node=hc(h='AUDIO', c='Audio')]
+		CONTEXT: struct
+		<dict comment="Audio is a set of options for sound configuration">
+			CONTEXT: None
+			<key>AudioCodec</key>
+			[plist:key value="AudioCodec" node=hc(h='AUDIOCODEC', c='AudioCodec')]
+			CONTEXT: struct
+			<integer type="uint8">0x 0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='AUDIOCODEC', c='AudioCodec')] value="0x 0" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="AudioCodec"]
+			CONTEXT: None
+			<key>AudioDevice</key>
+			[plist:key value="AudioDevice" node=hc(h='AUDIODEVICE', c='AudioDevice')]
+			CONTEXT: struct
+			<string>PciRoot(0x0)/Pci(0x1b,0x0)</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='AUDIODEVICE', c='AudioDevice')] value="PciRoot(0x0)/Pci(0x1b,0x0)" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="AudioDevice"]
+			CONTEXT: None
+			<key>AudioOut</key>
+			[plist:key value="AudioOut" node=hc(h='AUDIOOUT', c='AudioOut')]
+			CONTEXT: struct
+			<integer type="uint8">0x 0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='AUDIOOUT', c='AudioOut')] value="0x 0" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="AudioOut"]
+			CONTEXT: None
+			<key>AudioSupport</key>
+			[plist:key value="AudioSupport" node=hc(h='AUDIOSUPPORT', c='AudioSupport')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='AUDIOSUPPORT', c='AudioSupport')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AudioSupport"]
+			CONTEXT: None
+			<key>MinimumVolume</key>
+			[plist:key value="MinimumVolume" node=hc(h='MINIMUMVOLUME', c='MinimumVolume')]
+			CONTEXT: struct
+			<integer type="uint8">0x14</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='MINIMUMVOLUME', c='MinimumVolume')] value="0x14" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="MinimumVolume"]
+			CONTEXT: None
+			<key>PlayChime</key>
+			[plist:key value="PlayChime" node=hc(h='PLAYCHIME', c='PlayChime')]
+			CONTEXT: struct
+			<string>Auto</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='PLAYCHIME', c='PlayChime')] value="Auto" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="PlayChime"]
+			CONTEXT: None
+			<key>VolumeAmplifier</key>
+			[plist:key value="VolumeAmplifier" node=hc(h='VOLUMEAMPLIFIER', c='VolumeAmplifier')]
+			CONTEXT: struct
+			<integer type="uint16">0x   0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio'), hc(h='VOLUMEAMPLIFIER', c='VolumeAmplifier')] value="0x   0" ref=hc(h='UINT16', c=None)]
+			[OC: ... name="VolumeAmplifier"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='AUDIO', c='Audio')] comment="Audio is a set of options for sound configuration" of="list[7]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Audio"]
+		CONTEXT: None
+		<key>ConnectDrivers</key>
+		[plist:key value="ConnectDrivers" node=hc(h='CONNECTDRIVERS', c='ConnectDrivers')]
+		CONTEXT: struct
+		<true/>
+		[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='CONNECTDRIVERS', c='ConnectDrivers')] value="true" ref=hc(h='BOOLEAN', c=None)]
+		[OC: ... name="ConnectDrivers"]
+		CONTEXT: None
+		<key node="DRIVER">Drivers</key>
+		[plist:key value="Drivers" node=hc(h='DRIVER', c='Drivers')]
+		CONTEXT: struct
+		<array comment="Drivers is a sorted array of strings containing driver paths">
+			CONTEXT: array
+			<string>HfsPlus.efi</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='DRIVER', c='Drivers')] value="HfsPlus.efi" ref=hc(h='OC_STRING', c=None)]
+		[OC:ARRAY path=[hc(h='UEFI', c='Uefi'), hc(h='DRIVER', c='Drivers')] comment="Drivers is a sorted array of strings containing driver paths" of="STRING"]
+ARRAY CONTEXT: struct
+			(skipping 13 items)
+		</array>
+		[OC: ... name="Drivers"]
+		CONTEXT: None
+		<key>Input</key>
+		[plist:key value="Input" node=hc(h='INPUT', c='Input')]
+		CONTEXT: struct
+		<dict comment="Input is a set of options to support advanced input">
+			CONTEXT: None
+			<key>KeyFiltering</key>
+			[plist:key value="KeyFiltering" node=hc(h='KEYFILTERING', c='KeyFiltering')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYFILTERING', c='KeyFiltering')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="KeyFiltering"]
+			CONTEXT: None
+			<key>KeyForgetThreshold</key>
+			[plist:key value="KeyForgetThreshold" node=hc(h='KEYFORGETTHRESHOLD', c='KeyForgetThreshold')]
+			CONTEXT: struct
+			<integer type="uint8">0x 5</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYFORGETTHRESHOLD', c='KeyForgetThreshold')] value="0x 5" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="KeyForgetThreshold"]
+			CONTEXT: None
+			<key>KeyMergeThreshold</key>
+			[plist:key value="KeyMergeThreshold" node=hc(h='KEYMERGETHRESHOLD', c='KeyMergeThreshold')]
+			CONTEXT: struct
+			<integer type="uint8">0x 2</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYMERGETHRESHOLD', c='KeyMergeThreshold')] value="0x 2" ref=hc(h='UINT8', c=None)]
+			[OC: ... name="KeyMergeThreshold"]
+			CONTEXT: None
+			<key>KeySupport</key>
+			[plist:key value="KeySupport" node=hc(h='KEYSUPPORT', c='KeySupport')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYSUPPORT', c='KeySupport')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="KeySupport"]
+			CONTEXT: None
+			<key>KeySupportMode</key>
+			[plist:key value="KeySupportMode" node=hc(h='KEYSUPPORTMODE', c='KeySupportMode')]
+			CONTEXT: struct
+			<string>Auto</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYSUPPORTMODE', c='KeySupportMode')] value="Auto" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="KeySupportMode"]
+			CONTEXT: None
+			<key>KeySwap</key>
+			[plist:key value="KeySwap" node=hc(h='KEYSWAP', c='KeySwap')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='KEYSWAP', c='KeySwap')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="KeySwap"]
+			CONTEXT: None
+			<key>PointerSupport</key>
+			[plist:key value="PointerSupport" node=hc(h='POINTERSUPPORT', c='PointerSupport')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='POINTERSUPPORT', c='PointerSupport')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="PointerSupport"]
+			CONTEXT: None
+			<key>PointerSupportMode</key>
+			[plist:key value="PointerSupportMode" node=hc(h='POINTERSUPPORTMODE', c='PointerSupportMode')]
+			CONTEXT: struct
+			<string>ASUS</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='POINTERSUPPORTMODE', c='PointerSupportMode')] value="ASUS" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="PointerSupportMode"]
+			CONTEXT: None
+			<key>TimerResolution</key>
+			[plist:key value="TimerResolution" node=hc(h='TIMERRESOLUTION', c='TimerResolution')]
+			CONTEXT: struct
+			<integer type="uint32">0x    c350</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input'), hc(h='TIMERRESOLUTION', c='TimerResolution')] value="0x    c350" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="TimerResolution"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='INPUT', c='Input')] comment="Input is a set of options to support advanced input" of="list[9]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Input"]
+		CONTEXT: None
+		<key>Output</key>
+		[plist:key value="Output" node=hc(h='OUTPUT', c='Output')]
+		CONTEXT: struct
+		<dict comment="Output is a set of options to support advanced output">
+			CONTEXT: None
+			<key>ClearScreenOnModeSwitch</key>
+			[plist:key value="ClearScreenOnModeSwitch" node=hc(h='CLEARSCREENONMODESWITCH', c='ClearScreenOnModeSwitch')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='CLEARSCREENONMODESWITCH', c='ClearScreenOnModeSwitch')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ClearScreenOnModeSwitch"]
+			CONTEXT: None
+			<key>ConsoleMode</key>
+			[plist:key value="ConsoleMode" node=hc(h='CONSOLEMODE', c='ConsoleMode')]
+			CONTEXT: struct
+			<string/>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='CONSOLEMODE', c='ConsoleMode')] ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="ConsoleMode"]
+			CONTEXT: None
+			<key>DirectGopRendering</key>
+			[plist:key value="DirectGopRendering" node=hc(h='DIRECTGOPRENDERING', c='DirectGopRendering')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='DIRECTGOPRENDERING', c='DirectGopRendering')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DirectGopRendering"]
+			CONTEXT: None
+			<key>ForceResolution</key>
+			[plist:key value="ForceResolution" node=hc(h='FORCERESOLUTION', c='ForceResolution')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='FORCERESOLUTION', c='ForceResolution')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ForceResolution"]
+			CONTEXT: None
+			<key>IgnoreTextInGraphics</key>
+			[plist:key value="IgnoreTextInGraphics" node=hc(h='IGNORETEXTINGRAPHICS', c='IgnoreTextInGraphics')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='IGNORETEXTINGRAPHICS', c='IgnoreTextInGraphics')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="IgnoreTextInGraphics"]
+			CONTEXT: None
+			<key>ProvideConsoleGop</key>
+			[plist:key value="ProvideConsoleGop" node=hc(h='PROVIDECONSOLEGOP', c='ProvideConsoleGop')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='PROVIDECONSOLEGOP', c='ProvideConsoleGop')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ProvideConsoleGop"]
+			CONTEXT: None
+			<key>ReconnectOnResChange</key>
+			[plist:key value="ReconnectOnResChange" node=hc(h='RECONNECTONRESCHANGE', c='ReconnectOnResChange')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='RECONNECTONRESCHANGE', c='ReconnectOnResChange')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ReconnectOnResChange"]
+			CONTEXT: None
+			<key>ReplaceTabWithSpace</key>
+			[plist:key value="ReplaceTabWithSpace" node=hc(h='REPLACETABWITHSPACE', c='ReplaceTabWithSpace')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='REPLACETABWITHSPACE', c='ReplaceTabWithSpace')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ReplaceTabWithSpace"]
+			CONTEXT: None
+			<key>Resolution</key>
+			[plist:key value="Resolution" node=hc(h='RESOLUTION', c='Resolution')]
+			CONTEXT: struct
+			<string>Max</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='RESOLUTION', c='Resolution')] value="Max" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="Resolution"]
+			CONTEXT: None
+			<key>SanitiseClearScreen</key>
+			[plist:key value="SanitiseClearScreen" node=hc(h='SANITISECLEARSCREEN', c='SanitiseClearScreen')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='SANITISECLEARSCREEN', c='SanitiseClearScreen')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="SanitiseClearScreen"]
+			CONTEXT: None
+			<key>TextRenderer</key>
+			[plist:key value="TextRenderer" node=hc(h='TEXTRENDERER', c='TextRenderer')]
+			CONTEXT: struct
+			<string>BuiltinGraphics</string>
+			[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='TEXTRENDERER', c='TextRenderer')] value="BuiltinGraphics" ref=hc(h='OC_STRING', c=None)]
+			[OC: ... name="TextRenderer"]
+			CONTEXT: None
+			<key>UgaPassThrough</key>
+			[plist:key value="UgaPassThrough" node=hc(h='UGAPASSTHROUGH', c='UgaPassThrough')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output'), hc(h='UGAPASSTHROUGH', c='UgaPassThrough')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="UgaPassThrough"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='OUTPUT', c='Output')] comment="Output is a set of options to support advanced output" of="list[12]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Output"]
+		CONTEXT: None
+		<key node="PROTOCOL_OVERRIDES">ProtocolOverrides</key>
+		[plist:key value="ProtocolOverrides" node=hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides')]
+		CONTEXT: struct
+		<dict comment="Prefer own protocol implementation for these protocols">
+			CONTEXT: None
+			<key>AppleAudio</key>
+			[plist:key value="AppleAudio" node=hc(h='APPLEAUDIO', c='AppleAudio')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEAUDIO', c='AppleAudio')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleAudio"]
+			CONTEXT: None
+			<key>AppleBootPolicy</key>
+			[plist:key value="AppleBootPolicy" node=hc(h='APPLEBOOTPOLICY', c='AppleBootPolicy')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEBOOTPOLICY', c='AppleBootPolicy')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleBootPolicy"]
+			CONTEXT: None
+			<key>AppleDebugLog</key>
+			[plist:key value="AppleDebugLog" node=hc(h='APPLEDEBUGLOG', c='AppleDebugLog')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEDEBUGLOG', c='AppleDebugLog')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleDebugLog"]
+			CONTEXT: None
+			<key>AppleEvent</key>
+			[plist:key value="AppleEvent" node=hc(h='APPLEEVENT', c='AppleEvent')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEEVENT', c='AppleEvent')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleEvent"]
+			CONTEXT: None
+			<key>AppleFramebufferInfo</key>
+			[plist:key value="AppleFramebufferInfo" node=hc(h='APPLEFRAMEBUFFERINFO', c='AppleFramebufferInfo')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEFRAMEBUFFERINFO', c='AppleFramebufferInfo')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleFramebufferInfo"]
+			CONTEXT: None
+			<key>AppleImageConversion</key>
+			[plist:key value="AppleImageConversion" node=hc(h='APPLEIMAGECONVERSION', c='AppleImageConversion')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEIMAGECONVERSION', c='AppleImageConversion')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleImageConversion"]
+			CONTEXT: None
+			<key>AppleImg4Verification</key>
+			[plist:key value="AppleImg4Verification" node=hc(h='APPLEIMG4VERIFICATION', c='AppleImg4Verification')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEIMG4VERIFICATION', c='AppleImg4Verification')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleImg4Verification"]
+			CONTEXT: None
+			<key>AppleKeyMap</key>
+			[plist:key value="AppleKeyMap" node=hc(h='APPLEKEYMAP', c='AppleKeyMap')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEKEYMAP', c='AppleKeyMap')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleKeyMap"]
+			CONTEXT: None
+			<key>AppleRtcRam</key>
+			[plist:key value="AppleRtcRam" node=hc(h='APPLERTCRAM', c='AppleRtcRam')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLERTCRAM', c='AppleRtcRam')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleRtcRam"]
+			CONTEXT: None
+			<key>AppleSecureBoot</key>
+			[plist:key value="AppleSecureBoot" node=hc(h='APPLESECUREBOOT', c='AppleSecureBoot')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLESECUREBOOT', c='AppleSecureBoot')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleSecureBoot"]
+			CONTEXT: None
+			<key>AppleSmcIo</key>
+			[plist:key value="AppleSmcIo" node=hc(h='APPLESMCIO', c='AppleSmcIo')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLESMCIO', c='AppleSmcIo')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleSmcIo"]
+			CONTEXT: None
+			<key>AppleUserInterfaceTheme</key>
+			[plist:key value="AppleUserInterfaceTheme" node=hc(h='APPLEUSERINTERFACETHEME', c='AppleUserInterfaceTheme')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='APPLEUSERINTERFACETHEME', c='AppleUserInterfaceTheme')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="AppleUserInterfaceTheme"]
+			CONTEXT: None
+			<key>DataHub</key>
+			[plist:key value="DataHub" node=hc(h='DATAHUB', c='DataHub')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='DATAHUB', c='DataHub')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DataHub"]
+			CONTEXT: None
+			<key>DeviceProperties</key>
+			[plist:key value="DeviceProperties" node=hc(h='DEVICEPROPERTIES', c='DeviceProperties')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='DEVICEPROPERTIES', c='DeviceProperties')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DeviceProperties"]
+			CONTEXT: None
+			<key>FirmwareVolume</key>
+			[plist:key value="FirmwareVolume" node=hc(h='FIRMWAREVOLUME', c='FirmwareVolume')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='FIRMWAREVOLUME', c='FirmwareVolume')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="FirmwareVolume"]
+			CONTEXT: None
+			<key>HashServices</key>
+			[plist:key value="HashServices" node=hc(h='HASHSERVICES', c='HashServices')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='HASHSERVICES', c='HashServices')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="HashServices"]
+			CONTEXT: None
+			<key>OSInfo</key>
+			[plist:key value="OSInfo" node=hc(h='OSINFO', c='OSInfo')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='OSINFO', c='OSInfo')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="OSInfo"]
+			CONTEXT: None
+			<key>UnicodeCollation</key>
+			[plist:key value="UnicodeCollation" node=hc(h='UNICODECOLLATION', c='UnicodeCollation')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides'), hc(h='UNICODECOLLATION', c='UnicodeCollation')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="UnicodeCollation"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='PROTOCOL_OVERRIDES', c='ProtocolOverrides')] comment="Prefer own protocol implementation for these protocols" of="list[18]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="ProtocolOverrides"]
+		CONTEXT: None
+		<key>Quirks</key>
+		[plist:key value="Quirks" node=hc(h='QUIRKS', c='Quirks')]
+		CONTEXT: struct
+		<dict comment="Quirks is a set of hacks for different types of firmware">
+			CONTEXT: None
+			<key>DeduplicateBootOrder</key>
+			[plist:key value="DeduplicateBootOrder" node=hc(h='DEDUPLICATEBOOTORDER', c='DeduplicateBootOrder')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='DEDUPLICATEBOOTORDER', c='DeduplicateBootOrder')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="DeduplicateBootOrder"]
+			CONTEXT: None
+			<key>ExitBootServicesDelay</key>
+			[plist:key value="ExitBootServicesDelay" node=hc(h='EXITBOOTSERVICESDELAY', c='ExitBootServicesDelay')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='EXITBOOTSERVICESDELAY', c='ExitBootServicesDelay')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="ExitBootServicesDelay"]
+			CONTEXT: None
+			<key>IgnoreInvalidFlexRatio</key>
+			[plist:key value="IgnoreInvalidFlexRatio" node=hc(h='IGNOREINVALIDFLEXRATIO', c='IgnoreInvalidFlexRatio')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='IGNOREINVALIDFLEXRATIO', c='IgnoreInvalidFlexRatio')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="IgnoreInvalidFlexRatio"]
+			CONTEXT: None
+			<key>ReleaseUsbOwnership</key>
+			[plist:key value="ReleaseUsbOwnership" node=hc(h='RELEASEUSBOWNERSHIP', c='ReleaseUsbOwnership')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='RELEASEUSBOWNERSHIP', c='ReleaseUsbOwnership')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="ReleaseUsbOwnership"]
+			CONTEXT: None
+			<key>RequestBootVarRouting</key>
+			[plist:key value="RequestBootVarRouting" node=hc(h='REQUESTBOOTVARROUTING', c='RequestBootVarRouting')]
+			CONTEXT: struct
+			<true/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='REQUESTBOOTVARROUTING', c='RequestBootVarRouting')] value="true" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="RequestBootVarRouting"]
+			CONTEXT: None
+			<key>TscSyncTimeout</key>
+			[plist:key value="TscSyncTimeout" node=hc(h='TSCSYNCTIMEOUT', c='TscSyncTimeout')]
+			CONTEXT: struct
+			<integer type="uint32">0x       0</integer>
+			[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='TSCSYNCTIMEOUT', c='TscSyncTimeout')] value="0x       0" ref=hc(h='UINT32', c=None)]
+			[OC: ... name="TscSyncTimeout"]
+			CONTEXT: None
+			<key>UnblockFsConnect</key>
+			[plist:key value="UnblockFsConnect" node=hc(h='UNBLOCKFSCONNECT', c='UnblockFsConnect')]
+			CONTEXT: struct
+			<false/>
+			[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks'), hc(h='UNBLOCKFSCONNECT', c='UnblockFsConnect')] value="false" ref=hc(h='BOOLEAN', c=None)]
+			[OC: ... name="UnblockFsConnect"]
+		[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='QUIRKS', c='Quirks')] comment="Quirks is a set of hacks for different types of firmware" of="list[7]"]
+STRUCT CONTEXT: struct
+		</dict>
+		[OC: ... name="Quirks"]
+		CONTEXT: None
+		<key node="RSVD">ReservedMemory</key>
+		[plist:key value="ReservedMemory" node=hc(h='RSVD', c='ReservedMemory')]
+		CONTEXT: struct
+		<array>
+			CONTEXT: array
+			<dict comment="Reserved memory entries adds">
+				CONTEXT: None
+				<key>Address</key>
+				[plist:key value="Address" node=hc(h='ADDRESS', c='Address')]
+				CONTEXT: struct
+				<integer type="uint64">0x        10000000</integer>
+				[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory'), hc(h='ADDRESS', c='Address')] value="0x        10000000" ref=hc(h='UINT64', c=None)]
+				[OC: ... name="Address"]
+				CONTEXT: None
+				<key>Comment</key>
+				[plist:key value="Comment" node=hc(h='COMMENT', c='Comment')]
+				CONTEXT: struct
+				<string>HD3000: IGPU memory corruption errata</string>
+				[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory'), hc(h='COMMENT', c='Comment')] value="HD3000: IGPU memory corruption errata" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Comment"]
+				CONTEXT: None
+				<key>Enabled</key>
+				[plist:key value="Enabled" node=hc(h='ENABLED', c='Enabled')]
+				CONTEXT: struct
+				<false/>
+				[OC:BOOLEAN path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory'), hc(h='ENABLED', c='Enabled')] value="false" ref=hc(h='BOOLEAN', c=None)]
+				[OC: ... name="Enabled"]
+				CONTEXT: None
+				<key>Size</key>
+				[plist:key value="Size" node=hc(h='SIZE', c='Size')]
+				CONTEXT: struct
+				<integer type="uint64">0x        10000000</integer>
+				[OC:INTEGER path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory'), hc(h='SIZE', c='Size')] value="0x        10000000" ref=hc(h='UINT64', c=None)]
+				[OC: ... name="Size"]
+				CONTEXT: None
+				<key>Type</key>
+				[plist:key value="Type" node=hc(h='TYPE', c='Type')]
+				CONTEXT: struct
+				<string default="Reserved">Reserved</string>
+				[OC:STRING path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory'), hc(h='TYPE', c='Type')] value="Reserved" default=""Reserved"" ref=hc(h='OC_STRING', c=None)]
+				[OC: ... name="Type"]
+			[OC:STRUCT path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory')] comment="Reserved memory entries adds" of="list[5]"]
+STRUCT CONTEXT: array
+			</dict>
+		[OC:ARRAY path=[hc(h='UEFI', c='Uefi'), hc(h='RSVD', c='ReservedMemory')] of="STRUCT"]
+ARRAY CONTEXT: struct
+			(skipping 1 item)
+		</array>
+		[OC: ... name="ReservedMemory"]
+	[OC:STRUCT path=[hc(h='UEFI', c='Uefi')] comment="Uefi contains firmware tweaks and extra drivers" of="list[9]"]
+STRUCT CONTEXT: struct
+	</dict>
+	[OC: ... name="Uefi"]
+[OC:STRUCT path=[] of="list[8]"]
+STRUCT CONTEXT: None
+</dict>
+</plist>
+DEBUG: Writing c file
+DEBUG: Closing: <_io.TextIOWrapper name='test.c' mode='w' encoding='UTF-8'>
+DEBUG: Writing h file
+DEBUG: Closing: <_io.TextIOWrapper name='test.h' mode='w' encoding='UTF-8'>
+DEBUG: Done

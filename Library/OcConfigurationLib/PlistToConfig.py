@@ -82,7 +82,7 @@ class plist_key:
 
 # oc type
 class oc_type:
-  def __init__(self, schema_type, tab, path, default = None, size = None, of = None, ref = None):
+  def __init__(self, schema_type, tab, path, out_flags, default = None, size = None, of = None, ref = None, context = None, comment = None):
     if ref is None:
       ref = hc()
     self.name = None
@@ -92,6 +92,9 @@ class oc_type:
     self.size = size
     self.of = of
     self.ref = ref
+    self.context = context
+    self.comment = comment
+    self.out_flags = out_flags
 
     oc_type_print('[oc:%s' % schema_type, tab=tab, end='')
     oc_type_attr_print('default', default)
@@ -105,6 +108,9 @@ class oc_type:
         of_type = of.schema_type
     oc_type_attr_print('of', of_type)
     oc_type_attr_print('ref', ref)
+    oc_type_attr_print('context', context)
+    oc_type_attr_print('comment', comment)
+    oc_type_attr_print('out_flags', out_flags)
     oc_type_print(']')
 
 # error and stop
@@ -339,9 +345,13 @@ def parse_data(elem, path, out_flags, tab, is_integer = False):
       else:
         data_type = 'UINT8'
 
-    # data_size is array size, don't automatically convert single byte to array of bytes of size 1
+    # don't automatically convert single byte to array of bytes of size 1
     if data_size is None and data_type == 'UINT8' and byte_length != 1:
       data_size = str(byte_length)
+  else:
+    data_type = 'blob'
+    if data_size is not None:
+      error('attr size should not be used without type on empty <data> tag')
 
   if data_type == 'blob':
     h_ref = 'OC_DATA'
@@ -353,26 +363,26 @@ def parse_data(elem, path, out_flags, tab, is_integer = False):
     else:
       schema_type = 'data'
 
-  return oc_type(schema_type, tab, path, default = default, size = data_size, ref=hc(h_ref))
+  return oc_type(schema_type, tab, path, out_flags, default = default, size = data_size, ref = hc(h_ref))
 
 # boolean
 def parse_boolean(elem, path, out_flags, tab, value):
   default = consume_attr(elem, 'default', out_flags)
   end_and_close_tag(elem, out_flags)
-  return oc_type('boolean', tab, path, default = default)
+  return oc_type('boolean', tab, path, out_flags, default = default, ref = hc('BOOLEAN'))
 
 # string
 def parse_string(elem, path, out_flags, tab):
   default = consume_attr(elem, 'default', out_flags)
   end_and_close_tag(elem, out_flags, quick_close = False)
-  return oc_type('string', tab, path, default = default)
+  return oc_type('string', tab, path, out_flags, default = default, ref = hc('OC_STRING'))
 
 # pointer (artificial tag to add elements to data definition, cannot be populated from genuine .plist)
 def parse_pointer(elem, path, out_flags, tab):
   start_tag(elem, 'pointer', out_flags, tab)
   data_type = consume_attr(elem, 'type', out_flags)
   end_and_close_tag(elem, out_flags)
-  return oc_type('pointer', tab, path, ref=hc(data_type))
+  return oc_type('pointer', tab, path, out_flags, ref = hc(data_type))
 
 # plist basic types
 def parse_basic_type(elem, path, out_flags, tab):
@@ -427,9 +437,6 @@ def parse_array(elem, path, out_flags, context, tab):
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
-  if comment is not None:
-    emit_comment(out_flags, comment)
-
   if singular is not None or c is not None or h is not None:
     if singular is None:
       singular = c
@@ -451,9 +458,9 @@ def parse_array(elem, path, out_flags, context, tab):
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  a = oc_type('array', tab, path, of = value, ref = hc(xref))
+  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment)
 
-  emit_array(out_flags, a, context)
+  emit_array(a)
 
   return a
 
@@ -480,7 +487,7 @@ def init_skip(elem, start, out_flags, tab):
     use_flags = OUTPUT_NONE
     count = len(elem) - start
     if count > 0:
-      xml_print('(skipping %d item%s)' % (count, '' if count == 1 else 's'), out_flags = out_flags, tab = tab + 1)
+      xml_print('(suppressing %d item%s)' % (count, '' if count == 1 else 's'), out_flags = out_flags, tab = tab + 1)
   else:
     # for recreated plist, just suppress .h and .c o/p
     use_flags = out_flags & OUTPUT_PLIST
@@ -506,7 +513,7 @@ def array_skip(elem, start, path, out_flags, context, tab):
     index += 1
 
 # parse contents of dict as map
-def parse_map(elem, path, hiding, out_flags, use_flags, context, tab):
+def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, tab):
   index = 0
 
   (next_flags, _) = parse_key(elem[index], path, use_flags, tab + 1, False)
@@ -520,15 +527,14 @@ def parse_map(elem, path, hiding, out_flags, use_flags, context, tab):
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  m = oc_type('map', tab, path, of = value)
-  value.parent = m
+  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment)
 
-  emit_map(out_flags, m, context)
+  emit_map(m)
 
   return m
 
 # parse contents of dict as struct
-def parse_struct(elem, path, hiding, out_flags, use_flags, context, tab):
+def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, tab):
   fields = []
 
   index = 0
@@ -551,8 +557,10 @@ def parse_struct(elem, path, hiding, out_flags, use_flags, context, tab):
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  s = oc_type('struct', tab, path, of = fields)
-  emit_struct(out_flags, s, context)
+  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment)
+
+  emit_struct(s)
+
   return s
 
 # parse dict (with sub-types struct and map)
@@ -564,31 +572,30 @@ def parse_dict(elem, path, out_flags, context, tab):
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
-  if comment is not None:
-    emit_comment(out_flags, comment)
-
   if dict_type == 'map':
-    retval = parse_map(elem, path, hiding, out_flags, use_flags, context, tab)
+    retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, tab)
     if xref is not None:
       error('attr xref not supported on <dict type="map">')
   elif dict_type is not None:
     error('unknown value of attr type="%s" in <dict>' % dict_type)
   else:
-    retval = parse_struct(elem, path, hiding, out_flags, use_flags, context, tab)
+    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, tab)
     if xref is not None:
       retval.ref.h = xref
 
   return retval
 
 # parse root element
-def parse_plist(elem, output):
-  start_tag(elem, 'plist', output, 0)
-  consume_attr(elem, 'version', output, displayInOriginal = True)
-  end_tag(elem, output)
+def parse_plist(elem, out_flags):
+  start_tag(elem, 'plist', out_flags, 0)
+  consume_attr(elem, 'version', out_flags, displayInOriginal = True)
+  end_tag(elem, out_flags)
 
-  parse_dict(elem[0], [], output, None, 0)
+  root = parse_dict(elem[0], [], out_flags, None, 0)
 
-  close_tag(elem, output, 0)
+  emit_root(root)
+
+  close_tag(elem, out_flags, 0)
 
 # get oc schema type for node
 def get_oc_schema_type(elem):
@@ -599,9 +606,9 @@ def get_oc_schema_type(elem):
   elif schema_type == 'boolean':
     return 'BOOLEAN'
   elif schema_type == 'blob':
-    return 'DATA_ABC'
+    return 'DATA'
   elif schema_type == 'data':
-    return 'DATA_XYZ'
+    return 'DATAF'
   elif schema_type == 'integer':
     return 'INTEGER'
   elif schema_type == 'array':
@@ -622,10 +629,12 @@ def get_structors(elem):
 
   default = elem.default
 
+  long_destructor = False
+
   if elem.schema_type == 'string':
     if default is None:
-      default = '""'
-    constructor = 'OC_STRING_CONSTR (%s, _, __)' % default
+      default = ''
+    constructor = 'OC_STRING_CONSTR ("%s", _, __)' % default
     destructor = 'OC_DESTR (OC_STRING)' + ' '
   elif elem.schema_type == 'boolean':
     constructor = 'FALSE'
@@ -639,8 +648,7 @@ def get_structors(elem):
   elif elem.schema_type == 'map' or elem.schema_type == 'struct' or elem.schema_type == 'array':
     constructor = 'OC_CONSTR%d (%s, _, __)' % (len(elem.path), elem.ref.h)
     destructor = 'OC_DESTR (%s)' % elem.ref.h
-    tab_destructor = 112
-    tab_end = 149
+    long_destructor = True
   elif elem.schema_type == 'blob':
     constructor = 'OC_EDATA_CONSTR (_, __)'
     destructor = 'OC_DESTR (OC_DATA)' + '   '
@@ -650,7 +658,7 @@ def get_structors(elem):
   else:
     internal_error('Unhandled schema type ', elem.schema_type)
 
-  return (default, constructor, destructor)
+  return (long_destructor, constructor, destructor)
 
 # Convert node paths to .c and .h file refs
 #
@@ -676,11 +684,17 @@ def set_ref(elem, elem_name):
     )
 
 # emit struct field
-def emit_field(out_flags, parent, elem, inside_struct, last):
-  tab_destructor = 105
-  tab_end = 130
+def emit_field(elem, parent, inside_struct, last):
+  out_flags = elem.out_flags
 
-  (default, constructor, destructor) = get_structors(elem)
+  (long_destructor, constructor, destructor) = get_structors(elem)
+
+  if long_destructor:
+    tab_destructor = 112
+    tab_end = 149
+  else:
+    tab_destructor = 105
+    tab_end = 130
 
   if out_flags & OUTPUT_H != 0:
     # .h
@@ -689,7 +703,7 @@ def emit_field(out_flags, parent, elem, inside_struct, last):
     tab_print(elem.ref.h, file = h_types)
 
     tab_to(36, file = h_types)
-    tab_print(', ', elem.name, file = h_types)
+    tab_print(', ', elem.path[-1].c, file = h_types)
 
     tab_to(62, file = h_types)
     tab_print(', ', file = h_types)
@@ -748,7 +762,10 @@ def emit_field(out_flags, parent, elem, inside_struct, last):
     tab_nl(file = c_schema)
 
 # emit struct
-def emit_struct(out_flags, elem, context):
+def emit_struct(elem):
+  out_flags = elem.out_flags
+  context = elem.context
+
   context_print('emit_struct(), parent=\'%s\'' % context)
 
   if context == 'array':
@@ -760,6 +777,8 @@ def emit_struct(out_flags, elem, context):
 
   if len(elem.path) == 0:
     emit_root_config_section(out_flags) ### output from plist instead?
+
+  emit_comment(elem)
 
   if out_flags & OUTPUT_H != 0:
     # .h
@@ -774,10 +793,10 @@ def emit_struct(out_flags, elem, context):
     print('OC_SCHEMA', file = c_schema)
     print('%s[] = {' % elem.ref.c, file = c_schema)
 
-  inside_struct = context == 'struct'
+  inside_struct = context == 'struct' ### just use parent?
   last = len(elem.of) - 1
   for (i, field) in enumerate(elem.of):
-    emit_field(out_flags, elem, field, inside_struct, i == last)
+    emit_field(field, elem, inside_struct, i == last)
 
   if out_flags & OUTPUT_H != 0:
     # .h
@@ -793,9 +812,11 @@ def emit_struct(out_flags, elem, context):
     print(file = c_schema)
 
 # emit array
-def emit_array(out_flags, elem, context):
-  of = elem.of.schema_type
-  context_print('emit_array(), parent=%s' % context)
+def emit_array(elem):
+  out_flags = elem.out_flags
+  context = elem.context
+
+  context_print('emit_array() of=%s, parent=%s' % (elem.of.schema_type, context))
 
   if context == 'map':
     set_ref(elem, hc('ENTRY', None))
@@ -805,6 +826,8 @@ def emit_array(out_flags, elem, context):
     internal_error('unhandled parent \'%s\' for array' % context)
 
   array_of = get_oc_schema_type(elem.of)
+
+  emit_comment(elem)
 
   if out_flags & OUTPUT_H != 0:
     # .h
@@ -822,21 +845,40 @@ def emit_array(out_flags, elem, context):
 
     # .c schema
     if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
-      print('// ARRAY OF %s; PARENT IS %s' % (of, context), file = c_schema)
+      print('// ARRAY OF %s; PARENT IS %s' % (elem.of.schema_type, context), file = c_schema)
 
     if context != 'map':
       print('STATIC', file = c_schema)
       print('OC_SCHEMA', file = c_schema)
-      if of == 'struct':
-        print('%s = OC_SCHEMA_DICT (NULL, %s);' % (elem.ref.c, elem.of.ref.c), file = c_schema)
-      else:
-        print('%s = OC_SCHEMA_%s (NULL);' % (elem.ref.c, array_of), file = c_schema)
+      print('%s = OC_SCHEMA_%s (NULL' % (elem.ref.c, array_of), end = '', file = c_schema)
+      if array_of == 'DICT':
+        print(', %s' % elem.of.ref.c, end = '', file = c_schema)
+      print(');', file = c_schema)
       print(file = c_schema)
 
 # emit map
-def emit_map(out_flags, elem, context):
+def emit_map_subtype(elem, parent, grandparent, is_map):
+  out_flags = elem.out_flags
+
+  map_of = get_oc_schema_type(elem) ### hack if for maps, see 'M' just below
+
+  if out_flags & OUTPUT_C != 0:
+    # .c schema
+    if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
+      print('// MAP OF %s OF %s, SUB-TYPE' % (parent.schema_type, elem.schema_type), file = c_schema)
+
+    print('STATIC' , file = c_schema)
+    print('OC_SCHEMA' , file = c_schema)
+    print('%sEntry = OC_SCHEMA_%s%s (NULL);' % (grandparent.ref.c, 'M' if is_map else '', map_of), file = c_schema)
+    print(file = c_schema)
+
+# emit map
+def emit_map(elem):
+  out_flags = elem.out_flags
+  context = elem.context
   of = elem.of.schema_type
-  context_print('emit_map(), parent=%s', context) # context does not actually effect map o/p
+  
+  context_print('emit_map() of=%s, parent=%s' % (of, context)) # context does not actually effect map o/p
 
   # map to data blob is predefined type, no need to emit anything
   if of == 'blob':
@@ -845,14 +887,19 @@ def emit_map(out_flags, elem, context):
 
   set_ref(elem, hc('MAP', 'Schema'))
 
+  emit_comment(elem)
+
   if of == 'array':
+    is_map = False
     map_type = 'ARRAY'
   elif of == 'map':
+    is_map = True
     map_type = 'MAP'
   else:
     error('unhandled map -> %s', of)
 
-  map_of = get_oc_schema_type(elem.of.of)
+  # currently only support map->array->type or map->map->type
+  emit_map_subtype(elem.of.of, elem.of, elem, is_map)
 
   if out_flags & OUTPUT_H != 0:
     # .h
@@ -868,11 +915,6 @@ def emit_map(out_flags, elem, context):
     # .c schema
     if flags & (SHOW_CONTEXT | SHOW_DEBUG) == (SHOW_CONTEXT | SHOW_DEBUG):
       print('// MAP OF %s' % of, file = c_schema)
-
-    print('STATIC' , file = c_schema)
-    print('OC_SCHEMA' , file = c_schema)
-    print('%sEntry = OC_SCHEMA_%s (NULL);' % (elem.ref.c, map_of), file = c_schema)
-    print(file = c_schema)
 
     print('STATIC' , file = c_schema)
     print('OC_SCHEMA' , file = c_schema)
@@ -908,11 +950,24 @@ def emit_root_config_section(out_flags):
   emit_section_name(out_flags, 'Root configuration', 'Root configuration')
 
 # emit comment in into .h file
-def emit_comment(out_flags, comment):
+def emit_comment(elem):
+  out_flags = elem.out_flags
   if out_flags & OUTPUT_H != 0:
-    print('///', file = h_types)
-    print('/// %s.' % comment, file = h_types)
-    print('///', file = h_types)
+    if elem.comment is not None:
+      print('///', file = h_types)
+      print('/// %s.' % elem.comment, file = h_types)
+      print('///', file = h_types)
+
+# emit root
+def emit_root(elem):
+  out_flags = elem.out_flags
+  if out_flags & OUTPUT_C != 0:
+    print('STATIC', file = c_schema)
+    print('OC_SCHEMA_INFO', file = c_schema)
+    print('mRootConfigurationInfo = {', file = c_schema)
+    print(' .Dict = {%s, ARRAY_SIZE (%s)}' % (elem.ref.c, elem.ref.c), file = c_schema)
+    print('};', file = c_schema)
+    print(file = c_schema)
 
 # if recreating original plist, emit first two lines of template file,
 # which otherwise don't show up in processing
@@ -1058,6 +1113,8 @@ def output_c(out_flags):
 
     # output buffer contents without flag test here, to allow debug that output was fully supressed everywhere else
     print(c_structors.read(), file=c_file, end='')
+    if out_flags & OUTPUT_C != 0:
+      print(file=c_file)
     print(c_schema.read(), file=c_file, end='')
 
     if out_flags & OUTPUT_C != 0:
