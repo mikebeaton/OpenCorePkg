@@ -1,8 +1,8 @@
 #  Copyright (c) 2020, Mike Beaton. All rights reserved.
 #  SPDX-License-Identifier: BSD-3-Clause
 
-# basic multiple grouped targets below don't work with macOS default make (GNU Make 3.81),
-# so use e.g. gmake (currently GNU Make 4.3) from `brew install make`
+# Basic multiple grouped targets below don't work with macOS default make (GNU Make 3.81),
+# use e.g. gmake (currently GNU Make 4.3) from `brew install make` instead.
 
 targets := mapped.plist test.c test.h
 debug_targets := _test.c _test.h _OcConfigurationLib.c _OcConfigurationLib.h
