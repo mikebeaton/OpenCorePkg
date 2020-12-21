@@ -480,7 +480,7 @@ mMiscConfigurationSchema[] = {
 };
 
 //
-// Nvram configuration support
+// NVRAM configuration support
 //
 
 STATIC
