@@ -1,5 +1,6 @@
 targets := mapped.plist test.c test.h
 debug_targets := _test.c _test.h _OcConfigurationLib.c _OcConfigurationLib.h
+live_targets := OcConfigurationLib.c ../../Include/Acidanthera/Library/OcConfigurationLib.h ../../Docs/SampleCustom.plist
 
 .PHONY: all
 all: $(targets)
@@ -11,13 +12,19 @@ debug: $(debug_targets)
 clean:
 	rm -f $(targets) $(debug_targets)
 
-mapped.plist test.c test.h &: PlistToConfig.py Template.plist
+.PHONY: live
+live: $(live_targets)
+
+$(targets) &: PlistToConfig.py Template.plist
 	./PlistToConfig.py -f 0x1f Template.plist -c test.c -h test.h > mapped.plist
 
-vpath %.h ../../Include/Acidanthera/Library
+$(live_targets) &: PlistToConfig.py Template.plist
+	./PlistToConfig.py -f 0x21 Template.plist -c OcConfigurationLib.c -h ../../Include/Acidanthera/Library/OcConfigurationLib.h > ../../Docs/SampleCustom.plist
 
 _%.c: %.c
 	./StripSpace.py $^ > $@
+
+vpath %.h ../../Include/Acidanthera/Library
 
 _%.h: %.h
 	./StripSpace.py $^ > $@
