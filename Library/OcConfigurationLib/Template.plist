@@ -2,14 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key out="p">#WARNING - 1</key>
-	<string>This is just a sample. Do NOT try loading it.</string>
-	<key out="p">#WARNING - 2</key>
-	<string>Ensure you understand EVERY field before booting.</string>
-	<key out="p">#WARNING - 3</key>
-	<string>In most cases recommended to use Sample.plist</string>
-	<key out="p">#WARNING - 4</key>
-	<string>Use SampleCustom.plist only for special cases.</string>
 	<key c="Acpi">ACPI</key>
 	<dict>
 		<key>Add</key>
@@ -757,8 +749,8 @@
 		<array hide="children">
 			<string></string>
 		</array>
-		<key>Boot</key>
-		<dict>
+		<key c="ConfigurationBoot">Boot</key>
+		<dict child="Boot">
 			<key>ConsoleAttributes</key>
 			<integer>0</integer>
 			<key>HibernateMode</key>
@@ -780,8 +772,8 @@
 			<key>Timeout</key>
 			<integer>5</integer>
 		</dict>
-		<key>Debug</key>
-		<dict>
+		<key c="ConfigurationDebug">Debug</key>
+		<dict child="Debug">
 			<key>AppleDebug</key>
 			<false/>
 			<key>ApplePanic</key>
@@ -800,7 +792,7 @@
 			<integer>3</integer>
 		</dict>
 		<key>Entries</key>
-		<array xref="OC_MISC_TOOLS_ARRAY">
+		<array child_h="TOOLS" xref="OC_MISC_TOOLS_ARRAY">
 			<dict>
 				<key>Arguments</key>
 				<string></string>
@@ -818,8 +810,8 @@
 				<false/>
 			</dict>
 		</array>
-		<key>Security</key>
-		<dict>
+		<key c="ConfigurationSecurity">Security</key>
+		<dict child="Security">
 			<key>AllowNvramReset</key>
 			<false/>
 			<key>AllowSetDefault</key>
@@ -1053,8 +1045,8 @@
 			<key>DataWidth</key>
 			<integer default="0xFFFF" type="UINT16">64</integer>
 			<key>Devices</key>
-			<array singular="Device">
-				<dict>
+			<array child="Device">
+				<dict suffix="Entry">
 					<key>AssetTag</key>
 					<string default="Unknown">123456789</string>
 					<key>BankLocator</key>

@@ -56,6 +56,15 @@ class hc:
     self.h = h
     self.c = c
 
+  def merge(self, hc):
+    if self.h is None:
+      self.h = hc.h
+    if self.c is None:
+      self.c = hc.c
+
+  def copy(self):
+    return hc(self.h, self.c)
+
 # plist key
 class plist_key:
   def __init__(self, origin, value, node, tab):
@@ -82,7 +91,7 @@ class plist_key:
 
 # oc type
 class oc_type:
-  def __init__(self, schema_type, tab, path, out_flags, default = None, size = None, of = None, ref = None, context = None, comment = None):
+  def __init__(self, schema_type, tab, path, out_flags, default = None, size = None, of = None, ref = None, context = None, comment = None, suffix = None):
     if ref is None:
       ref = hc()
     self.name = None
@@ -94,6 +103,7 @@ class oc_type:
     self.ref = ref
     self.context = context
     self.comment = comment
+    self.suffix = suffix
     self.out_flags = out_flags
 
     oc_type_print('[oc:%s' % schema_type, tab=tab, end='')
@@ -110,6 +120,7 @@ class oc_type:
     oc_type_attr_print('ref', ref)
     oc_type_attr_print('context', context)
     oc_type_attr_print('comment', comment)
+    oc_type_attr_print('suffix', suffix)
     oc_type_attr_print('out_flags', out_flags)
     oc_type_print(']')
 
@@ -348,10 +359,10 @@ def parse_data(elem, path, out_flags, tab, is_integer = False):
     # don't automatically convert single byte to array of bytes of size 1
     if data_size is None and data_type == 'UINT8' and byte_length != 1:
       data_size = str(byte_length)
-  else:
-    data_type = 'blob'
+  elif data_type is None:
     if data_size is not None:
       error('attr size should not be used without type on empty <data> tag')
+    data_type = 'blob'
 
   if data_type == 'blob':
     h_ref = 'OC_DATA'
@@ -426,39 +437,57 @@ def hide_children(elem, out_flags):
     
   return (hiding, use_flags)
 
+# fake node for overriding certain parts of output
+def fake_node(elem, name, out_flags):
+  value = consume_attr(elem, name, out_flags)
+  h = consume_attr(elem, '%s_h' % name, out_flags)
+  c = consume_attr(elem, '%s_c' % name, out_flags)
+
+  if value is None and h is None and c is None:
+    return None
+
+  if value is not None:
+    if h is None:
+      h = value.upper()
+    if c is None:
+      c = value
+
+  return hc(h, c)
+
+# where node name for children differs from parent
+def make_child_path(child, path):
+  if child is None:
+    return path
+
+  child.merge(path[-1])
+  child_path = path.copy()
+  del child_path[-1]
+  child_path.append(child)
+
+  return child_path
+
 # plist array
 def parse_array(elem, path, out_flags, context, tab):
   start_tag(elem, 'array', out_flags, tab)
-  singular = consume_attr(elem, 'singular', out_flags)
-  h = consume_attr(elem, 'h', out_flags)
-  c = consume_attr(elem, 'c', out_flags)
+  child = fake_node(elem, 'child', out_flags)
+  suffix = fake_node(elem, 'suffix', out_flags)
   comment = consume_attr(elem, 'comment', out_flags)
   xref = consume_attr(elem, 'xref', out_flags)
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
-  if singular is not None or c is not None or h is not None:
-    if singular is None:
-      singular = c
-    node = hc(h, c)
-    key = plist_key('array', singular, node, tab)
-    new_path = path.copy()
-    del new_path[-1]
-    new_path.append(key.node)
-  else:
-    new_path = path
-    key = None
+  child_path = make_child_path(child, path)
 
   index = 0
-  value = parse_type_in_array(elem[index], new_path, use_flags, 'array', tab + 1)
+  value = parse_type_in_array(elem[index], child_path, use_flags, 'array', tab + 1)
   index += 1
 
-  array_skip(elem, index, path, use_flags, context, tab)
+  array_skip(elem, index, child_path, use_flags, context, tab)
 
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment)
+  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix)
 
   emit_array(a)
 
@@ -513,38 +542,38 @@ def array_skip(elem, start, path, out_flags, context, tab):
     index += 1
 
 # parse contents of dict as map
-def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, tab):
+def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab):
   index = 0
 
-  (next_flags, _) = parse_key(elem[index], path, use_flags, tab + 1, False)
+  (next_flags, _) = parse_key(elem[index], child_path, use_flags, tab + 1, False)
   index += 1
 
-  value = parse_type_in_dict(elem[1], path, next_flags, 'map', tab + 1)
+  value = parse_type_in_dict(elem[1], child_path, next_flags, 'map', tab + 1)
   index += 1
 
-  map_skip(elem, index, path, use_flags, 'map', tab)
+  map_skip(elem, index, child_path, use_flags, 'map', tab)
 
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment)
+  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix)
 
   emit_map(m)
 
   return m
 
 # parse contents of dict as struct
-def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, tab):
+def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab):
   fields = []
 
   index = 0
   count = len(elem)
 
   while index < count:
-    (next_flags, key) = parse_key(elem[index], path, use_flags, tab + 1)
+    (next_flags, key) = parse_key(elem[index], child_path, use_flags, tab + 1)
     index += 1
 
-    new_path = path.copy()
+    new_path = child_path.copy()
     new_path.append(key.node)
 
     value = parse_type_in_dict(elem[index], new_path, next_flags, 'struct', tab + 1)
@@ -557,7 +586,7 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, tab
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment)
+  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix)
 
   emit_struct(s)
 
@@ -569,17 +598,21 @@ def parse_dict(elem, path, out_flags, context, tab):
   dict_type = consume_attr(elem, 'type', out_flags)
   comment = consume_attr(elem, 'comment', out_flags)
   xref = consume_attr(elem, 'xref', out_flags)
+  child = fake_node(elem, 'child', out_flags)
+  suffix = fake_node(elem, 'suffix', out_flags)
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
+  child_path = make_child_path(child, path)
+
   if dict_type == 'map':
-    retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, tab)
+    retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab)
     if xref is not None:
       error('attr xref not supported on <dict type="map">')
   elif dict_type is not None:
     error('unknown value of attr type="%s" in <dict>' % dict_type)
   else:
-    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, tab)
+    retval = parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, tab)
     if xref is not None:
       retval.ref.h = xref
 
@@ -591,7 +624,7 @@ def parse_plist(elem, out_flags):
   consume_attr(elem, 'version', out_flags, displayInOriginal = True)
   end_tag(elem, out_flags)
 
-  root = parse_dict(elem[0], [], out_flags, None, 0)
+  root = parse_dict(elem[0], [], out_flags, 'map', 0)
 
   emit_root(root)
 
@@ -763,17 +796,23 @@ def emit_field(elem, parent, inside_struct, last):
 
 # emit struct
 def emit_struct(elem):
+  context_print('emit_struct() parent=%s suffix=%s' % (elem.context, elem.suffix))
+
   out_flags = elem.out_flags
   context = elem.context
 
-  context_print('emit_struct(), parent=\'%s\'' % context)
+  suffix = hc() if elem.suffix is None else elem.suffix.copy()
 
   if context == 'array':
-    set_ref(elem, hc('ENTRY', 'SchemaEntry'))
+    suffix.merge(hc('ENTRY', 'SchemaEntry'))
   elif context == 'struct':
-    set_ref(elem, hc(None, 'Schema'))
+    suffix.merge(hc(None, 'Schema'))
+  elif context == 'map':
+    suffix.merge(hc('ARRAY', 'Array'))
   else:
-    set_ref(elem, hc('ARRAY', 'Array'))
+    internal_error('unhandled parent \'%s\' for struct' % context)
+
+  set_ref(elem, suffix)
 
   if len(elem.path) == 0:
     emit_root_config_section(out_flags) ### output from plist instead?
@@ -813,17 +852,21 @@ def emit_struct(elem):
 
 # emit array
 def emit_array(elem):
+  context_print('emit_array() of=%s parent=%s suffix=%s' % (elem.of.schema_type, elem.context, elem.suffix))
+
   out_flags = elem.out_flags
   context = elem.context
 
-  context_print('emit_array() of=%s, parent=%s' % (elem.of.schema_type, context))
+  suffix = hc() if elem.suffix is None else elem.suffix.copy()
 
   if context == 'map':
-    set_ref(elem, hc('ENTRY', None))
+    suffix.merge(hc('ENTRY', None))
   elif context == 'struct':
-    set_ref(elem, hc('ARRAY', 'Schema'))
+    suffix.merge(hc('ARRAY', 'Schema'))
   else:
     internal_error('unhandled parent \'%s\' for array' % context)
+
+  set_ref(elem, suffix)
 
   array_of = get_oc_schema_type(elem.of)
 
@@ -874,18 +917,20 @@ def emit_map_subtype(elem, parent, grandparent, is_map):
 
 # emit map
 def emit_map(elem):
+  # (context does not actually effect map o/p)
+  context_print('emit_map() of=%s parent=%s suffix=%s' % (elem.of.schema_type, elem.context, elem.suffix))
+
   out_flags = elem.out_flags
-  context = elem.context
   of = elem.of.schema_type
   
-  context_print('emit_map() of=%s, parent=%s' % (of, context)) # context does not actually effect map o/p
-
   # map to data blob is predefined type, no need to emit anything
   if of == 'blob':
     elem.ref = hc('OC_ASSOC')
     return
 
-  set_ref(elem, hc('MAP', 'Schema'))
+  suffix = hc() if elem.suffix is None else elem.suffix.copy()
+  suffix.merge(hc('MAP', 'Schema'))
+  set_ref(elem, suffix)
 
   emit_comment(elem)
 
@@ -1129,6 +1174,7 @@ def output_c(out_flags):
 
 # main()
 def main():
+  ###(out_flags, infile) = (0, 'Template.plist')
   (out_flags, infile) = parse_args()
 
   plist = et.parse(infile).getroot()
