@@ -34,7 +34,7 @@ SHOW_CONTEXT = 0x10
 SHOW_ORIGINAL = 0x20
 
 # initial flags value
-flags = SHOW_ORIGINAL | SHOW_XML
+flags = SHOW_XML
 
 # prefix can be changed, to support non-default applications
 DEFAULT_PREFIX = 'Oc'
@@ -526,16 +526,12 @@ def parse_array(elem, path, child_node, out_flags, context, tab):
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix, xref = xref)
+  return oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix, xref = xref)
 
-  ###emit_array(a, tab)
-
-  return a
-
-#
+# error if unuasble child attr specified
 def useless_child_node(elem, child_node):
   if child_node is not None:
-    error('child attributes cannot be specified except in key preceding <array> or <dict>')
+    error('child attribute should only be specified in key preceding <array> or <dict>')
 
 # types allowed inside dict (includes array, and artificial pointer type)
 def parse_allowed_type_for_dict(elem, path, child_node, out_flags, context, tab):
@@ -604,11 +600,7 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix, xref = xref)
-
-  ###emit_map(m, tab)
-
-  return m
+  return oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix, xref = xref)
 
 # parse contents of dict as struct
 def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, opt, xref, tab):
@@ -636,11 +628,7 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
   if not hiding:
     close_tag(elem, out_flags, tab)
 
-  s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt, xref = xref)
-
-  ###emit_struct(s, tab)
-
-  return s
+  return oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt, xref = xref)
 
 # error if unsopported attr
 def unsupported(attr, attr_name, tag_name):
@@ -1067,7 +1055,6 @@ def emit_map(elem, tab):
 
 # emit element
 def emit_elem(elem, tab):
-  debug('emit_elem: %s' % elem.schema_type)
   if elem.schema_type == 'array':
     emit_array(elem, tab)
   elif elem.schema_type == 'map':
@@ -1283,12 +1270,7 @@ def output_c(out_flags):
 
 # main()
 def main():
-  ###
-  if len(sys.argv) == 1:
-    (out_flags, infile) = (0, 'Template.plist')
-  else:
-  ###
-    (out_flags, infile) = parse_args()
+  (out_flags, infile) = parse_args()
 
   plist = et.parse(infile).getroot()
 
