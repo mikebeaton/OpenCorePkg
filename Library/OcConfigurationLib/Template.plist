@@ -1048,12 +1048,12 @@
 			<key c="SystemUuid">SystemUUID</key>
 			<string></string>
 		</dict>
-		<key h="MEMORY_CONFIG">Memory</key>
-		<dict child_h="MEMORY" opt="true">
+		<key this_h="MEMORY_CONFIG">Memory</key>
+		<dict opt="true">
 			<key>DataWidth</key>
 			<integer default="0xFFFF" type="UINT16">64</integer>
-			<key>Devices</key>
-			<array child="Device">
+			<key child="Device">Devices</key>
+			<array>
 				<dict suffix="Entry">
 					<key>AssetTag</key>
 					<string default="Unknown">123456789</string>

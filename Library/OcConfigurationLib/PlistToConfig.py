@@ -67,7 +67,7 @@ class hc:
 
 # plist key
 class plist_key:
-  def __init__(self, origin, value, node, this_node, tab):
+  def __init__(self, origin, value, node, this_node, child_node, tab):
     if node is None:
       node = hc(None, None)
 
@@ -77,15 +77,17 @@ class plist_key:
       if node.c is None:
         node.c = value
 
-    self.origin = origin
-    self.value = value
-    self.node = node
-    self.this_node = this_node
     if this_node is not None:
       if this_node.c is None:
         this_node.c = node.c
       if this_node.h is None:
         this_node.h = node.h
+
+    self.origin = origin
+    self.value = value
+    self.node = node
+    self.this_node = this_node
+    self.child_node = child_node
 
     plist_key_print('[plist:key', tab=tab, end='')
     if origin != 'key':
@@ -93,6 +95,7 @@ class plist_key:
     plist_key_attr_print('value', value)
     plist_key_attr_print('node', node)
     plist_key_attr_print('this_node', this_node)
+    plist_key_attr_print('child_node', child_node)
 
     plist_key_print(']')
 
@@ -331,12 +334,13 @@ def parse_key(elem, path, out_flags, tab, use_value = True):
   start_tag(elem, 'key', use_flags, tab)
   h = consume_attr(elem, 'h', use_flags)
   c = consume_attr(elem, 'c', use_flags)
-  this_node = fake_node(elem, 'this', use_flags)
+  child_node = fake_node(elem, 'child', out_flags) ## override current node for children only, not this item
+  this_node = fake_node(elem, 'this', use_flags) ## override current node to this item only, not children
   display_attr('out', out_attr, use_flags)
   section = consume_attr(elem, 'section', use_flags)
   end_and_close_tag(elem, use_flags)
 
-  key = plist_key('key', elem.text if use_value else None, hc(h, c), this_node, tab)
+  key = plist_key('key', elem.text if use_value else None, hc(h, c), this_node, child_node, tab)
 
   if len(path) == 0:
     emit_section(use_flags, key.value if section is None else section)
@@ -489,31 +493,30 @@ def fake_node(elem, name, out_flags):
   return hc(h, c)
 
 # where node name for children differs from parent
-def make_child_path(child, path):
-  if child is None:
+def make_child_path(path, child_node):
+  if child_node is None:
     return path
 
-  child.merge(path[-1])
+  child_node.merge(path[-1])
   child_path = path.copy()
   del child_path[-1]
-  child_path.append(child)
+  child_path.append(child_node)
 
   return child_path
 
 # plist array
-def parse_array(elem, path, out_flags, context, tab):
+def parse_array(elem, path, child_node, out_flags, context, tab):
   start_tag(elem, 'array', out_flags, tab)
-  child = fake_node(elem, 'child', out_flags)
   suffix = fake_node(elem, 'suffix', out_flags)
   comment = consume_attr(elem, 'comment', out_flags)
   xref = consume_attr(elem, 'xref', out_flags)
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
-  child_path = make_child_path(child, path)
+  child_path = make_child_path(path, child_node)
 
   index = 0
-  value = parse_type_in_array(elem[index], child_path, use_flags, 'array', tab + 1)
+  value = parse_allowed_type_for_array(elem[index], child_path, None, use_flags, 'array', tab + 1)
   index += 1
 
   emit_elem(value, tab + 1)
@@ -529,20 +532,27 @@ def parse_array(elem, path, out_flags, context, tab):
 
   return a
 
+#
+def useless_child_node(elem, child_node):
+  if child_node is not None:
+    error('child attributes cannot be specified except in key preceding <array> or <dict>')
+
 # types allowed inside dict (includes array, and artificial pointer type)
-def parse_type_in_dict(elem, path, out_flags, context, tab):
+def parse_allowed_type_for_dict(elem, path, child_node, out_flags, context, tab):
   if elem.tag == 'array':
-    return parse_array(elem, path, out_flags, context, tab)
+    return parse_array(elem, path, child_node, out_flags, context, tab)
   elif elem.tag == 'pointer':
+    useless_child_node(elem, child_node)
     return parse_pointer(elem, path, out_flags, tab)
   else:
-    return parse_type_in_array(elem, path, out_flags, context, tab)
+    return parse_allowed_type_for_array(elem, path, child_node, out_flags, context, tab)
 
 # types allowed inside array (excludes array itself, and artificial pointer type)
-def parse_type_in_array(elem, path, out_flags, context, tab):
+def parse_allowed_type_for_array(elem, path, child_node, out_flags, context, tab):
   if elem.tag == 'dict':
-    return parse_dict(elem, path, out_flags, context, tab)
+    return parse_dict(elem, path, child_node, out_flags, context, tab)
   else:
+    useless_child_node(elem, child_node)
     return parse_basic_type(elem, path, out_flags, tab)
 
 # work out what to do & emit message describing skip if req'd
@@ -566,7 +576,7 @@ def map_skip(elem, start, path, out_flags, context, tab):
     (next_flags, _) = parse_key(elem[index], path, use_flags, tab + 1, False)
     index += 1
 
-    parse_type_in_dict(elem[index], path, next_flags, context, tab + 1)
+    parse_allowed_type_for_dict(elem[index], path, None, next_flags, context, tab + 1)
     index += 1
 
 # skip unused elements
@@ -574,7 +584,7 @@ def array_skip(elem, start, path, out_flags, context, tab):
   use_flags = init_skip(elem, start, out_flags, tab)
   index = start
   while index < len(elem):
-    parse_type_in_array(elem[index], path, use_flags, context, tab + 1)
+    parse_allowed_type_for_array(elem[index], path, None, use_flags, context, tab + 1)
     index += 1
 
 # parse contents of dict as map
@@ -584,7 +594,7 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
   (next_flags, _) = parse_key(elem[index], child_path, use_flags, tab + 1, False)
   index += 1
 
-  value = parse_type_in_dict(elem[1], child_path, next_flags, 'map', tab + 1)
+  value = parse_allowed_type_for_dict(elem[1], child_path, None, next_flags, 'map', tab + 1)
   index += 1
 
   emit_elem(value, tab + 1)
@@ -614,7 +624,7 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
     new_path = child_path.copy()
     new_path.append(key.node)
 
-    value = parse_type_in_dict(elem[index], new_path, next_flags, 'struct', tab + 1)
+    value = parse_allowed_type_for_dict(elem[index], new_path, key.child_node, next_flags, 'struct', tab + 1)
     index += 1
 
     apply_key(key, value, tab)
@@ -638,20 +648,19 @@ def unsupported(attr, attr_name, tag_name):
     error('attr %s not supported on <%s>' % (attr_name, tag_name))
 
 # parse dict (with sub-types struct and map)
-def parse_dict(elem, path, out_flags, context, tab):
+def parse_dict(elem, path, child_node, out_flags, context, tab):
   start_tag(elem, 'dict', out_flags, tab)
   dict_type = consume_attr(elem, 'type', out_flags)
   comment = consume_attr(elem, 'comment', out_flags)
   str_opt = consume_attr(elem, 'opt', out_flags)
   xref = consume_attr(elem, 'xref', out_flags)
-  child = fake_node(elem, 'child', out_flags)
   suffix = fake_node(elem, 'suffix', out_flags)
 
   opt = bool_from_str(str_opt)
 
   (hiding, use_flags) = hide_children(elem, out_flags)
 
-  child_path = make_child_path(child, path)
+  child_path = make_child_path(path, child_node)
 
   if dict_type == 'map':
     retval = parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix, child_path, xref, tab)
@@ -669,7 +678,7 @@ def parse_plist(elem, out_flags):
   consume_attr(elem, 'version', out_flags, displayInOriginal = True)
   end_tag(elem, out_flags)
 
-  root = parse_dict(elem[0], [], out_flags, 'map', 0)
+  root = parse_dict(elem[0], [], None, out_flags, 'map', 0)
 
   emit_elem(root, 0)
 
