@@ -757,8 +757,8 @@
 		<array hide="children">
 			<string></string>
 		</array>
-		<key c="ConfigurationBoot">Boot</key>
-		<dict child="Boot">
+		<key this_c="ConfigurationBoot">Boot</key>
+		<dict>
 			<key>ConsoleAttributes</key>
 			<integer>0</integer>
 			<key>HibernateMode</key>
@@ -780,8 +780,8 @@
 			<key>Timeout</key>
 			<integer>5</integer>
 		</dict>
-		<key c="ConfigurationDebug">Debug</key>
-		<dict child="Debug">
+		<key this_c="ConfigurationDebug">Debug</key>
+		<dict>
 			<key>AppleDebug</key>
 			<false/>
 			<key>ApplePanic</key>
@@ -818,8 +818,8 @@
 				<false/>
 			</dict>
 		</array>
-		<key c="ConfigurationSecurity">Security</key>
-		<dict child="Security">
+		<key this_c="ConfigurationSecurity">Security</key>
+		<dict>
 			<key>AllowNvramReset</key>
 			<false/>
 			<key>AllowSetDefault</key>

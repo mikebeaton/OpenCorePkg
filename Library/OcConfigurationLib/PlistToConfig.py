@@ -67,7 +67,7 @@ class hc:
 
 # plist key
 class plist_key:
-  def __init__(self, origin, value, node, tab):
+  def __init__(self, origin, value, node, this_node, tab):
     if node is None:
       node = hc(None, None)
 
@@ -80,12 +80,19 @@ class plist_key:
     self.origin = origin
     self.value = value
     self.node = node
+    self.this_node = this_node
+    if this_node is not None:
+      if this_node.c is None:
+        this_node.c = node.c
+      if this_node.h is None:
+        this_node.h = node.h
 
     plist_key_print('[plist:key', tab=tab, end='')
     if origin != 'key':
       plist_key_attr_print('from', origin)
     plist_key_attr_print('value', value)
     plist_key_attr_print('node', node)
+    plist_key_attr_print('this_node', this_node)
 
     plist_key_print(']')
 
@@ -122,6 +129,7 @@ class oc_type:
     self.xref = xref
     self.suffix = suffix
     self.opt = opt
+    self.this_node = None
 
     oc_type_print('[oc:%s' % schema_type, tab=tab, end='')
     oc_type_attr_print('default', default)
@@ -323,11 +331,12 @@ def parse_key(elem, path, out_flags, tab, use_value = True):
   start_tag(elem, 'key', use_flags, tab)
   h = consume_attr(elem, 'h', use_flags)
   c = consume_attr(elem, 'c', use_flags)
+  this_node = fake_node(elem, 'this', use_flags)
   display_attr('out', out_attr, use_flags)
   section = consume_attr(elem, 'section', use_flags)
   end_and_close_tag(elem, use_flags)
 
-  key = plist_key('key', elem.text if use_value else None, hc(h, c), tab)
+  key = plist_key('key', elem.text if use_value else None, hc(h, c), this_node, tab)
 
   if len(path) == 0:
     emit_section(use_flags, key.value if section is None else section)
@@ -341,8 +350,14 @@ def apply_key(key, oc, tab):
   if oc.name is not None:
     internal_error('name should not get set more than once on oc_type')
 
+  oc_type_print('[oc: ...', tab = tab + 1, end = '')
+
   oc.name = key.value
-  oc_type_print('[oc: ... name="%s"' % oc.name, tab = tab + 1, end='')
+  oc_type_print(' name="%s"' % oc.name, end = '')
+
+  if key.this_node is not None:
+    oc.this_node = key.this_node
+    oc_type_print(' >>>this_node=%s' % oc.this_node, end = '')
 
   oc_type_print(']')
 
@@ -501,14 +516,16 @@ def parse_array(elem, path, out_flags, context, tab):
   value = parse_type_in_array(elem[index], child_path, use_flags, 'array', tab + 1)
   index += 1
 
-  array_skip(elem, index, child_path, use_flags, context, tab)
+  emit_elem(value, tab + 1)
+
+  array_skip(elem, index, child_path, use_flags, 'array', tab)
 
   if not hiding:
     close_tag(elem, out_flags, tab)
 
   a = oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix, xref = xref)
 
-  emit_array(a)
+  ###emit_array(a, tab)
 
   return a
 
@@ -570,6 +587,8 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
   value = parse_type_in_dict(elem[1], child_path, next_flags, 'map', tab + 1)
   index += 1
 
+  emit_elem(value, tab + 1)
+
   map_skip(elem, index, child_path, use_flags, 'map', tab)
 
   if not hiding:
@@ -577,7 +596,7 @@ def parse_map(elem, path, comment, hiding, out_flags, use_flags, context, suffix
 
   m = oc_type('map', tab, path, out_flags, of = value, context = context, comment = comment, suffix = suffix, xref = xref)
 
-  emit_map(m)
+  ###emit_map(m, tab)
 
   return m
 
@@ -600,6 +619,8 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
 
     apply_key(key, value, tab)
 
+    emit_elem(value, tab + 1)
+
     fields.append(value)
 
   if not hiding:
@@ -607,7 +628,7 @@ def parse_struct(elem, path, comment, hiding, out_flags, use_flags, context, suf
 
   s = oc_type('struct', tab, path, out_flags, of = fields, context = context, comment = comment, suffix = suffix, opt = opt, xref = xref)
 
-  emit_struct(s)
+  ###emit_struct(s, tab)
 
   return s
 
@@ -650,7 +671,9 @@ def parse_plist(elem, out_flags):
 
   root = parse_dict(elem[0], [], out_flags, 'map', 0)
 
-  emit_root(root)
+  emit_elem(root, 0)
+
+  emit_root_config(root)
 
   close_tag(elem, out_flags, 0)
 
@@ -725,8 +748,11 @@ def path_to_ref(path):
   c = ''.join(filter(None, (p.c for p in path)))
   return hc(h, c)
 
-def set_ref(elem, elem_name):
+def set_ref(elem, elem_name, tab):
   use_path = elem.path.copy()
+  if elem.this_node is not None:
+    del use_path[-1]
+    use_path.append(elem.this_node)
   depth = len(elem.path)
   if depth == 0:
     use_path.append(hc('GLOBAL', 'Root'))
@@ -739,6 +765,7 @@ def set_ref(elem, elem_name):
     '%s_%s' % (upper_prefix, hc_path.h),
     'm%s%s' % (hc_path.c, 'Nodes' if depth == 0 else '')
     )
+  oc_type_print('[oc: ... ref=%s]' % elem.ref, tab = tab)
 
 # emit struct field
 def emit_field(elem, parent, inside_struct, last):
@@ -826,7 +853,7 @@ def add_xref(xref):
     return ' xref=%s' % xref
 
 # emit struct
-def emit_struct(elem):
+def emit_struct(elem, tab):
   context_print('emit_struct() parent=%s suffix=%s%s' % (elem.context, elem.suffix, add_xref(elem.xref)))
 
   out_flags = elem.out_flags
@@ -843,7 +870,7 @@ def emit_struct(elem):
   else:
     internal_error('unhandled parent \'%s\' for struct' % context)
 
-  set_ref(elem, suffix)
+  set_ref(elem, suffix, tab)
 
   if len(elem.path) == 0:
     emit_root_config_section(out_flags) ### output from plist instead?
@@ -893,7 +920,7 @@ def emit_struct(elem):
     print(file = c_schema)
 
 # emit array
-def emit_array(elem):
+def emit_array(elem, tab):
   context_print('emit_array() of=%s parent=%s suffix=%s%s' % (elem.of.schema_type, elem.context, elem.suffix, add_xref(elem.xref)))
 
   out_flags = elem.out_flags
@@ -908,7 +935,7 @@ def emit_array(elem):
   else:
     internal_error('unhandled parent \'%s\' for array' % context)
 
-  set_ref(elem, suffix)
+  set_ref(elem, suffix, tab)
 
   array_of = get_oc_schema_type(elem.of)
 
@@ -968,7 +995,7 @@ def emit_map_subtype(elem, parent, grandparent, is_map):
     print(file = c_schema)
 
 # emit map
-def emit_map(elem):
+def emit_map(elem, tab):
   # (context does not actually effect map o/p)
   context_print('emit_map() of=%s parent=%s suffix=%s%s' % (elem.of.schema_type, elem.context, elem.suffix, add_xref(elem.xref)))
 
@@ -982,7 +1009,7 @@ def emit_map(elem):
 
   suffix = hc() if elem.suffix is None else elem.suffix.copy()
   suffix.merge(hc('MAP', 'Schema'))
-  set_ref(elem, suffix)
+  set_ref(elem, suffix, tab)
 
   emit_comment(elem)
 
@@ -1029,6 +1056,16 @@ def emit_map(elem):
     print('%s = OC_SCHEMA_%s (NULL, &%sEntry);' % (elem.ref.c, map_type, elem.ref.c) , file = c_schema)
     print(file = c_schema)
 
+# emit element
+def emit_elem(elem, tab):
+  debug('emit_elem: %s' % elem.schema_type)
+  if elem.schema_type == 'array':
+    emit_array(elem, tab)
+  elif elem.schema_type == 'map':
+    emit_map(elem, tab)
+  elif elem.schema_type == 'struct':
+    emit_struct(elem, tab)
+
 # emit new section name
 def emit_section_name(out_flags, h_name, c_name):
   if out_flags & OUTPUT_H != 0:
@@ -1067,7 +1104,7 @@ def emit_comment(elem):
       print('///', file = h_types)
 
 # emit root
-def emit_root(elem):
+def emit_root_config(elem):
   out_flags = elem.out_flags
   if out_flags & OUTPUT_C != 0:
     print('STATIC', file = c_schema)
