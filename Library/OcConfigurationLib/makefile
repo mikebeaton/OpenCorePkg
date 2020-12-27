@@ -14,9 +14,10 @@ clean:
 .PHONY: live
 live:
 	./PlistToConfig.py -f 0x21 Template.plist -c OcConfigurationLib.c -h ../../Include/Acidanthera/Library/OcConfigurationLib.h > ../../Docs/SampleCustom.plist
+	./CheckSchema.py OcConfigurationLib.c
 
 $(targets) &: PlistToConfig.py Template.plist
-	./PlistToConfig.py -f 0x1f Template.plist -c test.c -h test.h > mapped.plist
+	./PlistToConfig.py -f 0xf Template.plist -c test.c -h test.h > mapped.plist
 
 _%.c: %.c
 	./StripSpace.py $^ > $@
