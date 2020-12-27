@@ -564,6 +564,7 @@
   _(BOOLEAN                     , AudioSupport       ,     , FALSE                         , ()) \
   _(UINT8                       , MinimumVolume      ,     , 0                             , ()) \
   _(OC_STRING                   , PlayChime          ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
+  _(UINTN                       , SetupDelay         ,     , 0                             , ()) \
   _(UINT16                      , VolumeAmplifier    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_AUDIO)
 
@@ -635,7 +636,6 @@
 /// Quirks is a set of hacks for different types of firmware.
 ///
 #define OC_UEFI_QUIRKS_FIELDS(_, __) \
-  _(BOOLEAN                     , DeduplicateBootOrder        ,     , FALSE  , ()) \
   _(UINT32                      , ExitBootServicesDelay       ,     , 0      , ()) \
   _(BOOLEAN                     , IgnoreInvalidFlexRatio      ,     , FALSE  , ()) \
   _(BOOLEAN                     , ReleaseUsbOwnership         ,     , FALSE  , ()) \
