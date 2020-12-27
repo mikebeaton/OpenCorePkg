@@ -18,6 +18,7 @@
 #include <Library/DebugLib.h>
 #include <Library/OcSerializeLib.h>
 #include <Library/OcBootManagementLib.h>
+#include <Library/OcConfigurationConstants.h>
 
 /**
   ACPI section
@@ -343,21 +344,6 @@
   _(BOOLEAN                     , SerialInit                  ,     , FALSE        , ()) \
   _(BOOLEAN                     , SysReport                   ,     , FALSE        , ())
   OC_DECLARE (OC_MISC_DEBUG)
-
-#define OCS_EXPOSE_BOOT_PATH   1U
-#define OCS_EXPOSE_VERSION_VAR 2U
-#define OCS_EXPOSE_VERSION_UI  4U
-#define OCS_EXPOSE_OEM_INFO    8U
-#define OCS_EXPOSE_VERSION     (OCS_EXPOSE_VERSION_VAR | OCS_EXPOSE_VERSION_UI)
-#define OCS_EXPOSE_ALL_BITS (\
-  OCS_EXPOSE_BOOT_PATH  | OCS_EXPOSE_VERSION_VAR | \
-  OCS_EXPOSE_VERSION_UI | OCS_EXPOSE_OEM_INFO)
-
-typedef enum {
-  OcsVaultOptional = 0,
-  OcsVaultBasic    = 1,
-  OcsVaultSecure   = 2,
-} OCS_VAULT_MODE;
 
 #define OC_MISC_SECURITY_FIELDS(_, __) \
   _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __), OC_DESTR (OC_STRING) ) \
