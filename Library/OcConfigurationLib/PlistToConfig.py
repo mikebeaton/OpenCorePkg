@@ -1143,6 +1143,14 @@ def read_fragment(dir, filename):
   with open(os.path.join(dir, filename), 'r') as file:
     return file.read()
 
+# add filenames
+def add_filenames(args, x_intro):
+  program = os.path.basename(sys.argv[0])
+  template = os.path.basename(args.infile)
+  x_intro = x_intro.replace('[[program]]', program)
+  x_intro = x_intro.replace('[[template]]', template)
+  return x_intro
+
 # .h file and templates
 def set_h_file(args):
   global h_file
@@ -1155,6 +1163,7 @@ def set_h_file(args):
     h_file = args.h
     debug('.h=%s' % h_file)
     h_intro = read_fragment(args.fragments, 'intro.h')
+    h_intro = add_filenames(args, h_intro)
     h_outro = read_fragment(args.fragments, 'outro.h')
 
 # .c file and templates
@@ -1162,6 +1171,7 @@ def set_c_file(args):
   global c_file
   global c_intro
   global c_outro
+  global h_include
 
   if args.c is None:
     c_file = None
@@ -1169,7 +1179,12 @@ def set_c_file(args):
     c_file = args.c
     debug('.c=%s' % c_file)
     c_intro = read_fragment(args.fragments, 'intro.c')
+    c_intro = add_filenames(args, c_intro)
     c_outro = read_fragment(args.fragments, 'outro.c')
+
+  h_include = args.include
+
+  c_intro = c_intro.replace('[[include]]', h_include)
 
 # string buffers
 def init_string_buffers():
@@ -1183,16 +1198,18 @@ def init_string_buffers():
 
 # use argparse library to parse arguments
 def parse_args():
-  parser = argparse.ArgumentParser(description='Generate OpenCore .c and .h plist config definition files from template plist file.', add_help=False)
+  parser = argparse.ArgumentParser(description='Generate OpenCore .c and .h config definition files from template plist file.', add_help=False)
   parser.add_argument('infile', type=str, help='filename of input template .plist file')
   parser.add_argument('--help', '-?', action='help', help='show this help message and exit')
   parser.add_argument('-c', type=argparse.FileType('w'), metavar='c_file', help='filename of output .c file')
   parser.add_argument('-h', type=argparse.FileType('w'), metavar='h_file', help='filename of output .h file')
   default_flags_str = '0x%02x' % flags
   parser.add_argument('-f', type=str, default=default_flags_str, metavar='flags', help='flags to control stdout; options at start of source, default=%s' % default_flags_str)
-  parser.add_argument('--prefix', type=str, default=DEFAULT_PREFIX, metavar='prefix', help='prefix for non-default applications; default="%s"' % DEFAULT_PREFIX)
-  parser.add_argument('--fragments', type=str, default='fragments', metavar='frag-dir', help='directory for .c/.h intro/outro templates')
-  parser.add_argument('-o', type=int, default=OUTPUT_ALL, metavar='out_flags', help='DEBUG: initial value of out_flags, default=%s' % OUTPUT_ALL if flags & SHOW_DEBUG != 0 else argparse.SUPPRESS)
+  parser.add_argument('-o', type=int, default=OUTPUT_ALL, metavar='out_flags', help='debug: initial value of out_flags, default=%s' % OUTPUT_ALL)
+  default_h_include = '<Library/OcConfigurationLib.h>'
+  parser.add_argument('--fragments', type=str, default=os.path.join(sys.path[0], 'fragments'), metavar='fragdir', help='directory for .c/.h intro/outro templates')
+  parser.add_argument('--include', type=str, default=default_h_include, metavar='include', help='.c include, default: %s' % default_h_include)
+  parser.add_argument('--prefix', type=str, default=DEFAULT_PREFIX, metavar='prefix', help='prefix for non-default applications, default: "%s"' % DEFAULT_PREFIX)
 
   args = parser.parse_args()
 
