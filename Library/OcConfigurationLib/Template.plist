@@ -1284,6 +1284,8 @@
 			<integer type="UINT8">20</integer>
 			<key>PlayChime</key>
 			<string>Auto</string>
+			<key>SetupDelay</key>
+			<integer>0</integer>
 			<key>VolumeAmplifier</key>
 			<integer type="UINT16">0</integer>
 		</dict>
@@ -1395,8 +1397,6 @@
 		</dict>
 		<key>Quirks</key>
 		<dict comment="Quirks is a set of hacks for different types of firmware">
-			<key>DeduplicateBootOrder</key>
-			<false/>
 			<key>ExitBootServicesDelay</key>
 			<integer>0</integer>
 			<key>IgnoreInvalidFlexRatio</key>
