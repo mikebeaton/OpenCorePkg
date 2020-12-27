@@ -728,7 +728,7 @@ mUefiProtocolOverridesSchema[] = {
   OC_SCHEMA_BOOLEAN_IN ("FirmwareVolume",          OC_GLOBAL_CONFIG, Uefi.ProtocolOverrides.FirmwareVolume),
   OC_SCHEMA_BOOLEAN_IN ("HashServices",            OC_GLOBAL_CONFIG, Uefi.ProtocolOverrides.HashServices),
   OC_SCHEMA_BOOLEAN_IN ("OSInfo",                  OC_GLOBAL_CONFIG, Uefi.ProtocolOverrides.OSInfo),
-  OC_SCHEMA_BOOLEAN_IN ("UnicodeCollation",        OC_GLOBAL_CONFIG, Uefi.ProtocolOverrides.UnicodeCollation)
+  OC_SCHEMA_BOOLEAN_IN ("UnicodeCollation",        OC_GLOBAL_CONFIG, Uefi.ProtocolOverrides.UnicodeCollation),
 };
 
 STATIC
@@ -739,7 +739,7 @@ mUefiQuirksSchema[] = {
   OC_SCHEMA_BOOLEAN_IN ("ReleaseUsbOwnership",    OC_GLOBAL_CONFIG, Uefi.Quirks.ReleaseUsbOwnership),
   OC_SCHEMA_BOOLEAN_IN ("RequestBootVarRouting",  OC_GLOBAL_CONFIG, Uefi.Quirks.RequestBootVarRouting),
   OC_SCHEMA_INTEGER_IN ("TscSyncTimeout",         OC_GLOBAL_CONFIG, Uefi.Quirks.TscSyncTimeout),
-  OC_SCHEMA_BOOLEAN_IN ("UnblockFsConnect",       OC_GLOBAL_CONFIG, Uefi.Quirks.UnblockFsConnect)
+  OC_SCHEMA_BOOLEAN_IN ("UnblockFsConnect",       OC_GLOBAL_CONFIG, Uefi.Quirks.UnblockFsConnect),
 };
 
 STATIC
