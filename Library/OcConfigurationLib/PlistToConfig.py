@@ -668,6 +668,8 @@ def parse_plist(elem, out_flags):
 
   root = parse_dict(elem[0], [], None, out_flags, 'map', 0)
 
+  emit_root_section(out_flags)
+
   emit_elem(root, 0)
 
   emit_root_config(root)
@@ -868,9 +870,6 @@ def emit_struct(elem, tab):
     internal_error('unhandled parent \'%s\' for struct' % context)
 
   set_ref(elem, suffix, tab)
-
-  if len(elem.path) == 0:
-    emit_root_config_section(out_flags) ### output from plist instead?
 
   emit_comment(elem)
 
@@ -1087,7 +1086,7 @@ def emit_section(out_flags, section_name):
   emit_section_name(out_flags, '%s section' % section_name, '%s configuration support' % section_name)
 
 # automatic section name at root
-def emit_root_config_section(out_flags):
+def emit_root_section(out_flags):
   emit_section_name(out_flags, 'Root configuration', 'Root configuration')
 
 # emit comment in into .h file
