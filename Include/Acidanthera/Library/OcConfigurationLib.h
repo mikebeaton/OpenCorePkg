@@ -365,16 +365,16 @@ typedef enum {
   _(UINT64                      , ApECID                      ,      , 0                       , ()) \
   _(BOOLEAN                     , AuthRestart                 ,      , FALSE                   , ()) \
   _(BOOLEAN                     , BlacklistAppleUpdate        ,      , FALSE                   , ()) \
-  _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , DmgLoading                  ,      , OC_STRING_CONSTR ("Signed", _, __), OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , DmgLoading                  ,      , OC_STRING_CONSTR ("Signed", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , EnablePassword              ,      , FALSE                   , ()) \
   _(UINT32                      , ExposeSensitiveData         ,      , OCS_EXPOSE_VERSION      , ()) \
   _(UINT64                      , HaltLevel                   ,      , 0x80000000              , ()) \
   _(UINT8                       , PasswordHash                , [64] , {0}                     , ()) \
-  _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA)) \
+  _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA) ) \
   _(UINT32                      , ScanPolicy                  ,      , OC_SCAN_DEFAULT_POLICY  , ()) \
-  _(OC_STRING                   , SecureBootModel             ,      , OC_STRING_CONSTR ("Default", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __), OC_DESTR (OC_STRING) )
+  _(OC_STRING                   , SecureBootModel             ,      , OC_STRING_CONSTR ("Default", _, __) , OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __) , OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_MISC_SECURITY)
 
 #define OC_MISC_TOOLS_ENTRY_FIELDS(_, __) \
