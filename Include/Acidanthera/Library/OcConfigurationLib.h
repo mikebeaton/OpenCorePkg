@@ -357,7 +357,7 @@
   _(OC_STRING                   , BootProtect                 ,      , OC_STRING_CONSTR ("None", _, __) , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                   , DmgLoading                  ,      , OC_STRING_CONSTR ("Signed", _, __) , OC_DESTR (OC_STRING) ) \
   _(BOOLEAN                     , EnablePassword              ,      , FALSE                   , ()) \
-  _(BOOLEAN                     , ExposeSensitiveData         ,      , OCS_EXPOSE_VERSION      , ()) \
+  _(UINT32                      , ExposeSensitiveData         ,      , OCS_EXPOSE_VERSION      , ()) \
   _(UINT64                      , HaltLevel                   ,      , 0x80000000              , ()) \
   _(UINT8                       , PasswordHash                , [64] , {0}                     , ()) \
   _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA) ) \
@@ -505,11 +505,11 @@
   _(OC_STRING                    , BoardSerialNumber     ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(UINT8                        , BoardType             ,  , 0                                , ())                    \
   _(OC_STRING                    , BoardVersion          ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                    , ChassisAssetTag       ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
+  _(OC_STRING                    , ChassisAssetTag       ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(OC_STRING                    , ChassisManufacturer   ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                    , ChassisSerialNumber   ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
+  _(OC_STRING                    , ChassisSerialNumber   ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(UINT8                        , ChassisType           ,  , 0                                , ())                    \
-  _(OC_STRING                    , ChassisVersion        ,  , OC_STRING_CONSTR ("", _, __)     , ())                    \
+  _(OC_STRING                    , ChassisVersion        ,  , OC_STRING_CONSTR ("", _, __)     , OC_DESTR (OC_STRING) ) \
   _(UINT64                       , FirmwareFeatures      ,  , 0                                , ())                    \
   _(UINT64                       , FirmwareFeaturesMask  ,  , 0                                , ())                    \
   _(UINT32                       , PlatformFeature       ,  , 0xFFFFFFFFU                      , ())                    \
@@ -564,7 +564,7 @@
   _(BOOLEAN                     , AudioSupport       ,     , FALSE                         , ()) \
   _(UINT8                       , MinimumVolume      ,     , 0                             , ()) \
   _(OC_STRING                   , PlayChime          ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
-  _(UINTN                       , SetupDelay         ,     , 0                             , ()) \
+  _(UINT32                      , SetupDelay         ,     , 0                             , ()) \
   _(UINT16                      , VolumeAmplifier    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_AUDIO)
 

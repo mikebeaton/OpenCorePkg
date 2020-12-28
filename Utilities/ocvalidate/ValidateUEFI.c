@@ -18,6 +18,34 @@
 
 #include <Library/OcConsoleLib.h>
 
+/**
+  Callback funtion to verify whether one UEFI driver is duplicated in UEFI->Drivers.
+
+  @param[in]  PrimaryDriver    Primary driver to be checked.
+  @param[in]  SecondaryDriver  Secondary driver to be checked.
+
+  @retval     TRUE             If PrimaryDriver and SecondaryDriver are duplicated.
+**/
+STATIC
+BOOLEAN
+UEFIDriverHasDuplication (
+  IN  CONST VOID  *PrimaryDriver,
+  IN  CONST VOID  *SecondaryDriver
+  )
+{
+  CONST OC_STRING           *UEFIPrimaryDriver;
+  CONST OC_STRING           *UEFISecondaryDriver;
+  CONST CHAR8               *UEFIDriverPrimaryString;
+  CONST CHAR8               *UEFIDriverSecondaryString;
+
+  UEFIPrimaryDriver         = *(CONST OC_STRING **) PrimaryDriver;
+  UEFISecondaryDriver       = *(CONST OC_STRING **) SecondaryDriver;
+  UEFIDriverPrimaryString   = OC_BLOB_GET (UEFIPrimaryDriver);
+  UEFIDriverSecondaryString = OC_BLOB_GET (UEFISecondaryDriver);
+
+  return StringIsDuplicated ("UEFI->Drivers", UEFIDriverPrimaryString, UEFIDriverSecondaryString);
+}
+
 UINT32
 CheckUEFI (
   IN  OC_GLOBAL_CONFIG  *Config
@@ -25,7 +53,6 @@ CheckUEFI (
 {
   UINT32                    ErrorCount;
   UINT32                    Index;
-  UINT32                    Index2;
   UINT32                    IndexOpenUsbKbDxeEfiDriver;
   UINT32                    IndexPs2KeyboardDxeEfiDriver;
   OC_UEFI_CONFIG            *UserUefi;
@@ -122,22 +149,6 @@ CheckUEFI (
       continue;
     }
 
-    //
-    // Brute-force to check duplicated Drivers.
-    //
-    for (Index2 = Index + 1; Index2 < UserUefi->Drivers.Count; ++Index2) {
-      if (AsciiStrCmp (Driver, OC_BLOB_GET (UserUefi->Drivers.Values[Index2])) == 0) {
-        DEBUG ((
-          DEBUG_WARN,
-          "UEFI->Drivers[%u] and UEFI->Drivers[%u] (%a) are duplicated!\n",
-          Index,
-          Index2,
-          Driver
-          ));
-        ++ErrorCount;
-      }
-    }
-
     if (AsciiStrCmp (Driver, "OpenRuntime.efi") == 0) {
       HasOpenRuntimeEfiDriver = TRUE;
     }
@@ -150,6 +161,16 @@ CheckUEFI (
       IndexPs2KeyboardDxeEfiDriver = Index;
     }
   }
+
+  //
+  // Check duplicated Drivers.
+  //
+  ErrorCount += FindArrayDuplication (
+    UserUefi->Drivers.Values,
+    UserUefi->Drivers.Count,
+    sizeof (UserUefi->Drivers.Values[0]),
+    UEFIDriverHasDuplication
+    );
 
   if (IsPointerSupportEnabled && AsciiStrCmp (PointerSupportMode, "ASUS") != 0) {
     DEBUG ((DEBUG_WARN, "UEFI->Input->PointerSupport is enabled, but PointerSupportMode is not ASUS!\n"));
