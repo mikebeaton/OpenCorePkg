@@ -327,7 +327,7 @@ def parse_out_attr(elem, out_flags):
 
   return (use_flags, out_attr)
 
-# plist key; option not to use value for is for keys in maps
+# plist key; option not to use value is for keys in maps
 def parse_key(elem, path, out_flags, tab, use_value = True):
   (use_flags, out_attr) = parse_out_attr(elem, out_flags)
 
@@ -528,7 +528,7 @@ def parse_array(elem, path, child_node, out_flags, context, tab):
 
   return oc_type('array', tab, path, out_flags, of = value, ref = hc(xref), context = context, comment = comment, suffix = suffix, xref = xref)
 
-# error if unuasble child attr specified
+# error if unusable child attr specified
 def useless_child_node(elem, child_node):
   if child_node is not None:
     error('child attribute should only be specified in key preceding <array> or <dict>')
