@@ -374,7 +374,7 @@ typedef enum {
   _(OC_DATA                     , PasswordSalt                ,      , OC_EDATA_CONSTR (_, __) , OC_DESTR (OC_DATA)) \
   _(UINT32                      , ScanPolicy                  ,      , OC_SCAN_DEFAULT_POLICY  , ()) \
   _(OC_STRING                   , SecureBootModel             ,      , OC_STRING_CONSTR ("Default", _, __), OC_DESTR (OC_STRING) ) \
-  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __), OC_DESTR (OC_STRING) ) \
+  _(OC_STRING                   , Vault                       ,      , OC_STRING_CONSTR ("Secure", _, __), OC_DESTR (OC_STRING) )
   OC_DECLARE (OC_MISC_SECURITY)
 
 #define OC_MISC_TOOLS_ENTRY_FIELDS(_, __) \
