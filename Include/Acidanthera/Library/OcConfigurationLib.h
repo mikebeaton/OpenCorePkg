@@ -578,11 +578,11 @@ typedef enum {
 ///
 #define OC_UEFI_AUDIO_FIELDS(_, __) \
   _(UINT8                       , AudioCodec         ,     , 0                             , ()) \
-  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , AudioDevice        ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
   _(UINT8                       , AudioOut           ,     , 0                             , ()) \
   _(BOOLEAN                     , AudioSupport       ,     , FALSE                         , ()) \
   _(UINT8                       , MinimumVolume      ,     , 0                             , ()) \
-  _(OC_STRING                   , PlayChime          ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING)) \
+  _(OC_STRING                   , PlayChime          ,     , OC_STRING_CONSTR ("", _, __)  , OC_DESTR (OC_STRING) ) \
   _(UINT32                      , SetupDelay         ,     , 0                             , ()) \
   _(UINT16                      , VolumeAmplifier    ,     , 0                             , ())
   OC_DECLARE (OC_UEFI_AUDIO)
