@@ -256,9 +256,8 @@ OcAppleGenericInputKeycodeInit (
   gAikSelf.KeyForgotThreshold = KeyForgotThreshold;
   gAikSelf.KeyFiltering       = KeyFiltering;
   Status = AIKInstall (&gAikSelf);
+  DEBUG ((DEBUG_INFO, "AIKInstall - %r\n", Status));
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "AIKInstall failed - %r\n", Status));
-
     //
     // No AppleKeyMapAggregator present, install on its availability.
     //

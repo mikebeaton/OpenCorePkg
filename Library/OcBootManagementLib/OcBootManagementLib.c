@@ -121,7 +121,8 @@ OcShowSimpleBootMenu (
   CHAR16                             Code[2];
   UINT32                             TimeOutSeconds;
   UINT32                             Count;
-  BOOLEAN                            SetDefault;
+  BOOLEAN                            WantsDefault;
+  BOOLEAN                            AllowsToggle;
   BOOLEAN                            PlayedOnce;
   BOOLEAN                            PlayChosen;
 
@@ -222,8 +223,10 @@ OcShowSimpleBootMenu (
         BootContext->PickerContext,
         KeyMap,
         PlayChosen ? OC_VOICE_OVER_IDLE_TIMEOUT_MS : TimeOutSeconds * 1000,
-        &SetDefault
+        &WantsDefault,
+        NULL
         );
+      AllowsToggle = FALSE;
 
       if (PlayChosen && KeyIndex == OC_INPUT_TIMEOUT) {
         OcPlayAudioFile (BootContext->PickerContext, OcVoiceOverAudioFileSelected, FALSE);
@@ -242,7 +245,7 @@ OcShowSimpleBootMenu (
         } else {
           *ChosenBootEntry = BootContext->DefaultEntry;
         }
-        (*ChosenBootEntry)->SetDefault = SetDefault;
+        (*ChosenBootEntry)->SetDefault = WantsDefault;
         gST->ConOut->OutputString (gST->ConOut, OC_MENU_OK);
         gST->ConOut->OutputString (gST->ConOut, L"\r\n");
         return EFI_SUCCESS;
@@ -251,11 +254,16 @@ OcShowSimpleBootMenu (
         gST->ConOut->OutputString (gST->ConOut, L"\r\n");
         OcPlayAudioFile (BootContext->PickerContext, OcVoiceOverAudioFileReloading, FALSE);
         return EFI_ABORTED;
-      } else if (KeyIndex == OC_INPUT_MORE && BootContext->PickerContext->HideAuxiliary) {
+      } else if (KeyIndex == OC_INPUT_MORE && (BootContext->PickerContext->HideAuxiliary || AllowsToggle)) {
+        BootContext->PickerContext->HideAuxiliary = AllowsToggle ? !BootContext->PickerContext->HideAuxiliary : FALSE;
+
+        //
+        // TO DO: To apply toggle in live, hide auxiliary audio media and out string would be required
+        //
         gST->ConOut->OutputString (gST->ConOut, OC_MENU_SHOW_AUXILIARY);
         gST->ConOut->OutputString (gST->ConOut, L"\r\n");
         OcPlayAudioFile (BootContext->PickerContext, OcVoiceOverAudioFileShowAuxiliary, FALSE);
-        BootContext->PickerContext->HideAuxiliary = FALSE;
+
         return EFI_ABORTED;
       } else if (KeyIndex == OC_INPUT_UP) {
         if (TimeOutSeconds > 0) {
@@ -308,7 +316,7 @@ OcShowSimpleBootMenu (
         break;
       } else if (KeyIndex != OC_INPUT_INVALID && KeyIndex >= 0 && (UINTN)KeyIndex < Count) {
         *ChosenBootEntry = BootEntries[KeyIndex];
-        (*ChosenBootEntry)->SetDefault = SetDefault;
+        (*ChosenBootEntry)->SetDefault = WantsDefault;
         Code[0] = OC_INPUT_STR[KeyIndex];
         gST->ConOut->OutputString (gST->ConOut, Code);
         gST->ConOut->OutputString (gST->ConOut, L"\r\n");
@@ -699,7 +707,7 @@ OcRunBootPicker (
       // Ensure that we flush all pressed keys after the application.
       // This resolves the problem of application-pressed keys being used to control the menu.
       //
-      OcKeyMapFlush (KeyMap, 0, TRUE);
+      OcKeyMapFlush (KeyMap, 0, TRUE, FALSE);
     }
 
     OcFreeBootContext (BootContext);

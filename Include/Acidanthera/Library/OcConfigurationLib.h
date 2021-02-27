@@ -602,6 +602,7 @@ typedef enum {
   _(OC_STRING                   , PointerSupportMode ,     , OC_STRING_CONSTR ("", _, __)      , OC_DESTR (OC_STRING)) \
   _(UINT32                      , TimerResolution    ,     , 0                                 , ()) \
   _(UINT8                       , KeyForgetThreshold ,     , 0                                 , ()) \
+  _(BOOLEAN                     , DownkeysHandler     ,     , FALSE                             , ()) \
   _(BOOLEAN                     , KeySupport         ,     , FALSE                             , ()) \
   _(BOOLEAN                     , KeyFiltering       ,     , FALSE                             , ()) \
   _(BOOLEAN                     , KeySwap            ,     , FALSE                             , ()) \

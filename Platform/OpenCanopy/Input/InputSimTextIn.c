@@ -42,17 +42,23 @@ EFIAPI
 GuiKeyRead (
   IN OUT GUI_KEY_CONTEXT  *Context,
   OUT    INTN             *KeyIndex,
-  OUT    BOOLEAN          *Modifier
+  OUT    BOOLEAN          *WantsDefault,
+  OUT    BOOLEAN          *AllowsToggle
   )
 {
 
   ASSERT (Context != NULL);
+  ASSERT (KeyIndex != NULL);
+  ASSERT (WantsDefault != NULL);
+  ASSERT (AllowsToggle != NULL);
 
-  *Modifier = FALSE;
+  *WantsDefault = FALSE;
+  *AllowsToggle = FALSE;
   *KeyIndex = Context->Context->GetKeyIndex (
     Context->Context,
     Context->KeyMap,
-    Modifier
+    WantsDefault,
+    AllowsToggle
     );
 
   //

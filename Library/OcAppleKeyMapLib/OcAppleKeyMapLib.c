@@ -2,9 +2,8 @@
 
 AppleKeyMapAggregator
 
-Copyright (c) 2018, vit9696
-
-All rights reserved.
+Copyright (c) 2018, vit9696. All rights reserved.
+Additions (downkeys support) copyright (c) 2021 Bmju. All rights reserved.
 
 This program and the accompanying materials
 are licensed and made available under the terms and conditions of the BSD License
@@ -15,6 +14,9 @@ THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
 WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
+
+#define DEBUG_DETAIL
+
 #include <AppleMacEfi.h>
 #include <IndustryStandard/AppleHid.h>
 #include <Protocol/AppleKeyMapAggregator.h>
@@ -24,6 +26,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/OcAppleKeyMapLib.h>
+#include <Library/OcDebugLogLib.h>
 #include <Library/OcMiscLib.h>
 #include <Library/TimerLib.h>
 #include <Library/UefiBootServicesTableLib.h>
@@ -118,6 +121,169 @@ InternalGetKeyStrokesByIndex (
   }
 
   return KeyStrokesInfo;
+}
+
+VOID
+OcInitKeyRepeatContext(
+     OUT OC_KEY_REPEAT_CONTEXT   *Context,
+  IN     UINTN                   MaxKeysHeld,
+  IN     OC_HELD_KEY_INFO        *KeysHeld       OPTIONAL,
+  IN     UINT64                  InitialDelay,
+  IN     UINT64                  SubsequentDelay
+  )
+{
+  Context->NumKeysHeld = 0;
+  Context->MaxKeysHeld = MaxKeysHeld;
+  Context->KeysHeld = KeysHeld;
+
+  Context->InitialDelay = InitialDelay;
+  Context->SubsequentDelay = SubsequentDelay;
+}
+
+EFI_STATUS
+EFIAPI
+OcGetUpDownKeys (
+  IN     APPLE_KEY_MAP_AGGREGATOR_PROTOCOL  *KeyMap,
+     OUT APPLE_MODIFIER_MAP                 *Modifiers,
+  IN OUT UINTN                              *NumKeysUp,
+     OUT APPLE_KEY_CODE                     *KeysUp       OPTIONAL,
+  IN OUT UINTN                              *NumKeysDown,
+     OUT APPLE_KEY_CODE                     *KeysDown     OPTIONAL,
+  IN OUT OC_KEY_REPEAT_CONTEXT              *RepeatContext,
+  IN     UINT64                             CurrentTime
+  )
+{
+  EFI_STATUS                        Status;
+  UINTN                             NumRawKeys;
+  UINTN                             MaxRawKeys;
+  APPLE_KEY_CODE                    RawKeys[OC_KEY_MAP_DEFAULT_SIZE];
+  UINTN                             NumKeysHeldInCopy;
+  UINTN                             MaxKeysHeldInCopy;
+  OC_HELD_KEY_INFO                  KeysHeldCopy[OC_HELD_KEYS_DEFAULT_SIZE];
+  UINTN                             Index;
+  UINTN                             Index2;
+  APPLE_KEY_CODE                    Key;
+  INT64                             KeyTime;
+  UINT64                            DeltaTime; 
+
+  ASSERT (KeyMap != NULL);
+  ASSERT (Modifiers != NULL);
+  ASSERT (NumKeysUp != NULL);
+  ASSERT (NumKeysDown != NULL);
+  ASSERT (RepeatContext != NULL);
+  ASSERT (RepeatContext->NumKeysHeld <= RepeatContext->MaxKeysHeld);
+
+  DeltaTime = CurrentTime - RepeatContext->PreviousTime;
+  RepeatContext->PreviousTime = CurrentTime;
+
+  MaxRawKeys  = ARRAY_SIZE (RawKeys);
+
+  if (RepeatContext->KeysHeld != NULL) {
+    //
+    // All held keys could potentially go into keys up
+    // 
+    if (KeysUp != NULL && RepeatContext->MaxKeysHeld > *NumKeysUp) {
+      DEBUG ((DEBUG_ERROR, "OCKM: MaxKeysHeld %d exceeds NumKeysUp %d\n", RepeatContext->MaxKeysHeld, *NumKeysUp));
+      return EFI_UNSUPPORTED;
+    }
+
+    //
+    // All requested keys could potentially go into held keys
+    // (NumKeysDown is always used as the requested number of keys to scan, even if there is no KeysDown buffer to return down keycodes)
+    //
+    if (KeysDown != NULL && *NumKeysDown > RepeatContext->MaxKeysHeld) {
+      DEBUG ((DEBUG_ERROR, "OCKM: Number of keys requested %d exceeds MaxKeysHeld %d\n", *NumKeysDown, RepeatContext->MaxKeysHeld));
+      return EFI_UNSUPPORTED;
+    }
+
+    //
+    // Clone live entries of KeysHeld buffer 
+    //
+    MaxKeysHeldInCopy = ARRAY_SIZE (KeysHeldCopy);
+    if (RepeatContext->MaxKeysHeld > MaxKeysHeldInCopy) {
+      DEBUG ((DEBUG_ERROR, "OCKM: MaxKeysHeld %d exceeds supported copy space %d\n", RepeatContext->MaxKeysHeld, MaxKeysHeldInCopy));
+      return EFI_UNSUPPORTED;
+    }
+
+    CopyMem (KeysHeldCopy, RepeatContext->KeysHeld, RepeatContext->NumKeysHeld * sizeof(RepeatContext->KeysHeld[0]));
+    NumKeysHeldInCopy = RepeatContext->NumKeysHeld;
+  }
+
+  if (*NumKeysDown > MaxRawKeys) {
+    DEBUG ((DEBUG_ERROR, "OCKM: Number of keys requested %d exceeds supported raw key bufsize %d\n", *NumKeysDown, MaxRawKeys));
+    return EFI_UNSUPPORTED;
+  }
+  NumRawKeys = *NumKeysDown;
+
+  Status = KeyMap->GetKeyStrokes (
+    KeyMap,
+    Modifiers,
+    &NumRawKeys,
+    RawKeys
+    );
+
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] %ld %ld %ld\n", RepeatContext, RepeatContext->InitialDelay, RepeatContext->SubsequentDelay, DeltaTime));
+  DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] I u:%d d:%d n:%d h:%d r:%d\n", RepeatContext, *NumKeysUp, *NumKeysDown, RepeatContext->MaxKeysHeld, RepeatContext->NumKeysHeld, NumRawKeys));
+
+  *NumKeysUp = 0;
+  *NumKeysDown = 0;
+  RepeatContext->NumKeysHeld = 0;
+
+  //
+  // Process raw keys
+  //
+  for (Index = 0; Index < NumRawKeys; ++Index) {
+    Key = RawKeys[Index];
+    RepeatContext->KeysHeld[RepeatContext->NumKeysHeld].Key = Key;
+
+    for (Index2 = 0; Index2 < NumKeysHeldInCopy; Index2++) {
+      if (KeysHeldCopy[Index2].Key == Key) {
+        KeyTime = KeysHeldCopy[Index2].KeyTime + DeltaTime;
+        KeysHeldCopy[Index2].Key = 0; // Mark key as found
+        DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] Still down 0x%X %ld\n", RepeatContext, Key, KeyTime));
+        if (RepeatContext->InitialDelay != 0 && KeyTime >= 0) {
+          if (KeysDown != NULL) {
+            KeysDown[(*NumKeysDown)++] = Key;
+          }
+          KeyTime -= RepeatContext->SubsequentDelay;
+          DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] Repeating 0x%X %ld\n", RepeatContext, Key, KeyTime));
+        }
+        break;
+      }
+    }
+
+    if (Index2 == NumKeysHeldInCopy) {
+      if (KeysDown != NULL) {
+        KeysDown[(*NumKeysDown)++] = Key;
+      }
+      KeyTime = -RepeatContext->InitialDelay;
+      DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] New down 0x%X %ld\n", RepeatContext, Key, KeyTime));
+    }
+
+    RepeatContext->KeysHeld[RepeatContext->NumKeysHeld].KeyTime = KeyTime;
+    RepeatContext->NumKeysHeld++;
+  }
+
+  //
+  // Process remaining held keys
+  //
+  for (Index = 0; Index < NumKeysHeldInCopy; Index++) {
+    Key = KeysHeldCopy[Index].Key;
+    if (Key != 0) {
+      DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] Gone up 0x%X %ld\n", RepeatContext, Key, KeysHeldCopy[Index].KeyTime));
+      if (KeysUp != NULL) {
+        KeysUp[(*NumKeysUp)++] = Key;
+      }
+    }
+  }
+
+  DETAIL_DEBUG ((DEBUG_INFO, "OCKM: [%p] O u:%d d:%d n:%d h:%d r:%d\n", RepeatContext, *NumKeysUp, *NumKeysDown, RepeatContext->MaxKeysHeld, RepeatContext->NumKeysHeld, NumRawKeys));
+
+  return Status;
 }
 
 // InternalGetKeyStrokes
@@ -260,7 +426,8 @@ VOID
 OcKeyMapFlush (
   IN APPLE_KEY_MAP_AGGREGATOR_PROTOCOL  *KeyMap,
   IN APPLE_KEY_CODE                     Key,
-  IN BOOLEAN                            FlushConsole
+  IN BOOLEAN                            FlushConsole,
+  IN BOOLEAN                            DoNotFlush
   )
 {
   EFI_STATUS          Status;
@@ -269,8 +436,16 @@ OcKeyMapFlush (
   EFI_INPUT_KEY       EfiKey;
   APPLE_KEY_CODE      Keys[OC_KEY_MAP_DEFAULT_SIZE];
 
+  if (DoNotFlush) {
+    return;
+  }
+
   ASSERT (KeyMap != NULL);
 
+  //
+  // Key flush support for use on systems with EFI driver level key repeat; on newer
+  // and Apple hardware, will hang until all keys (including control keys) come up.
+  //
   while (TRUE) {
     NumKeys = ARRAY_SIZE (Keys);
     Status = KeyMap->GetKeyStrokes (

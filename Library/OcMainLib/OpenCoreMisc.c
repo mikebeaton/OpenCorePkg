@@ -744,6 +744,8 @@ OcMiscLateInit (
 
   OcAppleDebugLogConfigure (Config->Misc.Debug.AppleDebug);
 
+  OcInitDownkeys(&Config->Uefi.Input);
+
   return EFI_SUCCESS;
 }
 

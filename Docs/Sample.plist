@@ -1114,6 +1114,8 @@
 		</array>
 		<key>Input</key>
 		<dict>
+			<key>DownkeysHandler</key>
+			<false/>
 			<key>KeyFiltering</key>
 			<false/>
 			<key>KeyForgetThreshold</key>
