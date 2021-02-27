@@ -15,7 +15,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#define DEBUG_DETAIL
+#if defined(OC_TARGET_DEBUG) || defined(OC_TARGET_NOOPT)
+//#define DEBUG_DETAIL
+#endif
 
 #include <AppleMacEfi.h>
 #include <IndustryStandard/AppleHid.h>

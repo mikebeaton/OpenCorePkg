@@ -135,7 +135,7 @@ OcInitDownkeys (
   IN OC_UEFI_INPUT  *Input
   )
 {
-  mUseDownkeys = Input->DownkeysHandler;
+  mUseDownkeys = TRUE; //////!Input->KeySupport;
   if (mUseDownkeys) {
     DEBUG ((DEBUG_INFO, "OCHK: InitDownkeys\n"));
 
@@ -196,9 +196,6 @@ OcGetAppleKeyIndex (
   ASSERT (ARRAY_SIZE (KeysDoNotRepeat) >= ARRAY_SIZE (Keys)); // for CopyMem in legacy codepath
 
   if (mUseDownkeys) {
-    //
-    // TO DO: Move ~this note to Configuration.tex.
-    //
     // Downkeys support, helps with fluent animation in OpenCanopy (will not hang waiting for keys), but
     // does not include all fixes for legacy hardware present in previous approach (see esp. OcKeyMapFlush),
     // and may function unpredictably in terms of key repeat behaviour on systems which have EFI driver level
@@ -245,9 +242,6 @@ OcGetAppleKeyIndex (
 
     DoNotFlush = TRUE;
   } else {
-    //
-    // TO DO: Move ~this note to Configuration.tex.
-    //
     // Legacy support, tuned to work correctly on many older systems, but hangs in
     // call to OcKeyMapFlush below until all keys (including control keys) come up,
     // on newer and Apple hardware, preventing fluid animation in OpenCanopy.
