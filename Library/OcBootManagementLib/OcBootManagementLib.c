@@ -796,7 +796,6 @@ OcRunBootPicker (
       }
 
       //
-      // TODO: Make this work again
       // Ensure that we flush all pressed keys after the application.
       // This resolves the problem of application-pressed keys being used to control the menu.
       //
