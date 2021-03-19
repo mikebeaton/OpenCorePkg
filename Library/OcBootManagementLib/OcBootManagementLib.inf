@@ -113,8 +113,10 @@
   OcGuardLib
   OcFileLib
   OcMachoLib
+  OcMiscLib
   OcPeCoffLib
   OcRtcLib
+  OcTypingLib
   OcXmlLib
   TimerLib
   FileHandleLib

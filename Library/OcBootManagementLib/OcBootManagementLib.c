@@ -1,15 +1,7 @@
 /** @file
-  Copyright (C) 2019-2021, vit9696 and contributors. All rights reserved.
-
-  All rights reserved.
-
-  This program and the accompanying materials
-  are licensed and made available under the terms and conditions of the BSD License
-  which accompanies this distribution.  The full text of the license may be found at
-  http://opensource.org/licenses/bsd-license.php
-
-  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+  Copyright (C) 2019, vit9696. All rights reserved.<BR>
+  Copyright (C) 2021, Mike Beaton. All rights reserved.<BR>
+  SPDX-License-Identifier: BSD-3-Clause
 **/
 
 #include "BootManagementInternal.h"
@@ -48,6 +40,131 @@
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiLib.h>
 
+STATIC INT32                mStatusRow;
+STATIC INT32                mStatusColumn;
+
+STATIC INT32                mRunningColumn;
+
+STATIC UINT64               mPreviousTick;
+
+STATIC UINT64               mLoopDelayStart;
+STATIC UINT64               mLoopDelayEnd;
+
+#define OC_KB_DBG_MAX_COLUMN           80
+#define OC_KB_DBG_DELTA_SAMPLE_COLUMN  0 //40
+
+#define OC_KB_DBG_PRINT_ROW            2
+
+#define OC_KB_DBG_DOWN_ROW             6
+#define OC_KB_DBG_X_ROW                7
+#define OC_KB_DBG_MODIFIERS_ROW        8
+
+STATIC
+VOID
+InitKbDebugDisplay (
+  VOID
+  )
+{
+  mRunningColumn = 0;
+
+  mLoopDelayStart = 0;
+  mLoopDelayEnd = 0;
+}
+
+STATIC
+VOID
+EFIAPI
+InstrumentLoopDelay (
+  UINT64 LoopDelayStart,
+  UINT64 LoopDelayEnd
+  )
+{
+  mLoopDelayStart     = LoopDelayStart;
+  mLoopDelayEnd       = LoopDelayEnd;
+}
+
+STATIC
+VOID
+EFIAPI
+ShowKbDebugDisplay (
+  UINTN                     NumKeysDown,
+  UINTN                     NumKeysHeld,
+  APPLE_MODIFIER_MAP        Modifiers
+  )
+{
+  CONST CHAR16    *ClearSpace = L"      ";
+
+  UINT64          CurrentTick;
+
+  CHAR16          Code[3]; // includes flush-ahead space, to make progress visible
+
+  Code[1]         = L' ';
+  Code[2]         = L'\0';
+
+  CurrentTick     = AsmReadTsc();
+
+  if (mRunningColumn == OC_KB_DBG_DELTA_SAMPLE_COLUMN) {
+    gST->ConOut->SetCursorPosition (gST->ConOut, 0, mStatusRow + OC_KB_DBG_PRINT_ROW + 1);
+
+    Print (
+      L"Called delta   = %,Lu%s\n",
+      CurrentTick - mPreviousTick,
+      ClearSpace);
+
+    Print (L"Loop delta     = %,Lu (@ -%,Lu)%s%s\n",
+      mLoopDelayEnd == 0 ? 0 : mLoopDelayEnd - mLoopDelayStart,
+      mLoopDelayEnd == 0 ? 0 : CurrentTick - mLoopDelayEnd,
+      ClearSpace,
+      ClearSpace);
+  }
+
+  mPreviousTick = CurrentTick;
+
+  //
+  // Show Apple Event keys
+  //
+  gST->ConOut->SetCursorPosition (gST->ConOut, mRunningColumn, mStatusRow + OC_KB_DBG_DOWN_ROW);
+  if (NumKeysDown > 0) {
+    Code[0] = L'D';
+  } else {
+    Code[0] = L' ';
+  }
+  gST->ConOut->OutputString (gST->ConOut, Code);
+
+  //
+  // Show AKMA key held info
+  //
+  gST->ConOut->SetCursorPosition (gST->ConOut, mRunningColumn, mStatusRow + OC_KB_DBG_X_ROW);
+  if (NumKeysHeld > 0) {
+    Code[0] = L'X';
+  } else {
+    Code[0] = L'.';
+  }
+  gST->ConOut->OutputString (gST->ConOut, Code);
+
+  //
+  // Modifiers info
+  //
+  gST->ConOut->SetCursorPosition (gST->ConOut, mRunningColumn, mStatusRow + OC_KB_DBG_MODIFIERS_ROW);
+  if (Modifiers == 0) {
+    Code[0] = L' ';
+    gST->ConOut->OutputString (gST->ConOut, Code);
+  } else {
+    Print(L"%X", Modifiers);
+  }
+
+  if (++mRunningColumn >= OC_KB_DBG_MAX_COLUMN) {
+    mRunningColumn = 0;
+  }
+
+  gST->ConOut->SetCursorPosition (gST->ConOut, mStatusColumn, mStatusRow);
+}
+
+STATIC OC_KB_DEBUG_CALLBACKS mSimplePickerKbDebug = {
+  InstrumentLoopDelay,
+  ShowKbDebugDisplay
+};
+
 STATIC
 EFI_STATUS
 RunShowMenu (
@@ -69,6 +186,8 @@ RunShowMenu (
     BootContext->PickerContext->ApplePickerUnsupported = TRUE;
   }
 
+  OcInitHotKeys (BootContext->PickerContext);
+      
   BootEntries = OcEnumerateEntries (BootContext);
   if (BootEntries == NULL) {
     return EFI_OUT_OF_RESOURCES;
@@ -106,20 +225,33 @@ RunShowMenu (
 }
 
 STATIC
+VOID
+DisplaySystemMs (
+  VOID
+  )
+{
+  UINT64      CurrentMillis;
+
+  CurrentMillis = DivU64x64Remainder (GetTimeInNanoSecond (GetPerformanceCounter ()), 1000000ULL, NULL);
+  Print (L"%,Lu]", CurrentMillis);
+}
+
+STATIC
 CHAR16
 GetPickerEntryCursor (
   IN  OC_BOOT_CONTEXT             *BootContext,
   IN  UINT32                      TimeOutSeconds,
   IN  INTN                        ChosenEntry,
-  IN  UINTN                       Index
+  IN  UINTN                       Index,
+  IN  BOOLEAN                     SetDefault
   )
-{  
+{
   if (TimeOutSeconds > 0 && BootContext->DefaultEntry->EntryIndex - 1 == Index) {
     return L'*';
   }
   
   if (ChosenEntry >= 0 && (UINTN) ChosenEntry == Index) {
-    return L'>';
+    return SetDefault ? L'+' : L'>';
   }
 
   return L' ';
@@ -140,13 +272,13 @@ OcShowSimpleBootMenu (
   INTN                               ChosenEntry;
   INTN                               OldChosenEntry;
   INT32                              FirstIndexRow;
-  INT32                              StatusRow;
-  INT32                              StatusColumn;
+  INT32                              MillisColumn;
   CHAR16                             EntryCursor;
   CHAR16                             OldEntryCursor;
   CHAR16                             Code[2];
   UINT32                             TimeOutSeconds;
   UINT32                             Count;
+  UINT64                             KeyEndTime;
   BOOLEAN                            SetDefault;
   BOOLEAN                            PlayedOnce;
   BOOLEAN                            PlayChosen;
@@ -161,8 +293,19 @@ OcShowSimpleBootMenu (
   OldEntryCursor = L'\0';
   FirstIndexRow  = -1;
 
+  KeyIndex       = 0;
+  SetDefault     = FALSE;
+
   PlayedOnce     = FALSE;
   PlayChosen     = FALSE;
+
+  DEBUG_CODE_BEGIN();
+  if ((BootContext->PickerContext->PickerAttributes & OC_ATTR_DEBUG_DISPLAY) != 0) {
+    DEBUG ((DEBUG_INFO, "OCB: Init builtin picker debug\n"));
+    InitKbDebugDisplay();
+    BootContext->PickerContext->KbDebug = &mSimplePickerKbDebug;
+  }
+  DEBUG_CODE_END();
 
   KeyMap = OcAppleKeyMapInstallProtocols (FALSE);
   if (KeyMap == NULL) {
@@ -200,7 +343,7 @@ OcShowSimpleBootMenu (
       }
       
       if (ChosenEntry >= 0) {
-        EntryCursor = GetPickerEntryCursor(BootContext, TimeOutSeconds, ChosenEntry, ChosenEntry);
+        EntryCursor = GetPickerEntryCursor(BootContext, TimeOutSeconds, ChosenEntry, ChosenEntry, SetDefault);
       } else {
         EntryCursor = L'\0';
       }
@@ -215,8 +358,19 @@ OcShowSimpleBootMenu (
         OldChosenEntry = ChosenEntry;
         OldEntryCursor = EntryCursor;
 
-        gST->ConOut->SetCursorPosition (gST->ConOut, StatusColumn, StatusRow);
+        gST->ConOut->SetCursorPosition (gST->ConOut, mStatusColumn, mStatusRow);
       }
+
+      DEBUG_CODE_BEGIN();
+      if ((BootContext->PickerContext->PickerAttributes & OC_ATTR_DEBUG_DISPLAY) != 0) {
+        //
+        // Varying part of milliseconds display
+        //
+        gST->ConOut->SetCursorPosition (gST->ConOut, MillisColumn, 0);
+        DisplaySystemMs ();
+        gST->ConOut->SetCursorPosition (gST->ConOut, mStatusColumn, mStatusRow);
+      }
+      DEBUG_CODE_END();
     } else {
       //
       // Render initial menu
@@ -234,12 +388,23 @@ OcShowSimpleBootMenu (
         gST->ConOut->OutputString (gST->ConOut, L")");
       }
 
+      DEBUG_CODE_BEGIN();
+      if ((BootContext->PickerContext->PickerAttributes & OC_ATTR_DEBUG_DISPLAY) != 0) {
+        //
+        // Fixed part of milliseconds display
+        //
+        gST->ConOut->OutputString (gST->ConOut, L" [System uptime: ");
+        MillisColumn = gST->ConOut->Mode->CursorColumn;
+        DisplaySystemMs ();
+      }
+      DEBUG_CODE_END();
+
       gST->ConOut->OutputString (gST->ConOut, L"\r\n\r\n");
 
       FirstIndexRow = gST->ConOut->Mode->CursorRow;
 
       for (Index = 0; Index < MIN (Count, OC_INPUT_MAX); ++Index) {
-        EntryCursor = GetPickerEntryCursor(BootContext, TimeOutSeconds, ChosenEntry, Index);
+        EntryCursor = GetPickerEntryCursor(BootContext, TimeOutSeconds, ChosenEntry, Index, SetDefault);
 
         if (ChosenEntry >= 0 && (UINTN) ChosenEntry == Index) {
           OldEntryCursor = EntryCursor;
@@ -262,8 +427,22 @@ OcShowSimpleBootMenu (
       gST->ConOut->OutputString (gST->ConOut, L"\r\n");
       gST->ConOut->OutputString (gST->ConOut, OC_MENU_CHOOSE_OS);
 
-      StatusRow     = gST->ConOut->Mode->CursorRow;
-      StatusColumn  = gST->ConOut->Mode->CursorColumn;
+      mStatusRow     = gST->ConOut->Mode->CursorRow;
+      mStatusColumn  = gST->ConOut->Mode->CursorColumn;
+
+      DEBUG_CODE_BEGIN();
+      if ((BootContext->PickerContext->PickerAttributes & OC_ATTR_DEBUG_DISPLAY) != 0) {
+        //
+        // Parts of main debug display which do not need to reprint every frame
+        // TODO: Could do more here
+        //
+        gST->ConOut->OutputString (gST->ConOut, L"\r\n\r\n");
+        Print (
+          L"mTscFrequency  = %,Lu\n",
+          GetTscFrequency ());
+        gST->ConOut->SetCursorPosition (gST->ConOut, mStatusColumn, mStatusRow);
+      }
+      DEBUG_CODE_END();
     }
 
     if (!PlayedOnce && BootContext->PickerContext->PickerAudioAssist) {
@@ -287,12 +466,20 @@ OcShowSimpleBootMenu (
       //
       // Pronounce entry name only after N ms of idleness.
       //
+      if (KeyIndex != OC_INPUT_MODIFIERS_ONLY) {
+        KeyEndTime = OcWaitForAppleKeyIndexGetEndTime(PlayChosen ? OC_VOICE_OVER_IDLE_TIMEOUT_MS : TimeOutSeconds * 1000);
+      }
+
       KeyIndex = OcWaitForAppleKeyIndex (
         BootContext->PickerContext,
         KeyMap,
-        PlayChosen ? OC_VOICE_OVER_IDLE_TIMEOUT_MS : TimeOutSeconds * 1000,
+        KeyEndTime,
         &SetDefault
         );
+
+      if (KeyIndex == OC_INPUT_MODIFIERS_ONLY) {
+        break;
+      }
 
       if (PlayChosen && KeyIndex == OC_INPUT_TIMEOUT) {
         OcPlayAudioFile (BootContext->PickerContext, OcVoiceOverAudioFileSelected, FALSE);

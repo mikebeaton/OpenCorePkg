@@ -12,6 +12,7 @@
 #include <Library/DebugLib.h>
 #include <Library/OcAppleKeyMapLib.h>
 #include <Library/OcBootManagementLib.h>
+#include <Library/OcMiscLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
 #include "../GuiIo.h"
@@ -27,10 +28,9 @@ GuiKeyConstruct (
   )
 {
   STATIC GUI_KEY_CONTEXT  mContext;
-  mContext.KeyMap  = OcAppleKeyMapInstallProtocols (FALSE);
+  mContext.KeyMap  = OcGetProtocol (&gAppleKeyMapAggregatorProtocolGuid, DEBUG_WARN, "GuiKeyConstruct", "AppleKeyMapAggregator");
   mContext.Context = PickerContext;
   if (mContext.KeyMap == NULL) {
-    DEBUG ((DEBUG_WARN, "OCUI: Missing AppleKeyMapAggregator\n"));
     return NULL;
   }
 
@@ -47,6 +47,8 @@ GuiKeyRead (
 {
 
   ASSERT (Context != NULL);
+  ASSERT (KeyIndex != NULL);
+  ASSERT (Modifier != NULL);
 
   *Modifier = FALSE;
   *KeyIndex = Context->Context->GetKeyIndex (

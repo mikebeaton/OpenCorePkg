@@ -1,15 +1,7 @@
 /** @file
-  Copyright (C) 2019, vit9696. All rights reserved.
-
-  All rights reserved.
-
-  This program and the accompanying materials
-  are licensed and made available under the terms and conditions of the BSD License
-  which accompanies this distribution.  The full text of the license may be found at
-  http://opensource.org/licenses/bsd-license.php
-
-  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+  Copyright (C) 2019, vit9696. All rights reserved.<BR>
+  Copyright (C) 2021, Mike Beaton. All rights reserved.<BR>
+  SPDX-License-Identifier: BSD-3-Clause
 **/
 
 #ifndef OC_BOOT_MANAGEMENT_LIB_H
@@ -19,8 +11,10 @@
 #include <IndustryStandard/AppleBootArgs.h>
 #include <IndustryStandard/AppleHid.h>
 #include <Library/OcAppleBootPolicyLib.h>
+#include <Library/OcAppleKeyMapLib.h>
 #include <Library/OcStringLib.h>
 #include <Library/OcStorageLib.h>
+#include <Library/OcTypingLib.h>
 #include <Protocol/AppleKeyMapAggregator.h>
 #include <Protocol/LoadedImage.h>
 #include <Protocol/AppleBeepGen.h>
@@ -62,10 +56,11 @@ typedef struct OC_PICKER_CONTEXT_ OC_PICKER_CONTEXT;
 #define OC_ATTR_USE_GENERIC_LABEL_IMAGE  BIT2
 #define OC_ATTR_HIDE_THEMED_ICONS        BIT3
 #define OC_ATTR_USE_POINTER_CONTROL      BIT4
+#define OC_ATTR_DEBUG_DISPLAY            BIT5
 #define OC_ATTR_ALL_BITS (\
   OC_ATTR_USE_VOLUME_ICON         | OC_ATTR_USE_DISK_LABEL_FILE | \
   OC_ATTR_USE_GENERIC_LABEL_IMAGE | OC_ATTR_HIDE_THEMED_ICONS   | \
-  OC_ATTR_USE_POINTER_CONTROL)
+  OC_ATTR_USE_POINTER_CONTROL     | OC_ATTR_DEBUG_DISPLAY )
 
 /**
   Default timeout for IDLE timeout during menu picker navigation
@@ -549,7 +544,6 @@ INTN
      OUT BOOLEAN                            *SetDefault  OPTIONAL
   );
 
-
 /**
   Play audio file for context.
 **/
@@ -603,6 +597,39 @@ typedef enum {
   OcPickerBootApple         = 3,
   OcPickerBootAppleRecovery = 4,
 } OC_PICKER_CMD;
+
+/**
+  Instrument kb loop delay.
+
+  @param[in]      LoopDelayStart    Delay start in TSC asm ticks.
+  @param[in]      LoopDelayEnd      Delay end in TSC asm ticks. 
+**/
+typedef
+VOID
+(EFIAPI *OC_KB_DEBUG_INSTRUMENT_LOOP_DELAY) (
+  UINT64 LoopDelayStart,
+  UINT64 LoopDelayEnd
+  );
+
+/**
+  Running display of held keys.
+
+  @param[in]      NumKeysDown     Number of keys that went down.
+  @param[in]      NumKeysHeld     Number of keys held.
+  @param[in]      Modifiers       Key modifiers.
+**/
+typedef
+VOID
+(EFIAPI *OC_KB_DEBUG_SHOW) (
+  UINTN                     NumKeysDown,
+  UINTN                     NumKeysHeld,
+  APPLE_MODIFIER_MAP        Modifiers
+  );
+
+typedef struct {
+  OC_KB_DEBUG_INSTRUMENT_LOOP_DELAY  InstrumentLoopDelay;
+  OC_KB_DEBUG_SHOW                   Show;
+} OC_KB_DEBUG_CALLBACKS;
 
 /**
   Boot picker context describing picker behaviour.
@@ -673,6 +700,18 @@ struct OC_PICKER_CONTEXT_ {
   // Get pressed key index.
   //
   OC_GET_KEY_INDEX           GetKeyIndex;
+  //
+  // Non-repeating key context.
+  //
+  OC_KEY_REPEAT_CONTEXT      *DoNotRepeatContext;
+  //
+  // Typing context.
+  //
+  OC_TYPING_CONTEXT          *TypingContext;
+  //
+  // Keyboard debug methods.
+  //
+  OC_KB_DEBUG_CALLBACKS      *KbDebug;
   //
   // Context to pass to RequestPrivilege, optional.
   //
@@ -1032,7 +1071,7 @@ OcLoadPickerHotKeys (
   );
 
 /**
-  Default index mapping macros.
+  Key index mappings.
 **/
 #define OC_INPUT_STR            "123456789ABCDEFGHIJKLMNOPQRSTUVXWZ"
 #define OC_INPUT_MAX            L_STR_LEN (OC_INPUT_STR)
@@ -1049,14 +1088,17 @@ OcLoadPickerHotKeys (
 #define OC_INPUT_MORE           -11       ///< Show more entries (press space)
 #define OC_INPUT_VOICE_OVER     -12       ///< Toggle VoiceOver (press CMD+F5)
 #define OC_INPUT_INTERNAL       -13       ///< Accepted internal hotkey (e.g. Apple)
-#define OC_INPUT_FUNCTIONAL(x) (-20 - (x))  ///< Functional hotkeys
+#define OC_INPUT_MODIFIERS_ONLY -20       ///< No key press, returned early to allow GUI response to modifiers
+#define OC_INPUT_FUNCTIONAL(x) (-20 - (x))  ///< Function hotkeys
 
 /**
   Obtains key index from user input.
 
   @param[in,out]  Context      Picker context.
   @param[in]      KeyMap       Apple Key Map Aggregator protocol.
-  @param[out]     SetDefault   Set boot option as default, optional.
+  @param[out]     SetDefault   Pass back whether to set selected boot option as default.
+                               Optional, when not present key combinations which would attempt to
+                               set default boot will not detect.
 
   @returns key index [0, OC_INPUT_MAX) or OC_INPUT_* value.
   @returns OC_INPUT_TIMEOUT when no key is pressed.
@@ -1071,12 +1113,39 @@ OcGetAppleKeyIndex (
   );
 
 /**
+  Initialise picker keyboard handling.
+  Initialises necessary handlers and updates booter context based on this.
+  Call before looped calls to OcWaitForAppleKeyIndex or OcGetAppleKeyIndex.
+
+  @param[in,out]  Context       Picker context.
+**/
+VOID
+OcInitHotKeys (
+  IN OUT OC_PICKER_CONTEXT  *Context
+  );
+
+/**
+  Calculate timeout end time in correct format for OcWaitForAppleKeyIndex.
+
+  @param[in]      Timeout       Required timeout in milliseconds.
+
+  @returns Now plus timeout, expressed in system nanosecond clock.
+**/
+UINT64
+OcWaitForAppleKeyIndexGetEndTime(
+  IN UINTN    Timeout
+  );
+
+/**
   Waits for key index from user input.
 
   @param[in,out]  Context      Picker context.
   @param[in]      KeyMap       Apple Key Map Aggregator protocol.
-  @param[in]      Timeout      Timeout to wait for in milliseconds.
-  @param[out]     SetDefault   Set boot option as default, optional.
+  @param[in]      EndTime      Time at which to end timeout, system nanosecond clock.
+  @param[in,out]  SetDefault   On input, previous OC key modifiers.
+                               On output, new OC key modifiers. Invalid
+                               key w/ new modifiers is returned immediately
+                               when modifiers change, to allow UI update.
 
   @returns key index [0, OC_INPUT_MAX) or OC_INPUT_* value.
 **/
@@ -1084,8 +1153,8 @@ INTN
 OcWaitForAppleKeyIndex (
   IN OUT OC_PICKER_CONTEXT                  *Context,
   IN     APPLE_KEY_MAP_AGGREGATOR_PROTOCOL  *KeyMap,
-  IN     UINTN                              Timeout,
-     OUT BOOLEAN                            *SetDefault  OPTIONAL
+  IN     UINT64                             EndTime,
+  IN OUT BOOLEAN                            *SetDefault  OPTIONAL
   );
 
 /**
