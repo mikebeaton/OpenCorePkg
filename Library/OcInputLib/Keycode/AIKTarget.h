@@ -50,9 +50,9 @@ typedef struct {
   APPLE_MODIFIER_MAP                 Modifiers;
 
   //
-  // Previously reported Apple modifiers timestamp
+  // Previously reported Apple modifier timestamps, one per modifier bit in use
   //
-  UINT64                             ModifierCounter;
+  UINT64                             ModifierCounters[APPLE_MAX_USED_MODIFIER_BIT + 1];
 
   //
   // Previously reported Apple active keys

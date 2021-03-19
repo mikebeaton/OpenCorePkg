@@ -2,19 +2,15 @@
   Key consumer
 
 Copyright (c) 2018, vit9696. All rights reserved.<BR>
-This program and the accompanying materials
-are licensed and made available under the terms and conditions of the BSD License
-which accompanies this distribution.  The full text of the license may be found at
-http://opensource.org/licenses/bsd-license.php
-
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
-
+Copyright (c) 2021, Mike Beaton. All rights reserved.<BR>
+SPDX-License-Identifier: BSD-3-Clause
 **/
 
 #include "AIKTarget.h"
 #include "AIKTranslate.h"
 
+#include <Base.h>
+#include <Library/BaseMemoryLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/UefiBootServicesTableLib.h>
@@ -64,7 +60,7 @@ AIKTargetUninstall (
 
   Target->NumberOfKeys = 0;
   Target->Modifiers = 0;
-  Target->ModifierCounter = 0;
+  ZeroMem (Target->ModifierCounters, sizeof (Target->ModifierCounters));
   ZeroMem (Target->Keys, sizeof (Target->Keys));
   ZeroMem (Target->KeyCounters, sizeof (Target->KeyCounters));
 }
@@ -74,8 +70,9 @@ AIKTargetRefresh (
   IN OUT AIK_TARGET  *Target
   )
 {
-  UINTN  Index;
-  UINTN  Left;
+  APPLE_MODIFIER_MAP  Mask;
+  UINTN               Index;
+  UINTN               Left;
 
   Target->Counter++;
 
@@ -100,11 +97,17 @@ AIKTargetRefresh (
   }
 
   //
-  // No keys were pressed, so we did not enter AIKTargetWriteEntry.
-  // However, we still need to reset modifiers after time.
+  // Smooth modifiers in same way as keys, as some hardware needs it.
   //
-  if (Target->ModifierCounter + Target->KeyForgotThreshold <= Target->Counter) {
-    Target->Modifiers = 0;
+  for (Index = 0, Mask = BIT0; Index <= APPLE_MAX_USED_MODIFIER_BIT; Index++, Mask <<= 1) {
+    if ((Target->Modifiers & Mask) != 0) {
+      //
+      // We last saw this modifier Target->KeyForgetThreshold times ago, time to say goodbye.
+      //
+      if (Target->ModifierCounters[Index] + Target->KeyForgotThreshold <= Target->Counter) {
+        Target->Modifiers &= ~Mask;
+      }
+    }
   }
 
   return Target->Counter;
@@ -117,6 +120,7 @@ AIKTargetWriteEntry (
   )
 {
   APPLE_MODIFIER_MAP  Modifiers;
+  APPLE_MODIFIER_MAP  Mask;
   APPLE_KEY_CODE      Key;
   UINTN               Index;
   UINTN               InsertIndex;
@@ -124,12 +128,24 @@ AIKTargetWriteEntry (
 
   AIKTranslate (KeyData, &Modifiers, &Key);
 
-  Target->Modifiers = Modifiers;
-  Target->ModifierCounter = Target->Counter;
+  //
+  // Add smoothing counters for modifiers too - some hardware reports them as fast repeating keys.
+  //
+  for (Index = 0, Mask = BIT0; Index <= APPLE_MAX_USED_MODIFIER_BIT; Index++, Mask <<= 1) {
+    if ((Modifiers & Mask) != 0) {
+      if ((Target->Modifiers & Mask) == 0) {
+        Target->Modifiers |= Mask;
+      }
+      //
+      // Add or update modifier
+      //
+      Target->ModifierCounters[Index] = Target->Counter;
+    }
+  }
 
   if (Key == UsbHidUndefined) {
     //
-    // This is just a modifier or an unsupported key.
+    // This is a modifier or an unsupported key.
     //
     return;
   }
