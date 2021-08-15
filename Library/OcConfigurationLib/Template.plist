@@ -1292,7 +1292,15 @@
 		<key>ConnectDrivers</key>
 		<true/>
 		<key h="DRIVER">Drivers</key>
-		<array comment="Drivers is a sorted array of strings containing driver paths">
+		<array>
+			<dict comment="Drivers is an ordered array of drivers to load">
+				<key>Driver</key>
+				<string>HfsPlus.efi</string>
+				<key>Params</key>
+				<string />
+				<key>Enabled</key>
+				<true />
+			</dict>
 			<string>HfsPlus.efi</string>
 			<string>OpenRuntime.efi</string>
 			<string>#OpenCanopy.efi</string>
