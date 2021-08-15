@@ -1296,10 +1296,10 @@
 			<dict comment="Drivers is an ordered array of drivers to load">
 				<key>Driver</key>
 				<string>HfsPlus.efi</string>
-				<key>Params</key>
-				<string />
 				<key>Enabled</key>
 				<true />
+				<key>Params</key>
+				<string />
 			</dict>
 			<string>HfsPlus.efi</string>
 			<string>OpenRuntime.efi</string>
