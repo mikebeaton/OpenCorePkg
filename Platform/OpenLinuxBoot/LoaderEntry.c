@@ -18,20 +18,10 @@
 #include <Library/OcStringLib.h>
 #include <Library/PrintLib.h>
 #include <Library/SortLib.h>
-#include <Library/UefiBootServicesTableLib.h>
+//#include <Library/UefiBootServicesTableLib.h>
 
 #include <Protocol/OcBootEntry.h>
 
-//
-// Root.
-//
-#define ROOT_DIR    L"\\"
-//
-// Required where the BTRFS subvolume is /boot, as this looks like a
-// normal directory within EFI. Note that scanning / and then /boot
-// is how blscfg behaves by default too.
-//
-#define BOOT_DIR    L"\\boot"
 //
 // Don't add missing root= option unless this directory is present at root.
 //
@@ -915,15 +905,15 @@ ScanLoaderEntriesAtDirectory (
       if (!EFI_ERROR (Status)) {
         DEBUG (((gLinuxBootFlags & LINUX_BOOT_LOG_VERBOSE) == 0 ? DEBUG_VERBOSE : DEBUG_INFO,
           "LNX: Reading %s\n", GRUB2_GRUB_CFG));
-        Status = InternalProcessGrubCfg (GrubCfg);
+        Status = InternalProcessGrubCfg (GrubCfg, FALSE);
       }
     }
   }
 
   //
-  // If we are grub2 and $early_initrd exists, then warn and halt (blscfg logic is to use it).
-  // Would not be hard to implement if required. This is a space separated list of filenames
-  // to use first as initrds.
+  // If we are grub2 and $early_initrd exists, then warn and halt (blscfg logic is to use it,
+  // would not be hard to implement if required: it is a space separated list of filenames
+  // to use first as initrds).
   // Note: they are filenames only, so (following how blscfg module does it) we need to prepend
   // the path of either another (the first) initrd or the (first) vmlinuz.
   //
@@ -961,7 +951,9 @@ ScanLoaderEntriesAtDirectory (
     OcFlexArrayFree (&gLoaderEntries);
   }
 
-  InternalFreeGrubVars ();
+  if (mIsGrub2) {
+    InternalFreeGrubVars ();
+  }
 
   if (GrubEnv != NULL) {
     FreePool (GrubEnv);
@@ -1010,6 +1002,11 @@ InternalScanLoaderEntries (
 
   Status = DoScanLoaderEntries (RootDirectory, ROOT_DIR, Entries, NumEntries);
   if (EFI_ERROR (Status)) {
+    //
+    // Required where the BTRFS subvolume is /boot, as this looks like a
+    // normal directory within EFI. Note that scanning / and then /boot
+    // is how blscfg behaves by default too.
+    //
     Status = OcSafeFileOpen (RootDirectory, &AdditionalScanDirectory, BOOT_DIR, EFI_FILE_MODE_READ, 0);
     if (!EFI_ERROR (Status)) {
       Status = DoScanLoaderEntries (AdditionalScanDirectory, BOOT_DIR, Entries, NumEntries);

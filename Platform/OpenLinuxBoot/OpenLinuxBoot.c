@@ -225,6 +225,9 @@ OcGetLinuxBootEntries (
 
   //
   // Scan for boot loader spec & blscfg entries (Fedora-like).
+  // Note: As currently structured, will fall through to autodetect
+  // if no /loader/entries/*.conf files are present, but also if there
+  // are only unusable files in there.
   //
   Status = InternalScanLoaderEntries (
     RootDirectory,
@@ -232,11 +235,26 @@ OcGetLinuxBootEntries (
     NumEntries
     );
 
-  //
-  // Note: As currently structured, will fall through to autodetect
-  // if no /loader/entries/*.conf files are present, but also if there
-  // are only unusable files in there.
-  //
+  //////
+  if (!EFI_ERROR (Status)) {
+    OcFreeLinuxBootEntries (Entries, *NumEntries);
+    return EFI_UNSUPPORTED;
+  }
+  //////
+
+  if (EFI_ERROR (Status)) {
+    //
+    // Probe for GRUB menu entries.
+    //
+    if ((gLinuxBootFlags & LINUX_BOOT_ALLOW_PROBE_GRUB) != 0) {
+      Status = ProbeGrub (
+        RootDirectory,
+        Entries,
+        NumEntries
+        );
+    }
+  }
+
   if (EFI_ERROR (Status)) {
     //
     // Auto-detect vmlinuz and initrd files on own root filesystem (Debian-like).

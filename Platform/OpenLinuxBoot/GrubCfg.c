@@ -383,7 +383,8 @@ SetVar (
 
 EFI_STATUS
 InternalProcessGrubCfg (
-  IN OUT        CHAR8              *Content
+  IN OUT       CHAR8              *Content,
+  IN     CONST BOOLEAN            DebugSymbols
   )
 {
   EFI_STATUS  Status;
@@ -424,6 +425,10 @@ InternalProcessGrubCfg (
       if (Token != NULL) {
         Content[Pos] = '\0';
 
+        if (DebugSymbols) {
+          DEBUG ((DEBUG_INFO, "GRUB: %03u %03u %a\n", Line, TokenIndex, Token));
+        }
+        
         if (TokenIndex == 0) {
           //
           // Warn on pretty obscure - though valid - syntax of building the command name from variables;

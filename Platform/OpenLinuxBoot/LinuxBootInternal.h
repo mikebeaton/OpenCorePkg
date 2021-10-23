@@ -14,7 +14,22 @@
 #include <Library/OcBootManagementLib.h>
 #include <Library/OcMiscLib.h>
 
+/*
+  Root directory for scans.
+*/
+#define ROOT_DIR    L"\\"
+/*
+  Boot subdirectory for scans.
+*/
+#define BOOT_DIR    L"\\boot"
+
+/*
+  Digit char.
+*/
 #define IS_DIGIT(c)         ((c) >= '0' && (c) <= '9')
+/*
+  Alphabetical char.
+*/
 #define IS_ALPHA(c)         (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 
 /*
@@ -59,9 +74,13 @@
 */
 #define LINUX_BOOT_ADD_RO               BIT10
 /*
-  TODO: Both blspec-style and autodetect can make use of grub.cfg info if this flag is set.
+  Parse GRUB vars for use in loader/entries distros if required.
 */
-//#define LINUX_BOOT_ALLOW_PARSE_GRUB     BIT11
+//#define LINUX_BOOT_USE_GRUB_VARS        BIT11
+/*
+  Try probe GRUB before autodetect.
+*/
+#define LINUX_BOOT_ALLOW_PROBE_GRUB     BIT12
 /*
   Add root= option if missing in loader/entries *.conf options.
 */
@@ -85,6 +104,7 @@
   LINUX_BOOT_ALLOW_AUTODETECT     | \
   LINUX_BOOT_USE_LATEST           | \
   LINUX_BOOT_ADD_RO               | \
+  LINUX_BOOT_ALLOW_PROBE_GRUB     | \
   LINUX_BOOT_ALLOW_CONF_AUTO_ROOT | \
   LINUX_BOOT_LOG_VERBOSE          | \
   LINUX_BOOT_ADD_DEBUG_INFO       \
@@ -201,7 +221,8 @@ InternalProcessGrubEnv (
 */
 EFI_STATUS
 InternalProcessGrubCfg (
-  IN OUT        CHAR8              *Content
+  IN OUT       CHAR8              *Content,
+  IN     CONST BOOLEAN            DebugSymbols
   );
 
 LOADER_ENTRY *
@@ -293,11 +314,11 @@ struct LOADER_ENTRY_ {
   //
   // Options.
   //
-  OC_FLEX_ARRAY      *Options;
+  OC_FLEX_ARRAY         *Options;
   //
   // Initrds.
   //
-  OC_FLEX_ARRAY      *Initrds;
+  OC_FLEX_ARRAY         *Initrds;
   //
   // OpenCore entry id.
   // 'id' line is not read from .conf files even if present.
@@ -322,6 +343,16 @@ struct VMLINUZ_FILE_ {
   CHAR16                *Version;
   UINTN                 StrLen;
 };
+
+/*
+  Probe GRUB.
+*/
+EFI_STATUS
+ProbeGrub (
+  IN   EFI_FILE_PROTOCOL        *RootDirectory,
+  OUT  OC_PICKER_ENTRY          **Entries,
+  OUT  UINTN                    *NumEntries
+  );
 
 /*
   Autodetect.

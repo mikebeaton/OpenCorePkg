@@ -129,6 +129,8 @@ InternalGetGrubVar (
   UINTN     Index;
   GRUB_VAR  *Var;
 
+  ASSERT (mGrubVars != NULL);
+
   for (Index = 0; Index < mGrubVars->Count; Index++) {
     Var = OcFlexArrayItemAt (mGrubVars, Index);
     if (AsciiStrCmp (Var->Key, Key) == 0) {
