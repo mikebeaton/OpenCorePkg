@@ -83,12 +83,12 @@ OcScheduleExitBootServices (
   ++mOcExitBootServicesIndex;
 }
 
-STATIC
 VOID
 OcLoadDrivers (
   IN  OC_STORAGE_CONTEXT  *Storage,
   IN  OC_GLOBAL_CONFIG    *Config,
-  OUT EFI_HANDLE          **DriversToConnect  OPTIONAL
+  OUT EFI_HANDLE          **DriversToConnect  OPTIONAL,
+  IN  BOOLEAN             LoadEarly
   )
 {
   EFI_STATUS                 Status;
@@ -107,6 +107,8 @@ OcLoadDrivers (
   CONST CHAR8                *DriverArguments;
   CONST CHAR8                *UnescapedArguments;
 
+  ASSERT (!LoadEarly || DriversToConnect == NULL);
+
   DriversToConnectIterator = NULL;
   if (DriversToConnect != NULL) {
     *DriversToConnect = NULL;
@@ -120,7 +122,7 @@ OcLoadDrivers (
     DriverFileName  = OC_BLOB_GET (&DriverEntry->Path);
     DriverArguments = OC_BLOB_GET (&DriverEntry->Arguments);
 
-    SkipDriver = !DriverEntry->Enabled || DriverFileName == NULL || DriverFileName[0] == '\0';
+    SkipDriver = DriverEntry->Early != LoadEarly || !DriverEntry->Enabled || DriverFileName == NULL || DriverFileName[0] == '\0';
 
     DEBUG ((
       DEBUG_INFO,
@@ -951,7 +953,7 @@ OcLoadUefiSupport (
   OcReserveMemory (Config);
 
   if (Config->Uefi.ConnectDrivers) {
-    OcLoadDrivers (Storage, Config, &DriversToConnect);
+    OcLoadDrivers (Storage, Config, &DriversToConnect, FALSE);
     DEBUG ((DEBUG_INFO, "OC: Connecting drivers...\n"));
     if (DriversToConnect != NULL) {
       OcRegisterDriversToHighestPriority (DriversToConnect);
@@ -969,7 +971,7 @@ OcLoadUefiSupport (
     OcConnectDrivers ();
     DEBUG ((DEBUG_INFO, "OC: Connecting drivers done...\n"));
   } else {
-    OcLoadDrivers (Storage, Config, NULL);
+    OcLoadDrivers (Storage, Config, NULL, FALSE);
   }
 
   DEBUG_CODE_BEGIN ();

@@ -24,24 +24,36 @@ if [ ! -x ./nvramdump ]; then
   abort "nvramdump is not found!"
 fi
 
+ERROR_LOG="${thisDir}/error.log"
+
+dolog() {
+  echo "$(date) ${1}" >> "${ERROR_LOG}"
+}
+
 abort() {
-  echo "Fatal error: ${1}"
-# echo "Fatal error: ${1}" >> error.log
+  dolog "Fatal error: ${1}"
   exit 1
 }
+
+dolog "Saving..."
 
 rm -f /tmp/nvram.plist
 ./nvramdump || abort "failed to save nvram.plist!"
 
 UUID="$(nvram 4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102:boot-path | /usr/bin/sed 's/.*GPT,\([^,]*\),.*/\1/')"
 if [ "$(printf '%s' "${UUID}" | /usr/bin/wc -c)" -eq 36 ] && [ -z "$(echo "${UUID}" | /usr/bin/sed 's/[-0-9A-F]//g')" ]; then
-  /usr/sbin/diskutil mount "${UUID}" || abort "Failed to mount ${UUID}!"
+  /usr/sbin/diskutil mount "${UUID}" 2>>"${ERROR_LOG}" >> "${ERROR_LOG}" || abort "Failed to mount ${UUID}!"
   p="$(/usr/sbin/diskutil info "${UUID}" | /usr/bin/sed -n 's/.*Mount Point: *//p')"
-if ! cmp -s /tmp/nvram.plist "${p}/nvram.plist"
-then
-  /bin/cp /tmp/nvram.plist "${p}/nvram.plist" || abort "Failed to copy nvram.plist!"
-fi
-  /usr/sbin/diskutil unmount "${UUID}" || abort "Failed to unmount ${UUID}!"
+  echo ${p} > /tmp/boot-mount
+  #if ! cmp -s /tmp/nvram.plist "${p}/nvram.plist"
+  #then
+    ###/bin/cp /tmp/nvram.plist "${p}/nvram.plist" || abort "Failed to copy nvram.plist!"
+    /bin/cp /tmp/nvram.plist "${p}/nvram.logout.plist" || abort "Failed to copy nvram.plist!"
+  #fi
+  date >> "${p}/logout.hook.log"
+  #/usr/sbin/diskutil unmount "${UUID}" || abort "Failed to unmount ${UUID}!"
+
+  dolog "Done."
   exit 0
 else
   abort "Illegal UUID or unknown loader!"

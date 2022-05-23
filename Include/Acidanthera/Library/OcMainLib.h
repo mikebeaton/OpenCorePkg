@@ -104,6 +104,22 @@ OcLoadDevPropsSupport (
   );
 
 /**
+  Load drivers.
+
+  @param[in]  Storage             OpenCore storage.
+  @param[in]  Config              OpenCore configuration.
+  @param[in]  DriversToConnect    Drivers which require later connection.
+  @param[in]  LoadEarly           If TRUE load any early phase drivers, otherwise load normal phase.
+**/
+VOID
+OcLoadDrivers (
+  IN  OC_STORAGE_CONTEXT  *Storage,
+  IN  OC_GLOBAL_CONFIG    *Config,
+  OUT EFI_HANDLE          **DriversToConnect  OPTIONAL,
+  IN  BOOLEAN             LoadEarly
+  );
+
+/**
   Load Kernel compatibility support like kexts.
 
   @param[in]  Storage   OpenCore storage.

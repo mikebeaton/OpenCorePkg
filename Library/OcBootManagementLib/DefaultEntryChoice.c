@@ -1532,6 +1532,7 @@ OcRegisterBootstrapBootOption (
              );
 
   if (FwRuntime != NULL) {
+    DEBUG ((DEBUG_INFO, "OCB: Restoring FW NVRAM...\n"));
     FwRuntime->SetOverride (NULL);
   }
 

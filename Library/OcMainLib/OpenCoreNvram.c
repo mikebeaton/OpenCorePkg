@@ -29,6 +29,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
+#include <Protocol/OcFirmwareRuntime.h>
+
 /**
   Safe version check, documented in config.
 **/
@@ -279,17 +281,19 @@ OcLoadLegacyNvram (
   IN OC_GLOBAL_CONFIG                 *Config
   )
 {
-  UINT8                  *FileBuffer;
-  UINT32                 FileSize;
-  OC_NVRAM_STORAGE       Nvram;
-  BOOLEAN                IsValid;
-  EFI_STATUS             Status;
-  UINT32                 GuidIndex;
-  UINT32                 VariableIndex;
-  GUID                   VariableGuid;
-  OC_ASSOC               *VariableMap;
-  OC_NVRAM_LEGACY_ENTRY  *SchemaEntry;
-  OC_NVRAM_LEGACY_MAP    *Schema;
+  UINT8                         *FileBuffer;
+  UINT32                        FileSize;
+  OC_NVRAM_STORAGE              Nvram;
+  BOOLEAN                       IsValid;
+  EFI_STATUS                    Status;
+  UINT32                        GuidIndex;
+  UINT32                        VariableIndex;
+  GUID                          VariableGuid;
+  OC_ASSOC                      *VariableMap;
+  OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
+  OC_NVRAM_LEGACY_MAP           *Schema;
+  OC_FIRMWARE_RUNTIME_PROTOCOL  *FwRuntime;
+  OC_FWRT_CONFIG                FwrtConfig;
 
   Schema = &Config->Nvram.Legacy;
 
@@ -312,6 +316,31 @@ OcLoadLegacyNvram (
       ));
     OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
     return;
+  }
+
+  FwRuntime = NULL;
+  
+  if (Config->Uefi.Quirks.RequestBootVarRouting) {
+    Status = gBS->LocateProtocol (
+      &gOcFirmwareRuntimeProtocolGuid,
+      NULL,
+      (VOID **) &FwRuntime
+      );
+
+    if (!EFI_ERROR (Status) && FwRuntime->Revision == OC_FIRMWARE_RUNTIME_REVISION) {
+      FwRuntime->GetCurrent (&FwrtConfig);
+      if (FwrtConfig.BootVariableRedirect) {
+        DEBUG ((DEBUG_INFO, "OC: Found FW NVRAM, redirect already present %d\n", FwrtConfig.BootVariableRedirect));
+        FwRuntime = NULL;
+      } else {
+        FwrtConfig.BootVariableRedirect = TRUE;
+        FwRuntime->SetOverride (&FwrtConfig);
+        DEBUG ((DEBUG_INFO, "OC: Found FW NVRAM, forcing redirect %d\n", FwrtConfig.BootVariableRedirect));
+      }
+    } else {
+      FwRuntime = NULL;
+      DEBUG ((DEBUG_INFO, "OC: Missing FW NVRAM, going on...\n"));
+    }
   }
 
   for (GuidIndex = 0; GuidIndex < Nvram.Add.Count; ++GuidIndex) {
@@ -339,6 +368,11 @@ OcLoadLegacyNvram (
         Config->Nvram.LegacyOverwrite
         );
     }
+  }
+
+  if (FwRuntime != NULL) {
+    DEBUG ((DEBUG_INFO, "OC: Restoring FW NVRAM...\n"));
+    FwRuntime->SetOverride (NULL);
   }
 
   OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
