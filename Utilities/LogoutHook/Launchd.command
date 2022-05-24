@@ -15,9 +15,10 @@ LOG=/dev/stdout
 
 usage() {
   echo "Usage: ${SELFNAME} [install|uninstall|status] [logout|agent|daemon]"
-  echo "  Use [install|uninstall|status] with no type for recommended settings (daemon only)."
-  echo "  Prints this message with unknown args."
-  echo "  Defaults to running as logout hook."
+  echo "  - Use [install|uninstall|status] with no type to use"
+  echo "    recommended settings (i.e. daemon)."
+  echo "  - If called with no params runs once as logout hook, this"
+  echo "    saves current nvram once or reports any issues."
   echo ""
 }
 
