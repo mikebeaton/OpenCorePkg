@@ -174,7 +174,7 @@ package() {
       "ResetNvramEntry.efi"
       "ToggleSipEntry.efi"
       "UsbMouseDxe.efi"
-      "VariableRuntimeDxe.efi"
+      "OpenVariableRuntime.efi"
       "XhciDxe.efi"
       )
     for efiDriver in "${efiDrivers[@]}"; do

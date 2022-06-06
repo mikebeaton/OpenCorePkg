@@ -260,6 +260,8 @@ saveMount() {
   if [ "$(printf '%s' "${UUID}" | /usr/bin/wc -c)" -eq 36 ] && [ -z "$(echo "${UUID}" | sed 's/[-0-9A-F]//g')" ] ; then
     node="$(/usr/sbin/diskutil info "${UUID}" | sed -n 's/.*Device Node: *//p')"
 
+    # This may randomly fail initially, if so the script gets restarted by
+    # launchd and eventually succeeds.
     if [ "${node}" = "" ] ; then
       abort "Cannot access device node!"
     fi
@@ -267,10 +269,14 @@ saveMount() {
     doLog "Found boot device at ${node}"
 
     if [ "${1}" = "1" ] ; then
-      # On earlier macOS (at least Mojave in VMWare) we have an intermittent
+      # On earlier macOS (at least Mojave in VMWare) there is an intermittent
       # problem where msdos/FAT kext is occasionally not available when we try
-      # to mount the drive on daemon exit; try to fix this by mounting and
-      # unmounting now.
+      # to mount the drive on daemon exit; mounting and unmounting on daemon
+      # start here fixes this.
+      # Doing this introduces a different problem, since this early mount sometimes
+      # fails initially, however (as with `diskutil info` above) in that case the
+      # script gets restarted by launchd after ~5s, and eventually either succeeds or
+      # finds the drive already mounted (when applicable, i.e. not the ESP).
       mount_path=$(mount | sed -n "s:${node} on \(.*\) (.*$:\1:p")
       if [ ! "${mount_path}" = "" ] ; then
         doLog "Early mount not needed, already mounted at ${mount_path}"

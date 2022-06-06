@@ -163,21 +163,6 @@
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
   MdeModulePkg/Bus/Usb/UsbMouseDxe/UsbMouseDxe.inf
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
-  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
-    <PcdsFixedAtBuild>
-      gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
-      gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x10000
-      gEfiMdeModulePkgTokenSpaceGuid.PcdVariableStoreSize|0x10000
-    <LibraryClasses>
-      UefiRuntimeLib|MdePkg/Library/UefiRuntimeLib/UefiRuntimeLib.inf
-      SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
-      AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
-      TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
-      VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
-      VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
-      TimerLib|OpenCorePkg/Library/DuetTimerLib/DuetTimerLib.inf
-      #DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
-  }
   OpenCorePkg/Application/BootKicker/BootKicker.inf
   OpenCorePkg/Application/Bootstrap/Bootstrap.inf {
     <LibraryClasses>
@@ -287,6 +272,21 @@
   OpenCorePkg/Platform/OpenPartitionDxe/PartitionDxe.inf
   OpenCorePkg/Platform/OpenRuntime/OpenRuntime.inf
   OpenCorePkg/Platform/OpenUsbKbDxe/UsbKbDxe.inf
+  OpenCorePkg/Platform/OpenVariableRuntime/VariableRuntimeDxe.inf {
+    <PcdsFixedAtBuild>
+      gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
+      gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x10000
+      gEfiMdeModulePkgTokenSpaceGuid.PcdVariableStoreSize|0x10000
+    <LibraryClasses>
+      UefiRuntimeLib|MdePkg/Library/UefiRuntimeLib/UefiRuntimeLib.inf
+      SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
+      AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
+      TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
+      VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
+      VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
+      TimerLib|OpenCorePkg/Library/DuetTimerLib/DuetTimerLib.inf
+      #DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
+  }
   OpenCorePkg/Platform/ResetNvramEntry/ResetNvramEntry.inf
   OpenCorePkg/Platform/ToggleSipEntry/ToggleSipEntry.inf
   OpenCorePkg/Staging/AudioDxe/AudioDxe.inf
