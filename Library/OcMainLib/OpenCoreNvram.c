@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
+#include "VariableRuntimeInternal.h"
+
 #include <Library/OcMainLib.h>
 
 #include <Guid/OcVariable.h>
@@ -30,26 +32,12 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiRuntimeServicesTableLib.h>
 
 #include <Protocol/OcFirmwareRuntime.h>
+#include <Protocol/OcVariableRuntime.h>
 
 /**
   Safe version check, documented in config.
 **/
 #define OC_NVRAM_STORAGE_VERSION  1
-
-/**
-  Structure declaration for nvram file.
-**/
-#define OC_NVRAM_STORAGE_MAP_FIELDS(_, __) \
-  OC_MAP (OC_STRING, OC_ASSOC, _, __)
-OC_DECLARE (OC_NVRAM_STORAGE_MAP)
-
-#define OC_NVRAM_STORAGE_FIELDS(_, __) \
-  _(UINT32                      , Version  ,     , 0                                       , () ) \
-  _(OC_NVRAM_STORAGE_MAP        , Add      ,     , OC_CONSTR (OC_NVRAM_STORAGE_MAP, _, __) , OC_DESTR (OC_NVRAM_STORAGE_MAP))
-OC_DECLARE (OC_NVRAM_STORAGE)
-
-OC_MAP_STRUCTORS (OC_NVRAM_STORAGE_MAP)
-OC_STRUCTORS (OC_NVRAM_STORAGE, ())
 
 /**
   Schema definition for nvram file.
@@ -107,9 +95,8 @@ OcReportVersion (
   }
 }
 
-STATIC
 EFI_STATUS
-OcProcessVariableGuid (
+InternalProcessVariableGuid (
   IN  CONST CHAR8            *AsciiVariableGuid,
   OUT GUID                   *VariableGuid,
   IN  OC_NVRAM_LEGACY_MAP    *Schema  OPTIONAL,
@@ -139,9 +126,8 @@ OcProcessVariableGuid (
   return Status;
 }
 
-STATIC
 VOID
-OcSetNvramVariable (
+InternalSetNvramVariable (
   IN CONST CHAR8            *AsciiVariableName,
   IN EFI_GUID               *VariableGuid,
   IN UINT32                 Attributes,
@@ -281,45 +267,42 @@ OcLoadLegacyNvram (
   IN OC_GLOBAL_CONFIG                 *Config
   )
 {
-  UINT8                         *FileBuffer;
-  UINT32                        FileSize;
-  OC_NVRAM_STORAGE              Nvram;
-  BOOLEAN                       IsValid;
   EFI_STATUS                    Status;
-  UINT32                        GuidIndex;
-  UINT32                        VariableIndex;
-  GUID                          VariableGuid;
-  OC_ASSOC                      *VariableMap;
-  OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
-  OC_NVRAM_LEGACY_MAP           *Schema;
+  OC_VARIABLE_RUNTIME_PROTOCOL  *OcVariableRuntimeProtocol;
   OC_FIRMWARE_RUNTIME_PROTOCOL  *FwRuntime;
   OC_FWRT_CONFIG                FwrtConfig;
 
-  Schema = &Config->Nvram.Legacy;
+  Status = gBS->LocateProtocol (
+                  &gOcVariableRuntimeProtocolGuid,
+                  NULL,
+                  (VOID **)&OcVariableRuntimeProtocol
+                  );
 
-  FileBuffer = OcReadFile (FileSystem, OPEN_CORE_NVRAM_PATH, &FileSize, BASE_1MB);
-  if (FileBuffer == NULL) {
-    DEBUG ((DEBUG_INFO, "OC: Invalid nvram data\n"));
-    return;
-  }
-
-  OC_NVRAM_STORAGE_CONSTRUCT (&Nvram, sizeof (Nvram));
-  IsValid = ParseSerialized (&Nvram, &mNvramStorageRootSchema, FileBuffer, FileSize, NULL);
-  FreePool (FileBuffer);
-
-  if (!IsValid || (Nvram.Version != OC_NVRAM_STORAGE_VERSION)) {
+  if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_WARN,
-      "OC: Incompatible nvram data, version %u vs %d\n",
-      Nvram.Version,
-      OC_NVRAM_STORAGE_VERSION
+      "OC: Locate emulated NVRAM protocol - %r\n",
+      Status
       ));
-    OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
     return;
   }
 
-  FwRuntime = NULL;
-  
+  if (OcVariableRuntimeProtocol->Revision != OC_VARIABLE_RUNTIME_PROTOCOL_REVISION) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OC: Emulated NVRAM protocol incompatible revision %d != %d\n",
+      OcVariableRuntimeProtocol->Revision,
+      OC_VARIABLE_RUNTIME_PROTOCOL_REVISION
+      ));
+    return;
+  }
+
+  //
+  // It is not strictly required to support boot var routing with emulated NVRAM, but having working support
+  // is more convenient when switching back and forth between emulated and non-emulated, i.e. one less thing
+  // to have to remember to switch, since it works either way.
+  // OpenRuntime.efi must be loaded early, but after OpenVariableRuntime.efi, for this to work.
+  //
   if (Config->Uefi.Quirks.RequestBootVarRouting) {
     Status = gBS->LocateProtocol (
       &gOcFirmwareRuntimeProtocolGuid,
@@ -341,41 +324,24 @@ OcLoadLegacyNvram (
       FwRuntime = NULL;
       DEBUG ((DEBUG_INFO, "OC: Missing FW NVRAM, going on...\n"));
     }
+  } else {
+    FwRuntime = NULL;
   }
 
-  for (GuidIndex = 0; GuidIndex < Nvram.Add.Count; ++GuidIndex) {
-    Status = OcProcessVariableGuid (
-               OC_BLOB_GET (Nvram.Add.Keys[GuidIndex]),
-               &VariableGuid,
-               Schema,
-               &SchemaEntry
-               );
+  Status = OcVariableRuntimeProtocol->LoadNvram (FileSystem, &Config->Nvram.Legacy);
 
-    if (EFI_ERROR (Status)) {
-      continue;
-    }
-
-    VariableMap = Nvram.Add.Values[GuidIndex];
-
-    for (VariableIndex = 0; VariableIndex < VariableMap->Count; ++VariableIndex) {
-      OcSetNvramVariable (
-        OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
-        &VariableGuid,
-        Config->Nvram.WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
-        VariableMap->Values[VariableIndex]->Size,
-        OC_BLOB_GET (VariableMap->Values[VariableIndex]),
-        SchemaEntry,
-        Config->Nvram.LegacyOverwrite
-        );
-    }
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OC: Emulated NVRAM protocol load NVRAM - %r\n",
+      Status
+      ));
   }
 
   if (FwRuntime != NULL) {
     DEBUG ((DEBUG_INFO, "OC: Restoring FW NVRAM...\n"));
     FwRuntime->SetOverride (NULL);
   }
-
-  OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
 }
 
 STATIC
@@ -398,7 +364,7 @@ OcDeleteNvram (
   BOOLEAN      SameContents;
 
   for (DeleteGuidIndex = 0; DeleteGuidIndex < Config->Nvram.Delete.Count; ++DeleteGuidIndex) {
-    Status = OcProcessVariableGuid (
+    Status = InternalProcessVariableGuid (
                OC_BLOB_GET (Config->Nvram.Delete.Keys[DeleteGuidIndex]),
                &VariableGuid,
                NULL,
@@ -500,7 +466,7 @@ OcAddNvram (
   OC_ASSOC    *VariableMap;
 
   for (GuidIndex = 0; GuidIndex < Config->Nvram.Add.Count; ++GuidIndex) {
-    Status = OcProcessVariableGuid (
+    Status = InternalProcessVariableGuid (
                OC_BLOB_GET (Config->Nvram.Add.Keys[GuidIndex]),
                &VariableGuid,
                NULL,
@@ -514,7 +480,7 @@ OcAddNvram (
     VariableMap = Config->Nvram.Add.Values[GuidIndex];
 
     for (VariableIndex = 0; VariableIndex < VariableMap->Count; ++VariableIndex) {
-      OcSetNvramVariable (
+      InternalSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
         Config->Nvram.WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,

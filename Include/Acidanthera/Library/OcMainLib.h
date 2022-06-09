@@ -54,6 +54,11 @@
 #define OPEN_CORE_LOG_PREFIX_PATH  L"opencore"
 
 #define OPEN_CORE_NVRAM_PATH  L"nvram.plist"
+// #define OPEN_CORE_NVRAM_PATH           L"NVRAM\\nvram.plist"
+
+// #define OPEN_CORE_NVRAM_FALLBACK_PATH  L"NVRAM\\nvram.fallback"
+
+// #define OPEN_CORE_NVRAM_USED_PATH      L"NVRAM\\nvram.used"
 
 #define OPEN_CORE_ACPI_PATH  L"ACPI\\"
 
@@ -190,6 +195,17 @@ VOID
 OcLoadNvramSupport (
   IN OC_STORAGE_CONTEXT  *Storage,
   IN OC_GLOBAL_CONFIG    *Config
+  );
+
+/**
+  Install emulated NVRAM protocol on provided image handle.
+
+  @param[in]  ImageHandle   Image handle to use.
+**/
+EFI_STATUS
+EFIAPI
+OcInstallVariableRuntimeProtocol (
+  IN EFI_HANDLE        ImageHandle
   );
 
 /**
