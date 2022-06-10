@@ -22,9 +22,6 @@ OC_DECLARE (OC_NVRAM_STORAGE_MAP)
   _(OC_NVRAM_STORAGE_MAP        , Add      ,     , OC_CONSTR (OC_NVRAM_STORAGE_MAP, _, __) , OC_DESTR (OC_NVRAM_STORAGE_MAP))
 OC_DECLARE (OC_NVRAM_STORAGE)
 
-OC_MAP_STRUCTORS (OC_NVRAM_STORAGE_MAP)
-OC_STRUCTORS (OC_NVRAM_STORAGE, ())
-
 /**
   Variable runtime protocol version.
 **/
@@ -47,13 +44,10 @@ typedef struct OC_VARIABLE_RUNTIME_PROTOCOL_ OC_VARIABLE_RUNTIME_PROTOCOL;
   Load NVRAM from storage.
 
   @param[in]  FileSystem        OpenCore root filesystem.
-  @param[in]  Schema            Schema specifying the NVRAM which values may be loaded if present.
-  @param[in]  WriteFlash        TRUE if vars should be written as non-volatile.
-  @param[in]  LegacyOverwrite   TRUE if existing vars should be overwritten.
+  @param[in]  NvramConfig       OpenCore NVRAM config.
 
   @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
   @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
-  @retval EFI_OUT_OF_RESOURCES  Out of memory.
   @retval EFI_SUCCESS           NVRAM contents were successfully loaded from storage.
 **/
 typedef
@@ -61,9 +55,7 @@ EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM)(
   IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *FileSystem,
-  IN OC_NVRAM_LEGACY_MAP              *Schema,
-  IN BOOLEAN                          WriteFlash,
-  IN BOOLEAN                          LegacyOverwrite
+  IN OC_NVRAM_CONFIG                  *NvramConfig
   );
 
 /**

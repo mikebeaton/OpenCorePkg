@@ -24,6 +24,12 @@
 #define OC_NVRAM_STORAGE_VERSION  1
 
 /**
+  Structors for loaded nvram contents must be declared only once.
+**/
+OC_MAP_STRUCTORS (OC_NVRAM_STORAGE_MAP)
+OC_STRUCTORS (OC_NVRAM_STORAGE, ())
+
+/**
   Schema definition for nvram file.
 **/
 
@@ -53,9 +59,7 @@ EFI_STATUS
 EFIAPI
 VariableRuntimeProtocolLoadNvram (
   IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *FileSystem,
-  IN OC_NVRAM_LEGACY_MAP              *Schema,
-  IN BOOLEAN                          WriteFlash,
-  IN BOOLEAN                          LegacyOverwrite
+  IN OC_NVRAM_CONFIG                  *NvramConfig
   )
 {
   EFI_STATUS                    Status;
@@ -72,7 +76,7 @@ VariableRuntimeProtocolLoadNvram (
   FileBuffer = OcReadFile (FileSystem, OPEN_CORE_NVRAM_PATH, &FileSize, BASE_1MB);
   if (FileBuffer == NULL) {
     DEBUG ((DEBUG_INFO, "OC: Invalid nvram data\n"));
-    return;
+    return EFI_NOT_FOUND;
   }
 
   OC_NVRAM_STORAGE_CONSTRUCT (&Nvram, sizeof (Nvram));
@@ -87,14 +91,14 @@ VariableRuntimeProtocolLoadNvram (
       OC_NVRAM_STORAGE_VERSION
       ));
     OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
-    return;
+    return EFI_UNSUPPORTED;
   }
 
   for (GuidIndex = 0; GuidIndex < Nvram.Add.Count; ++GuidIndex) {
     Status = InternalProcessVariableGuid (
                OC_BLOB_GET (Nvram.Add.Keys[GuidIndex]),
                &VariableGuid,
-               Schema,
+               &NvramConfig->Legacy,
                &SchemaEntry
                );
 
@@ -108,16 +112,18 @@ VariableRuntimeProtocolLoadNvram (
       InternalSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
-        WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
+        NvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
         VariableMap->Values[VariableIndex]->Size,
         OC_BLOB_GET (VariableMap->Values[VariableIndex]),
         SchemaEntry,
-        LegacyOverwrite
+        NvramConfig->LegacyOverwrite
         );
     }
   }
 
   OC_NVRAM_STORAGE_DESTRUCT (&Nvram, sizeof (Nvram));
+
+  return EFI_SUCCESS;
 }
 
 STATIC

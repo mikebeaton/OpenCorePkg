@@ -7,6 +7,7 @@
 #define VARIABLE_RUNTIME_INTERNAL_H
 
 #include <Uefi.h>
+#include <Library/OcConfigurationLib.h>
 
 EFI_STATUS
 InternalProcessVariableGuid (

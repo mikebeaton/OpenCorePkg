@@ -34,36 +34,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/OcFirmwareRuntime.h>
 #include <Protocol/OcVariableRuntime.h>
 
-/**
-  Safe version check, documented in config.
-**/
-#define OC_NVRAM_STORAGE_VERSION  1
-
-/**
-  Schema definition for nvram file.
-**/
-
-STATIC
-OC_SCHEMA
-mNvramStorageEntrySchema = OC_SCHEMA_MDATA (NULL);
-
-STATIC
-OC_SCHEMA
-  mNvramStorageAddSchema = OC_SCHEMA_MAP (NULL, &mNvramStorageEntrySchema);
-
-STATIC
-OC_SCHEMA
-  mNvramStorageNodesSchema[] = {
-  OC_SCHEMA_MAP_IN ("Add",         OC_STORAGE_VAULT, Files,    &mNvramStorageAddSchema),
-  OC_SCHEMA_INTEGER_IN ("Version", OC_STORAGE_VAULT, Version),
-};
-
-STATIC
-OC_SCHEMA_INFO
-  mNvramStorageRootSchema = {
-  .Dict = { mNvramStorageNodesSchema, ARRAY_SIZE (mNvramStorageNodesSchema) }
-};
-
 STATIC
 VOID
 OcReportVersion (
@@ -328,7 +298,7 @@ OcLoadLegacyNvram (
     FwRuntime = NULL;
   }
 
-  Status = OcVariableRuntimeProtocol->LoadNvram (FileSystem, &Config->Nvram.Legacy);
+  Status = OcVariableRuntimeProtocol->LoadNvram (FileSystem, &Config->Nvram);
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
