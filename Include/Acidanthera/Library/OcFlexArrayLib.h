@@ -278,17 +278,17 @@ struct OC_ASCII_STRING_BUFFER_ {
 /**
   Split string by delimiter.
 
-  @param[in]  String     A Null-terminated string.
-  @param[in]  Delim      Delimiter to search in String.
-  @param[in]  IsUnicode  Are option names and values Unicode or ASCII?
+  @param[in]  String        A Null-terminated string.
+  @param[in]  Delim         Delimiter to search in String.
+  @param[in]  StringFormat  Are option names and values Unicode or ASCII?
 
   @return  A flex array containing splitted string.
 **/
 OC_FLEX_ARRAY *
 OcStringSplit (
-  IN  CONST VOID     *String,
-  IN  CONST CHAR16   Delim,
-  IN  CONST BOOLEAN  IsUnicode
+  IN  CONST VOID              *String,
+  IN  CONST CHAR16            Delim,
+  IN  CONST OC_STRING_FORMAT  StringFormat
   );
 
 #endif // OC_FLEX_ARRAY_LIB_H

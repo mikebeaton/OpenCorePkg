@@ -1974,7 +1974,7 @@ OcParseLoadOptions (
   @param[out]  ParsedVars         Parsed variables if successful, NULL otherwise.
                                   Caller may free after use with OcFlexArrayFree
                                   if required.
-  @param[in]   IsUnicode          Are option names and values Unicode or ASCII?
+  @param[in]   StringFormat       Are option names and values Unicode or ASCII?
 
   @retval EFI_SUCCESS             Success.
   @retval EFI_NOT_FOUND           Missing or empty load options.
@@ -1983,9 +1983,9 @@ OcParseLoadOptions (
 **/
 EFI_STATUS
 OcParseVars (
-  IN           VOID        *StrVars,
-  OUT       OC_FLEX_ARRAY  **ParsedVars,
-  IN     CONST BOOLEAN     IsUnicode
+  IN           VOID               *StrVars,
+     OUT       OC_FLEX_ARRAY      **ParsedVars,
+  IN     CONST OC_STRING_FORMAT   StringFormat
   );
 
 /**
@@ -2000,17 +2000,17 @@ OcParseVars (
   @param[in]   StrValue           Option value if successful, not modified otherwise;
                                   note that NULL is returned if option exists with no value.
                                   Caller must not attempt to free this memory.
-  @param[in]   IsUnicode          Are option names and values Unicode or ASCII?
+  @param[in]   StringFormat       Are option names and values Unicode or ASCII?
 
   @retval TRUE                    Option exists.
   @retval FALSE                   Option not found.
 **/
 BOOLEAN
 OcParsedVarsGetStr (
-  IN     CONST OC_FLEX_ARRAY  *ParsedVars,
-  IN     CONST VOID           *Name,
-  OUT       VOID              **StrValue,
-  IN     CONST BOOLEAN        IsUnicode
+  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
+  IN     CONST VOID               *Name,
+  OUT       VOID                  **StrValue,
+  IN     CONST OC_STRING_FORMAT   StringFormat
   );
 
 /**
@@ -2062,16 +2062,16 @@ OcParsedVarsGetAsciiStr (
 
   @param[in]   ParsedVars         Parsed variables.
   @param[in]   Name               Option name.
-  @param[in]   IsUnicode          Are option names and values Unicode or ASCII?
+  @param[in]   StringFormat       Are option names and values Unicode or ASCII?
 
   @retval TRUE                    Option exists (with or without a value).
   @retval FALSE                   Option not found.
 **/
 BOOLEAN
 OcHasParsedVar (
-  IN     CONST OC_FLEX_ARRAY  *ParsedVars,
-  IN     CONST VOID           *Name,
-  IN     CONST BOOLEAN        IsUnicode
+  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
+  IN     CONST VOID               *Name,
+  IN     CONST OC_STRING_FORMAT   StringFormat
   );
 
 /**
@@ -2080,7 +2080,7 @@ OcHasParsedVar (
   @param[in]   ParsedVars         Parsed variables.
   @param[in]   Name               Option name.
   @param[in]   Value              Option value if successful, not modified otherwise.
-  @param[in]   IsUnicode          Are option names and values Unicode or ASCII?
+  @param[in]   StringFormat       Are option names and values Unicode or ASCII?
 
   @retval EFI_SUCCESS             Success.
   @retval EFI_NOT_FOUND           Option not found, or has no value.
@@ -2088,10 +2088,10 @@ OcHasParsedVar (
 **/
 EFI_STATUS
 OcParsedVarsGetInt (
-  IN     CONST OC_FLEX_ARRAY  *ParsedVars,
-  IN     CONST VOID           *Name,
-  OUT       UINTN             *Value,
-  IN     CONST BOOLEAN        IsUnicode
+  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
+  IN     CONST VOID               *Name,
+  OUT       UINTN                 *Value,
+  IN     CONST OC_STRING_FORMAT   StringFormat
   );
 
 /**
@@ -2100,7 +2100,7 @@ OcParsedVarsGetInt (
   @param[in]   ParsedVars         Parsed variables.
   @param[in]   Name               Option name.
   @param[in]   Value              Option value if successful, not modified otherwise.
-  @param[in]   IsUnicode          Are option names and values Unicode or ASCII?
+  @param[in]   StringFormat       Are option names and values Unicode or ASCII?
 
   @retval EFI_SUCCESS             Success.
   @retval EFI_NOT_FOUND           Option not found, or has no value.
@@ -2108,10 +2108,10 @@ OcParsedVarsGetInt (
 **/
 EFI_STATUS
 OcParsedVarsGetGuid (
-  IN     CONST OC_FLEX_ARRAY  *ParsedVars,
-  IN     CONST VOID           *Name,
-  OUT       EFI_GUID          *Value,
-  IN     CONST BOOLEAN        IsUnicode
+  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
+  IN     CONST VOID               *Name,
+  OUT       EFI_GUID              *Value,
+  IN     CONST OC_STRING_FORMAT   StringFormat
   );
 
 /**
