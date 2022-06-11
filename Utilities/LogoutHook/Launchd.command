@@ -51,7 +51,9 @@ abort() {
   exit 1
 }
 
-WRITE_HOOK_LOG=1
+NVRAM_DIR="NVRAM"
+
+WRITE_HOOK_LOG=0
 
 LOG=/dev/stdout
 
@@ -80,8 +82,6 @@ LOGFILE="${LOGDIR}/launchd.log"
 
 SELFDIR="$(/usr/bin/dirname "${0}")"
 SELFNAME="$(/usr/bin/basename "${0}")"
-
-NVRAM_DIR="NVRAM"
 
 USERID=$(id -u)
 
