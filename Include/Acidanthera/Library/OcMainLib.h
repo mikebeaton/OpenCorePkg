@@ -187,6 +187,42 @@ OcUnloadKernelSupport (
   );
 
 /**
+  Save to emulated NVRAM using installed protocol if present.
+
+  @param[in]  Storage   OpenCore storage.
+  @param[in]  Config    OpenCore configuration.
+**/
+VOID
+OcSaveLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  );
+
+/**
+  Reset emulated NVRAM using installed protocol if present.
+
+  @param[in]  Storage   OpenCore storage.
+  @param[in]  Config    OpenCore configuration.
+**/
+VOID
+OcResetLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  );
+
+/**
+  Switch to fallback emulated NVRAM using installed protocol if present.
+
+  @param[in]  Storage   OpenCore storage.
+  @param[in]  Config    OpenCore configuration.
+**/
+VOID
+OcSwitchToFallbackLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  );
+
+/**
   Load NVRAM compatibility support.
 
   @param[in]  Storage   OpenCore storage.

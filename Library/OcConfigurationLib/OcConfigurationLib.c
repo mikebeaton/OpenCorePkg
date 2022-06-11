@@ -556,7 +556,6 @@ OC_SCHEMA
   mNvramConfigurationSchema[] = {
   OC_SCHEMA_MAP_IN ("Add",                 OC_GLOBAL_CONFIG, Nvram.Add,              &mNvramAddSchema),
   OC_SCHEMA_MAP_IN ("Delete",              OC_GLOBAL_CONFIG, Nvram.Delete,           &mNvramDeleteSchema),
-  OC_SCHEMA_BOOLEAN_IN ("LegacyEnable",    OC_GLOBAL_CONFIG, Nvram.LegacyEnable),
   OC_SCHEMA_BOOLEAN_IN ("LegacyOverwrite", OC_GLOBAL_CONFIG, Nvram.LegacyOverwrite),
   OC_SCHEMA_MAP_IN ("LegacySchema",        OC_GLOBAL_CONFIG, Nvram.Legacy,           &mNvramLegacySchema),
   OC_SCHEMA_BOOLEAN_IN ("WriteFlash",      OC_GLOBAL_CONFIG, Nvram.WriteFlash),

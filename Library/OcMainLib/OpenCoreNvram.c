@@ -96,6 +96,47 @@ InternalProcessVariableGuid (
   return Status;
 }
 
+BOOLEAN
+InternalIsAllowedBySchemaEntry (
+  IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
+  IN CONST VOID             *VariableName,
+  IN OC_STRING_FORMAT       StringFormat
+  )
+{
+  BOOLEAN     IsAllowed;
+  UINT32      VariableIndex;
+
+  if (SchemaEntry == NULL) {
+    return TRUE;
+  }
+
+  IsAllowed = FALSE;
+
+  //
+  // TODO: Consider optimising lookup if it causes problems...
+  //
+  for (VariableIndex = 0; VariableIndex < SchemaEntry->Count; ++VariableIndex) {
+    if ((VariableIndex == 0) && (AsciiStrCmp ("*", OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0)) {
+      IsAllowed = TRUE;
+      break;
+    }
+
+    if ((StringFormat == OcStringFormatAscii)
+      && AsciiStrCmp ((CONST CHAR8 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0) {
+      IsAllowed = TRUE;
+      break;
+    }
+
+    if ((StringFormat == OcStringFormatUnicode)
+      && MixedStrCmp ((CONST CHAR16 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0) {
+      IsAllowed = TRUE;
+      break;
+    }
+  }
+
+  return IsAllowed;
+}
+
 VOID
 InternalSetNvramVariable (
   IN CONST CHAR8            *AsciiVariableName,
@@ -110,35 +151,16 @@ InternalSetNvramVariable (
   EFI_STATUS  Status;
   UINTN       OriginalVariableSize;
   CHAR16      *UnicodeVariableName;
-  BOOLEAN     IsAllowed;
-  UINT32      VariableIndex;
   VOID        *OrgValue;
   UINTN       OrgSize;
   UINT32      OrgAttributes;
 
-  if (SchemaEntry != NULL) {
-    IsAllowed = FALSE;
 
-    //
-    // TODO: Consider optimising lookup if it causes problems...
-    //
-    for (VariableIndex = 0; VariableIndex < SchemaEntry->Count; ++VariableIndex) {
-      if ((VariableIndex == 0) && (AsciiStrCmp ("*", OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0)) {
-        IsAllowed = TRUE;
-        break;
-      }
-
-      if (AsciiStrCmp (AsciiVariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0) {
-        IsAllowed = TRUE;
-        break;
-      }
-    }
-
-    if (!IsAllowed) {
-      DEBUG ((DEBUG_INFO, "OC: Setting NVRAM %g:%a is not permitted\n", VariableGuid, AsciiVariableName));
-      return;
-    }
+  if (!InternalIsAllowedBySchemaEntry (SchemaEntry, AsciiVariableName, OcStringFormatAscii)) {
+    DEBUG ((DEBUG_INFO, "OC: Setting NVRAM %g:%a is not permitted\n", VariableGuid, AsciiVariableName));
+    return;
   }
+
 
   UnicodeVariableName = AsciiStrCopyToUnicode (AsciiVariableName, 0);
 
@@ -247,12 +269,8 @@ InternalLocateVariableRuntimeProtocol (
                   );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_WARN,
-      "OC: Locate emulated NVRAM protocol - %r\n",
-      Status
-      ));
-    return EFI_NOT_FOUND;
+    DEBUG ((DEBUG_INFO, "OC: Locate emulated NVRAM protocol - %r\n", Status));
+    return Status;
   }
 
   if ((*OcVariableRuntimeProtocol)->Revision != OC_VARIABLE_RUNTIME_PROTOCOL_REVISION) {
@@ -265,7 +283,7 @@ InternalLocateVariableRuntimeProtocol (
     return EFI_UNSUPPORTED;
   }
 
-  return EFI_SUCCESS;
+  return Status;
 }
 
 STATIC
@@ -280,44 +298,18 @@ OcLoadLegacyNvram (
   OC_FIRMWARE_RUNTIME_PROTOCOL  *FwRuntime;
   OC_FWRT_CONFIG                FwrtConfig;
 
-  if (!Config->Nvram.LegacyEnable) {
-    return;
-  }
-
   Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
   if (EFI_ERROR (Status)) {
     return;
   }
 
-  Status = gBS->LocateProtocol (
-                  &gOcVariableRuntimeProtocolGuid,
-                  NULL,
-                  (VOID **)&OcVariableRuntimeProtocol
-                  );
-
-  if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_WARN,
-      "OC: Locate emulated NVRAM protocol - %r\n",
-      Status
-      ));
-    return;
-  }
-
-  if (OcVariableRuntimeProtocol->Revision != OC_VARIABLE_RUNTIME_PROTOCOL_REVISION) {
-    DEBUG ((
-      DEBUG_WARN,
-      "OC: Emulated NVRAM protocol incompatible revision %d != %d\n",
-      OcVariableRuntimeProtocol->Revision,
-      OC_VARIABLE_RUNTIME_PROTOCOL_REVISION
-      ));
-    return;
-  }
-
   //
-  // It is not strictly required to support boot var routing with emulated NVRAM, but having working support
-  // is more convenient when switching back and forth between emulated and non-emulated, i.e. one less thing
-  // to have to remember to switch, since it works either way.
+  // It is not really required to support boot var routing with emulated NVRAM (since there are
+  // no firmware NVRAM boot vars used outside of OpenCore to avoid trashing), but having working
+  // support is more convenient when switching back and forth between emulated and non-emulated
+  // NVRAM, i.e. one less thing to have to remember to switch, since with this code everything
+  // works as expected with or without RequestBootVarRouting. (Without it, boot entries do not
+  // restore to the right place when RequestBootVarRouting is enabled.)
   // OpenRuntime.efi must be loaded early, but after OpenVariableRuntime.efi, for this to work.
   //
   if (Config->Uefi.Quirks.RequestBootVarRouting) {
@@ -345,19 +337,81 @@ OcLoadLegacyNvram (
     FwRuntime = NULL;
   }
 
+  //
+  // Let the protocol itself decide whether the storage options are suitable.
+  //
   Status = OcVariableRuntimeProtocol->LoadNvram (Storage, &Config->Nvram);
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((
-      DEBUG_WARN,
-      "OC: Emulated NVRAM protocol load NVRAM - %r\n",
-      Status
-      ));
+    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM load failed - %r\n", Status));
   }
 
   if (FwRuntime != NULL) {
     DEBUG ((DEBUG_INFO, "OC: Restoring FW NVRAM...\n"));
     FwRuntime->SetOverride (NULL);
+  }
+}
+
+VOID
+OcSaveLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  )
+{
+  EFI_STATUS                    Status;
+  OC_VARIABLE_RUNTIME_PROTOCOL  *OcVariableRuntimeProtocol;
+
+  Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
+  if (EFI_ERROR (Status)) {
+    return;
+  }
+
+  Status = OcVariableRuntimeProtocol->SaveNvram (Storage, &Config->Nvram);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM save failed - %r\n", Status));
+  }
+}
+
+VOID
+OcResetLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  )
+{
+  EFI_STATUS                    Status;
+  OC_VARIABLE_RUNTIME_PROTOCOL  *OcVariableRuntimeProtocol;
+
+  Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
+  if (EFI_ERROR (Status)) {
+    return;
+  }
+
+  Status = OcVariableRuntimeProtocol->ResetNvram (Storage, &Config->Nvram);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM reset failed - %r\n", Status));
+  }
+}
+
+VOID
+OcSwitchToFallbackLegacyNvram (
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_GLOBAL_CONFIG                 *Config
+  )
+{
+  EFI_STATUS                    Status;
+  OC_VARIABLE_RUNTIME_PROTOCOL  *OcVariableRuntimeProtocol;
+
+  Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
+  if (EFI_ERROR (Status)) {
+    return;
+  }
+
+  Status = OcVariableRuntimeProtocol->SwitchToFallback (Storage, &Config->Nvram);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM switch to fallback failed - %r\n", Status));
   }
 }
 

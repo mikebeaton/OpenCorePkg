@@ -17,6 +17,13 @@ InternalProcessVariableGuid (
   OUT OC_NVRAM_LEGACY_ENTRY  **SchemaEntry  OPTIONAL
   );
 
+BOOLEAN
+InternalIsAllowedBySchemaEntry (
+  IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
+  IN CONST VOID             *VariableName,
+  IN OC_STRING_FORMAT       StringFormat
+  );
+
 VOID
 InternalSetNvramVariable (
   IN CONST CHAR8            *AsciiVariableName,
