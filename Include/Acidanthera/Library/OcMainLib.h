@@ -53,12 +53,13 @@
 
 #define OPEN_CORE_LOG_PREFIX_PATH  L"opencore"
 
-#define OPEN_CORE_NVRAM_PATH  L"nvram.plist"
-// #define OPEN_CORE_NVRAM_PATH           L"NVRAM\\nvram.plist"
+#define OPEN_CORE_NVRAM_ROOT_PATH  L"NVRAM"
 
-// #define OPEN_CORE_NVRAM_FALLBACK_PATH  L"NVRAM\\nvram.fallback"
+#define OPEN_CORE_NVRAM_FILENAME       L"nvram.plist"
 
-// #define OPEN_CORE_NVRAM_USED_PATH      L"NVRAM\\nvram.used"
+#define OPEN_CORE_NVRAM_FALLBACK_FILENAME  L"nvram.fallback"
+
+#define OPEN_CORE_NVRAM_USED_FILENAME      L"nvram.used"
 
 #define OPEN_CORE_ACPI_PATH  L"ACPI\\"
 

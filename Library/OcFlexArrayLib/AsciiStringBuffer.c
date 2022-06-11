@@ -13,21 +13,21 @@
 #include <Library/OcGuardLib.h>
 #include <Library/PrintLib.h>
 
-OC_STRING_BUFFER *
+OC_ASCII_STRING_BUFFER *
 OcAsciiStringBufferInit (
   VOID
   )
 {
-  OC_STRING_BUFFER  *Buffer;
+  OC_ASCII_STRING_BUFFER  *Buffer;
 
-  Buffer = AllocateZeroPool (sizeof (OC_STRING_BUFFER));
+  Buffer = AllocateZeroPool (sizeof (OC_ASCII_STRING_BUFFER));
 
   return Buffer;
 }
 
 EFI_STATUS
 OcAsciiStringBufferAppend (
-  IN OUT  OC_STRING_BUFFER  *Buffer,
+  IN OUT  OC_ASCII_STRING_BUFFER  *Buffer,
   IN      CONST CHAR8       *AppendString    OPTIONAL
   )
 {
@@ -48,7 +48,7 @@ OcAsciiStringBufferAppend (
 STATIC
 EFI_STATUS
 InternalAsciiStringBufferExtendBy (
-  IN OUT  OC_STRING_BUFFER  *Buffer,
+  IN OUT  OC_ASCII_STRING_BUFFER  *Buffer,
   IN      CONST UINTN       AppendLength,
   OUT  UINTN                *TargetLength
   )
@@ -99,7 +99,7 @@ InternalAsciiStringBufferExtendBy (
 
 EFI_STATUS
 OcAsciiStringBufferAppendN (
-  IN OUT  OC_STRING_BUFFER *Buffer,
+  IN OUT  OC_ASCII_STRING_BUFFER *Buffer,
   IN      CONST CHAR8 *AppendString, OPTIONAL
   IN      CONST UINTN         Length
   )
@@ -138,7 +138,7 @@ OcAsciiStringBufferAppendN (
 EFI_STATUS
 EFIAPI
 OcAsciiStringBufferSPrint (
-  IN OUT  OC_STRING_BUFFER  *Buffer,
+  IN OUT  OC_ASCII_STRING_BUFFER  *Buffer,
   IN      CONST CHAR8       *FormatString,
   ...
   )
@@ -176,7 +176,7 @@ OcAsciiStringBufferSPrint (
 
 CHAR8 *
 OcAsciiStringBufferFreeContainer (
-  IN OUT  OC_STRING_BUFFER  **StringBuffer
+  IN OUT  OC_ASCII_STRING_BUFFER  **StringBuffer
   )
 {
   CHAR8  *String;
@@ -195,7 +195,7 @@ OcAsciiStringBufferFreeContainer (
 
 VOID
 OcAsciiStringBufferFree (
-  IN OUT  OC_STRING_BUFFER  **StringBuffer
+  IN OUT  OC_ASCII_STRING_BUFFER  **StringBuffer
   )
 {
   CHAR8  *Result;

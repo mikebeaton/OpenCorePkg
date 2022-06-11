@@ -231,9 +231,47 @@ InternalSetNvramVariable (
 }
 
 STATIC
+EFI_STATUS
+InternalLocateVariableRuntimeProtocol (
+  OC_VARIABLE_RUNTIME_PROTOCOL  **OcVariableRuntimeProtocol
+  )
+{
+  EFI_STATUS                    Status;
+
+  ASSERT (OcVariableRuntimeProtocol != NULL);
+
+  Status = gBS->LocateProtocol (
+                  &gOcVariableRuntimeProtocolGuid,
+                  NULL,
+                  (VOID **)OcVariableRuntimeProtocol
+                  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OC: Locate emulated NVRAM protocol - %r\n",
+      Status
+      ));
+    return EFI_NOT_FOUND;
+  }
+
+  if ((*OcVariableRuntimeProtocol)->Revision != OC_VARIABLE_RUNTIME_PROTOCOL_REVISION) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OC: Emulated NVRAM protocol incompatible revision %d != %d\n",
+      (*OcVariableRuntimeProtocol)->Revision,
+      OC_VARIABLE_RUNTIME_PROTOCOL_REVISION
+      ));
+    return EFI_UNSUPPORTED;
+  }
+
+  return EFI_SUCCESS;
+}
+
+STATIC
 VOID
 OcLoadLegacyNvram (
-  IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *FileSystem,
+  IN OC_STORAGE_CONTEXT               *Storage,
   IN OC_GLOBAL_CONFIG                 *Config
   )
 {
@@ -241,6 +279,15 @@ OcLoadLegacyNvram (
   OC_VARIABLE_RUNTIME_PROTOCOL  *OcVariableRuntimeProtocol;
   OC_FIRMWARE_RUNTIME_PROTOCOL  *FwRuntime;
   OC_FWRT_CONFIG                FwrtConfig;
+
+  if (!Config->Nvram.LegacyEnable) {
+    return;
+  }
+
+  Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
+  if (EFI_ERROR (Status)) {
+    return;
+  }
 
   Status = gBS->LocateProtocol (
                   &gOcVariableRuntimeProtocolGuid,
@@ -298,7 +345,7 @@ OcLoadLegacyNvram (
     FwRuntime = NULL;
   }
 
-  Status = OcVariableRuntimeProtocol->LoadNvram (FileSystem, &Config->Nvram);
+  Status = OcVariableRuntimeProtocol->LoadNvram (Storage, &Config->Nvram);
 
   if (EFI_ERROR (Status)) {
     DEBUG ((
@@ -469,9 +516,7 @@ OcLoadNvramSupport (
   IN OC_GLOBAL_CONFIG    *Config
   )
 {
-  if (Config->Nvram.LegacyEnable && (Storage->FileSystem != NULL)) {
-    OcLoadLegacyNvram (Storage->FileSystem, Config);
-  }
+  OcLoadLegacyNvram (Storage, Config);
 
   OcDeleteNvram (Config);
 

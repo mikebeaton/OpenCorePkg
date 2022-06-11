@@ -41,9 +41,9 @@ OC_DECLARE (OC_NVRAM_STORAGE)
 typedef struct OC_VARIABLE_RUNTIME_PROTOCOL_ OC_VARIABLE_RUNTIME_PROTOCOL;
 
 /**
-  Load NVRAM from storage.
+  Load NVRAM from storage, applying legacy filter from config.
 
-  @param[in]  FileSystem        OpenCore root filesystem.
+  @param[in]  Storage           OpenCore storage context.
   @param[in]  NvramConfig       OpenCore NVRAM config.
 
   @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
@@ -54,7 +54,68 @@ typedef
 EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM)(
-  IN EFI_SIMPLE_FILE_SYSTEM_PROTOCOL  *FileSystem,
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_NVRAM_CONFIG                  *NvramConfig
+  );
+
+/**
+  Save NVRAM to storage, applying legacy filter from config.
+
+  @param[in]  Storage           OpenCore storage context.
+  @param[in]  NvramConfig       OpenCore NVRAM config.
+
+  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
+  @retval **TODO**
+  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
+  @retval EFI_SUCCESS           NVRAM contents were successfully saved to storage.
+**/
+typedef
+EFI_STATUS
+EFIAPI
+(EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM)(
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_NVRAM_CONFIG                  *NvramConfig
+  );
+
+/**
+  Reset NVRAM.
+
+  @param[in]  Storage           OpenCore storage context.
+  @param[in]  NvramConfig       OpenCore NVRAM config.
+
+  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
+  @retval **TODO**
+  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
+  @retval EFI_SUCCESS           NVRAM contents were successfully reset.
+**/
+typedef
+EFI_STATUS
+EFIAPI
+(EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM)(
+  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_NVRAM_CONFIG                  *NvramConfig
+  );
+
+/**
+  Switch to fallback NVRAM. Workaround for the fact that we cannot save NVRAM
+  changes during macOS installer reboots (which never start launch daemon).
+  Reverts to previous NVRAM file, assuming this is present.
+  In existing implementation this works in combination with Launchd.command,
+  which renames previous nvram.plist as nvram.fallback on each save of new file.
+
+  @param[in]  Storage           OpenCore storage context.
+  @param[in]  NvramConfig       OpenCore NVRAM config.
+
+  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
+  @retval **TODO**
+  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
+  @retval EFI_SUCCESS           Successfully switched to fallback NVRAM contexts.
+**/
+typedef
+EFI_STATUS
+EFIAPI
+(EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK)(
+  IN OC_STORAGE_CONTEXT               *Storage,
   IN OC_NVRAM_CONFIG                  *NvramConfig
   );
 
@@ -65,19 +126,23 @@ struct OC_VARIABLE_RUNTIME_PROTOCOL_ {
   //
   // Protocol revision.
   //
-  UINTN                                           Revision;
+  UINTN                                             Revision;
   //
   // Load NVRAM.
   //
-  OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM         LoadNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM           LoadNvram;
   //
   // Save NVRAM.
   //
-  ////OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM   SaveNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM           SaveNvram;
   //
   // Reset NVRAM.
   //
-  ////OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM  ResetNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM          ResetNvram;
+  //
+  // Reset NVRAM.
+  //
+  OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK   SwitchToFallback;
 };
 
 extern EFI_GUID  gOcVariableRuntimeProtocolGuid;

@@ -1065,7 +1065,7 @@ DoConvertLoaderEntriesToBootEntries (
   LOADER_ENTRY      *Entry;
   OC_FLEX_ARRAY     *PickerEntries;
   OC_PICKER_ENTRY   *PickerEntry;
-  OC_STRING_BUFFER  *StringBuffer;
+  OC_ASCII_STRING_BUFFER  *StringBuffer;
   CHAR8             **Options;
   UINTN             OptionsLength;
 
@@ -1229,7 +1229,7 @@ AppendVersion (
   )
 {
   EFI_STATUS        Status;
-  OC_STRING_BUFFER  *StringBuffer;
+  OC_ASCII_STRING_BUFFER  *StringBuffer;
 
   ASSERT (Entry->Title != NULL);
 

@@ -1602,6 +1602,45 @@ OcResetNvram (
   );
 
 /**
+  Process variable result.
+**/
+typedef enum _OC_PROCESS_VARIABLE_RESULT {
+  OcProcessVariableContinue,
+  OcProcessVariableRestart,
+  OcProcessVariableAbort
+} OC_PROCESS_VARIABLE_RESULT;
+
+/**
+  Process variable during OcScanVariables.
+  Any filtering of which variables to use is done within this function.
+
+  @param[in]     Guid               Variable GUID.
+  @param[in]     Name               Variable Name.
+  @param[in]     Context            Caller-provided context.
+
+  @retval Indicates whether the scan should continue, restart or abort.
+**/
+typedef
+OC_PROCESS_VARIABLE_RESULT
+(EFIAPI *OC_PROCESS_VARIABLE) (
+  IN EFI_GUID           *Guid,
+  IN CHAR16             *Name,
+  IN VOID               *Context OPTIONAL
+  );
+
+/**
+  Apply function to each NVRAM variable.
+
+  @param[in]     ProcessVariable    Function to apply.
+  @param[in]     Context            Caller-provided context.
+**/
+VOID
+OcScanVariables (
+  IN OC_PROCESS_VARIABLE  ProcessVariable,
+  IN VOID                 *Context
+  );
+
+/**
   Get current SIP setting.
 
   @param[out]     CsrActiveConfig    Returned csr-active-config variable; uninitialised if variable

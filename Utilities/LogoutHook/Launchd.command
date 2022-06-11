@@ -11,26 +11,6 @@
 # on shutdown can access NVRAM after macOS installer vars are set.
 #
 
-LOG=/dev/stdout
-
-usage() {
-  echo "Usage: ${SELFNAME} [install|uninstall|status] [logout|agent|daemon]"
-  echo "  - Use [install|uninstall|status] with no type to use"
-  echo "    recommended settings (i.e. daemon)."
-  echo "  - If called with no params runs once as logout hook, this"
-  echo "    saves current nvram once or reports any issues."
-  echo ""
-}
-
-doLog() {
-  echo "$(date) (${PREFIX}) ${1}" >> "${LOG}"
-}
-
-abort() {
-  doLog "Fatal error: ${1}"
-  exit 1
-}
-
 if [ ! -x /usr/bin/dirname   ] ||
    [ ! -x /usr/bin/basename  ] ||
    [ ! -x /usr/bin/wc        ] ||
@@ -39,13 +19,48 @@ if [ ! -x /usr/bin/dirname   ] ||
   abort "Unix environment is broken!"
 fi
 
+# Non-installed script can be run directly as 'agent' or 'daemon', i.e. script
+# is started and runs as if launched that way by launchd, for debugging purposes.
+#
+# Agent is currently a null install, mainly since it seemed a shame to remove
+# that code - i.e. it installs, and stops and starts correctly, but unlike
+# daemon it does not actually do anything at stop and start. (Daemon is sudo
+# so not everything that daemon does can be done by agent, also not everything
+# that daemon does needs to be done, by agent.)
+#
+usage() {
+  echo "Usage: ${SELFNAME} [install|uninstall|status] [logout|agent|daemon]"
+  echo "  - [install|uninstall|status] with no type to uses"
+  echo "    recommended settings (i.e. daemon)."
+  echo ""
+}
+
+doLog() {
+  if [ ! "${PREFIX}" = "" ] ; then
+    echo "$(date) (${PREFIX}) ${1}" >> "${LOG}"
+  else
+    echo "${1}" >> "${LOG}"
+  fi
+}
+
+abort() {
+  doLog "Fatal error: ${1}"
+  exit 1
+}
+
+WRITE_HOOK_LOG=0
+
+LOG=/dev/stdout
+
 OCNVRAMGUID="4D1FDA02-38C7-4A6A-9CC6-4BCCA8B30102"
 
-# real OC NVRAM var
+# OC generated NVRAM var
 BOOT_PATH="${OCNVRAMGUID}:boot-path"
 
 # temp storage name for this hook
 BOOT_NODE="${OCNVRAMGUID}:boot-node"
+
+# re-use as unique directory name for mount point when needed
 UNIQUE_DIR="${BOOT_NODE}"
 
 PRIVILEGED_HELPER_TOOLS="/Library/PrivilegedHelperTools"
@@ -97,19 +112,10 @@ do
   esac
 done
 
-# defaults
-if [ ! "$AGENT"  = "1" ] &&
-   [ ! "$DAEMON" = "1" ] &&
-   [ ! "$LOGOUT" = "1" ] ; then
-  if [ "$INSTALL"   = "1" ] ||
-     [ "$UNINSTALL" = "1" ] ; then
-    DAEMON=1
-  else
-    LOGOUT=1
-  fi
-fi
-
-if [ "$SELFNAME" == "Launchd.command" ] ; then
+if [ ! "$SELFNAME" = "Launchd.command" ] ; then
+  USE_NVRAMDUMP="${NVRAMDUMP}"
+  INSTALLED=1
+else
   cd "${SELFDIR}" || abort "Failed to enter working directory!"
 
   if [ ! -x ./nvramdump ] ; then
@@ -118,18 +124,32 @@ if [ "$SELFNAME" == "Launchd.command" ] ; then
 
   USE_NVRAMDUMP="./nvramdump"
   INSTALLED=0
-else
-  USE_NVRAMDUMP="${NVRAMDUMP}"
-  INSTALLED=1
 fi
 
+# When installed runs as logout hook - i.e. dump immediately - unless specified otherwise.
+if [ ! "$AGENT"  = "1" ] &&
+   [ ! "$DAEMON" = "1" ] &&
+   [ ! "$LOGOUT" = "1" ] ; then
+  if [ "$INSTALL"   = "1" ] ||
+     [ "$UNINSTALL" = "1" ] ; then
+    DAEMON=1
+  else
+    if [ "$INSTALLED" = "0" ] &&
+       [ ! "$STATUS" = "1" ] ; then
+        usage
+        exit 0
+    fi
+    LOGOUT=1
+  fi
+fi
+
+# Install one or more of agent, daemon and logout hook.
 install() {
   FAIL="Failed to install!"
 
   if [ ! -d "${PRIVILEGED_HELPER_TOOLS}" ] ; then
     sudo mkdir "${PRIVILEGED_HELPER_TOOLS}" || abort "${FAIL}"
   fi
-
 
   if [ "$LOGOUT" = "1" ] ; then
     # logout hook from more permanent location if available
@@ -145,12 +165,14 @@ install() {
   sudo cp "${SELFNAME}" "${HELPER}" || abort "${FAIL}"
   sudo cp nvramdump "${NVRAMDUMP}"  || abort "${FAIL}"
 
+  # customise Launchd.command.plist for agent
   if [ "$AGENT" = "1" ] ; then
     sed "s/\$LABEL/${ORG}.agent/g;s/\$HELPER/$(sed 's/\//\\\//g' <<< $HELPER)/g;s/\$PARAM/agent/g;s/\$LOGFILE/$(sed 's/\//\\\//g' <<< $LOGFILE)/g" "Launchd.command.plist" > "/tmp/Launchd.command.plist" || abort "${FAIL}"
     sudo cp "/tmp/Launchd.command.plist" "${AGENT_PLIST}" || abort "${FAIL}"
     rm -f /tmp/Launchd.command.plist
   fi
 
+  # customise Launchd.command.plist for daemon
   if [ "$DAEMON" = "1" ] ; then
     sed "s/\$LABEL/${ORG}.daemon/g;s/\$HELPER/$(sed 's/\//\\\//g' <<< $HELPER)/g;s/\$PARAM/daemon/g;s/\$LOGFILE/$(sed 's/\//\\\//g' <<< $LOGFILE)/g" "Launchd.command.plist" > "/tmp/Launchd.command.plist" || abort "${FAIL}"
     sudo cp "/tmp/Launchd.command.plist" "${DAEMON_PLIST}" || abort "${FAIL}"
@@ -182,11 +204,6 @@ install() {
   echo "Installed."
 }
 
-if [ "$INSTALL" = "1" ] ; then
-  install
-  exit 0
-fi
-
 uninstall() {
   UNINSTALLED=1
 
@@ -216,11 +233,6 @@ uninstall() {
   fi
 }
 
-if [ "$UNINSTALL" = "1" ] ; then
-  uninstall
-  exit 0
-fi
-
 status() {
   if [ ! "$AGENT" = "1" ] &&
      [ ! "$DAEMON" = "1" ] ; then
@@ -240,21 +252,16 @@ status() {
   fi
 }
 
-if [ "$STATUS" = "1" ] ; then
-  status
-  exit 0
-fi
-
 # Save some diskutil info in emulated NVRAM for use at daemon shutdown:
-#  - We can access diskutil normally at agent startup and at logout hook;
-#  - We cannot use it on daemon shutdown because:
+#  - While we can access diskutil normally at agent startup and at logout hook;
+#  - We cannot use diskutil at daemon shutdown, because:
 #     "Unable to run because unable to use the DiskManagement framework.
 #     Common reasons include, but are not limited to, the DiskArbitration
 #     framework being unavailable due to being booted in single-user mode."
 #  - At daemon startup, diskutil works but the device may not be ready
 #    immediately, but macOS restarts us quickly (~5s) and then we can run.
-# Note that saving any info for use at process shutdown, if not running in daemon
-# (sudo), would have to go into e.g. a file, not nvram.
+# Note that saving any info for use at process shutdown if not running as
+# daemon (sudo) would have to go into e.g. a file not nvram.
 saveMount() {
   UUID="$(/usr/sbin/nvram "${BOOT_PATH}" | sed 's/.*GPT,\([^,]*\),.*/\1/')"
   if [ "$(printf '%s' "${UUID}" | /usr/bin/wc -c)" -eq 36 ] && [ -z "$(echo "${UUID}" | sed 's/[-0-9A-F]//g')" ] ; then
@@ -293,13 +300,13 @@ saveMount() {
       sudo /usr/sbin/nvram "${BOOT_NODE}=${node}" || abort "Failed to store boot device!"
     fi
   else
-    abort "Illegal UUID or unknown loader!"
+    abort "Missing or invalid ${BOOT_PATH} value!"
   fi
 }
 
 saveNvram() {
   if [ "${1}" = "1" ] ; then
-    # . matches tab, note that \t cannot be used in earlier macOS (e.g Mojave)
+    # . matches tab, note that \t for tab cannot be used in earlier macOS (e.g Mojave)
     node=$(nvram "$BOOT_NODE" | sed -n "s/${BOOT_NODE}.//p")
     if [ "$INSTALLED" = "0" ] ; then
       # don't trash saved value if daemon is live
@@ -336,7 +343,9 @@ saveNvram() {
 
   rm -f /tmp/nvram.plist
 
-  date >> "${mount_path}/${2}.hook.log" || abort "Failed to write to ${2}.hook.log!"
+  if [ "${WRITE_HOOK_LOG}" = "1" ] ; then
+    date >> "${mount_path}/${2}.hook.log" || abort "Failed to write to ${2}.hook.log!"
+  fi
 
   # We would like to unmount here, but umount fails with "Resource busy"
   # and diskutil is not available. This should not cause any problem except
@@ -359,6 +368,30 @@ onComplete() {
 
   exit 0
 }
+
+if [ "$INSTALL" = "1" ] ; then
+  # Save nvram immediately, will become the fallback after the first daemon shutdown.
+  # Do not install if this fails, since this indicates that required boot path from
+  # OC is not available, or other fatal error.
+  if [ "$DAEMON" = "1" ] ; then
+    doLog "Saving initial nvram.plist…"
+    saveMount 0
+    saveNvram 0 "daemon"
+  fi
+
+  install
+  exit 0
+fi
+
+if [ "$UNINSTALL" = "1" ] ; then
+  uninstall
+  exit 0
+fi
+
+if [ "$STATUS" = "1" ] ; then
+  status
+  exit 0
+fi
 
 if [ "${LOGOUT}" = "1" ] ; then
   #LOG="${SELFDIR}/error.log"

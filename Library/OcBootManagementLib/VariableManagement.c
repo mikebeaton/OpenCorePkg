@@ -145,10 +145,10 @@ IsDeletableVariable (
   return FALSE;
 }
 
-STATIC
 VOID
-DeleteVariables (
-  IN BOOLEAN  PreserveBoot
+OcScanVariables (
+  IN OC_PROCESS_VARIABLE  ProcessVariable,
+  IN VOID                 *Context
   )
 {
   EFI_GUID    CurrentGuid;
@@ -174,6 +174,7 @@ DeleteVariables (
 
   //
   // Assume we have not failed yet.
+  // TODO: Noting that critical failure can happen exactly once, across all variables, (why) is it needed?
   //
   CriticalFailure = FALSE;
 
@@ -185,7 +186,7 @@ DeleteVariables (
       TmpBuffer = AllocateZeroPool (RequestedSize);
       if (TmpBuffer != NULL) {
         if (Buffer != NULL) {
-          CopyMem (TmpBuffer, Buffer, BufferSize);
+          CopyMem (TmpBuffer, Buffer, BufferSize); ///< TODO: Is this copy required?
           FreePool (Buffer);
         }
 
@@ -217,41 +218,7 @@ DeleteVariables (
     Status        = gRT->GetNextVariableName (&RequestedSize, Buffer, &CurrentGuid);
 
     if (!EFI_ERROR (Status)) {
-      if (IsDeletableVariable (Buffer, &CurrentGuid, PreserveBoot)) {
-        Status = gRT->SetVariable (Buffer, &CurrentGuid, 0, 0, NULL);
-        if (!EFI_ERROR (Status)) {
-          DEBUG ((
-            DEBUG_INFO,
-            "Deleting %g:%s... OK\n",
-            &CurrentGuid,
-            Buffer
-            ));
-          //
-          // Calls to SetVariable() between calls to GetNextVariableName()
-          // may produce unpredictable results, so we restart.
-          //
-          Restart = TRUE;
-        } else if ((Status == EFI_NOT_FOUND) || (Status == EFI_SECURITY_VIOLATION)) {
-          DEBUG ((
-            DEBUG_INFO,
-            "Deleting %g:%s... SKIP - %r\n",
-            &CurrentGuid,
-            Buffer,
-            Status
-            ));
-        } else {
-          DEBUG ((
-            DEBUG_INFO,
-            "Deleting %g:%s... FAIL - %r\n",
-            &CurrentGuid,
-            Buffer,
-            Status
-            ));
-          break;
-        }
-      } else {
-        // Print (L"Skipping %g:%s\n", &CurrentGuid, Buffer);
-      }
+      Restart = ProcessVariable (&CurrentGuid, Buffer, Context);
     } else if ((Status != EFI_BUFFER_TOO_SMALL) && (Status != EFI_NOT_FOUND)) {
       if (!CriticalFailure) {
         DEBUG ((DEBUG_INFO, "OCB: Unexpected error (%r), trying to rescan\n", Status));
@@ -266,6 +233,73 @@ DeleteVariables (
   if (Buffer != NULL) {
     FreePool (Buffer);
   }
+}
+
+STATIC
+OC_PROCESS_VARIABLE_RESULT
+EFIAPI
+DeleteVariable (
+  IN EFI_GUID        *Guid,
+  IN CHAR16          *Name,
+  IN VOID            *Context
+  )
+{
+  EFI_STATUS  Status;
+  BOOLEAN     Restart;
+  BOOLEAN     *PreserveBoot;
+
+  ASSERT (Guid != NULL);
+  ASSERT (Name != NULL);
+  ASSERT (Context != NULL);
+
+  PreserveBoot = Context;
+  Restart = FALSE;
+
+  if (IsDeletableVariable (Name, Guid, *PreserveBoot)) {
+    Status = gRT->SetVariable (Name, Guid, 0, 0, NULL);
+    if (!EFI_ERROR (Status)) {
+      DEBUG ((
+        DEBUG_INFO,
+        "Deleting %g:%s... OK\n",
+        Guid,
+        Name
+        ));
+      //
+      // Calls to SetVariable() between calls to GetNextVariableName()
+      // may produce unpredictable results, so we restart.
+      //
+      Restart = TRUE;
+    } else if ((Status == EFI_NOT_FOUND) || (Status == EFI_SECURITY_VIOLATION)) {
+      DEBUG ((
+        DEBUG_INFO,
+        "Deleting %g:%s... SKIP - %r\n",
+        Guid,
+        Name,
+        Status
+        ));
+    } else {
+      DEBUG ((
+        DEBUG_INFO,
+        "Deleting %g:%s... FAIL - %r\n",
+        Guid,
+        Name,
+        Status
+        ));
+    }
+  } else {
+    // Print (L"Skipping %g:%s\n", Guid, Name);
+  }
+
+  return Restart ? OcProcessVariableRestart : OcProcessVariableContinue;
+}
+
+STATIC
+VOID
+DeleteVariables (
+  IN BOOLEAN  PreserveBoot
+  )
+{
+  OcScanVariables (DeleteVariable, &PreserveBoot);
 }
 
 VOID *

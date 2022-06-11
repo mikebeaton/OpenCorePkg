@@ -182,7 +182,7 @@ InternalExpandGrubVars (
   GRUB_VAR          *Var;
   CHAR8             Ch;
   UINTN             VarLength;
-  OC_STRING_BUFFER  *StringBuffer;
+  OC_ASCII_STRING_BUFFER  *StringBuffer;
 
   ASSERT (Value  != NULL);
   ASSERT (Result != NULL);
