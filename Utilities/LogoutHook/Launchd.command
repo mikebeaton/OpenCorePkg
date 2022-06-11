@@ -51,7 +51,7 @@ abort() {
   exit 1
 }
 
-WRITE_HOOK_LOG=0
+WRITE_HOOK_LOG=1
 
 LOG=/dev/stdout
 
@@ -81,7 +81,7 @@ LOGFILE="${LOGDIR}/launchd.log"
 SELFDIR="$(/usr/bin/dirname "${0}")"
 SELFNAME="$(/usr/bin/basename "${0}")"
 
-BOOT_MOUNT="/tmp/boot-mount"
+NVRAM_DIR="NVRAM"
 
 USERID=$(id -u)
 
@@ -338,16 +338,30 @@ saveNvram() {
     doLog "Successfully mounted at ${mount_path}"
   fi
 
+  if [ "${NVRAM_DIR}" = "" ] ; then
+    nvram_dir=$mount_path
+  else
+    nvram_dir="${mount_path}/${NVRAM_DIR}"
+    if [ ! -d "${nvram_dir}" ] ; then
+      sudo mkdir $nvram_dir || abort "Failed to make directory ${nvram_dir}"
+    fi
+  fi
+
   rm -f /tmp/nvram.plist
   ${USE_NVRAMDUMP} || abort "failed to save nvram.plist!"
 
-  cp /tmp/nvram.plist "${mount_path}/nvram.plist" || abort "Failed to copy nvram.plist!"
+  if [ -f "${nvram_dir}/nvram.plist" ] ; then
+    cp "${nvram_dir}/nvram.plist" "${nvram_dir}/nvram.fallback" || abort "Failed to create nvram.fallback!"
+    doLog "nvram.fallback copied"
+  fi
+
+  cp /tmp/nvram.plist "${nvram_dir}/nvram.plist" || abort "Failed to copy nvram.plist!"
   doLog "nvram.plist saved"
 
   rm -f /tmp/nvram.plist
 
   if [ "${WRITE_HOOK_LOG}" = "1" ] ; then
-    date >> "${mount_path}/${2}.hook.log" || abort "Failed to write to ${2}.hook.log!"
+    date >> "${nvram_dir}/${2}.hook.log" || abort "Failed to write to ${2}.hook.log!"
   fi
 
   # We would like to unmount here, but umount fails with "Resource busy"
