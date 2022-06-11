@@ -28,6 +28,9 @@ fi
 # so not everything that daemon does can be done by agent, also not everything
 # that daemon does needs to be done, by agent.)
 #
+# Note that agent shutdown is to early to pick up NVRAM changes made by macOS
+# installer before first restart, whereas daemon is not.
+#
 usage() {
   echo "Usage: ${SELFNAME} [install|uninstall|status] [logout|agent|daemon]"
   echo "  - [install|uninstall|status] with no type to uses"
