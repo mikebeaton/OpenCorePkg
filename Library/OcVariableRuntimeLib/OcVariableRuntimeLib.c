@@ -16,6 +16,8 @@
 
 #include <Protocol/OcVariableRuntime.h>
 
+#define BASE64_CHUNK_SIZE (52)
+
 typedef struct {
   UINT8                         *DataBuffer;
   UINTN                         DataBufferSize;
@@ -95,7 +97,6 @@ LocateNvramDir (
     return EFI_NOT_FOUND;
   }
 
-  // TODO: What actually happens if we open/create here, and the file exists but is not a directory?
   Status = OcSafeFileOpen (
     Root,
     NvramDir,
@@ -103,18 +104,8 @@ LocateNvramDir (
     EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
     EFI_FILE_DIRECTORY
     );
-  if (!EFI_ERROR (Status)) {
-    //
-    // TODO: This check is technically required in other places where OcSafeFileOpen
-    // is used to open/create a directory, since (e.g. on VMWare) the file will open
-    // successfully even if it is a file.
-    //
-    Status = OcEnsureDirectoryFile (*NvramDir, TRUE);
-    if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "VAR: %s found but not a directory - %r\n", OPEN_CORE_NVRAM_ROOT_PATH, Status));
-      (*NvramDir)->Close (*NvramDir);
-      *NvramDir = NULL;
-    }
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Cannot open %s - %r\n", OPEN_CORE_NVRAM_ROOT_PATH, Status));
   }
 
   return Status;
@@ -259,6 +250,7 @@ SerializeSectionVariables (
   UINT32                  Attributes;
   UINTN                   DataSize;
   UINTN                   Base64Size;
+  UINTN                   Base64Pos;
 
   ASSERT (Context != NULL);
   SaveContext = Context;
@@ -298,7 +290,7 @@ SerializeSectionVariables (
   } while (Status == EFI_BUFFER_TOO_SMALL);
 
   if (EFI_ERROR (Status)) {
-    SaveContext->Status = EFI_OUT_OF_RESOURCES;
+    SaveContext->Status = Status;
     return OcProcessVariableAbort;
   }
 
@@ -330,15 +322,52 @@ SerializeSectionVariables (
   }
   Base64Encode (SaveContext->DataBuffer, DataSize, SaveContext->Base64Buffer, &Base64Size);
 
+  //
+  // %c works around BasePrintLibSPrintMarker converting \n to \r\n.
+  //
   Status = OcAsciiStringBufferSPrint (
     SaveContext->StringBuffer,
-    "                        <key>%s</key>\n"
-    "                        <data>\n"
-    "                        %a\n"
-    "                        </data>\n",
-    Name,
-    SaveContext->Base64Buffer
-  );
+    "\t\t\t<key>%s</key>%c"
+    "\t\t\t<data>%c",
+    Name, '\n', '\n'
+    );
+  if (EFI_ERROR (Status)) {
+    SaveContext->Status = Status;
+    return OcProcessVariableAbort;
+  }
+
+  for (Base64Pos = 0; Base64Pos < (Base64Size - 1); Base64Pos += BASE64_CHUNK_SIZE) {
+    Status = OcAsciiStringBufferAppend (
+      SaveContext->StringBuffer,
+      "\t\t\t"
+      );
+    if (EFI_ERROR (Status)) {
+      SaveContext->Status = Status;
+      return OcProcessVariableAbort;
+    }
+    Status = OcAsciiStringBufferAppendN (
+      SaveContext->StringBuffer,
+      &SaveContext->Base64Buffer[Base64Pos],
+      BASE64_CHUNK_SIZE
+      );
+    if (EFI_ERROR (Status)) {
+      SaveContext->Status = Status;
+      return OcProcessVariableAbort;
+    }
+    Status = OcAsciiStringBufferAppend (
+      SaveContext->StringBuffer,
+      "\n"
+      );
+    if (EFI_ERROR (Status)) {
+      SaveContext->Status = Status;
+      return OcProcessVariableAbort;
+    }
+  }
+
+  Status = OcAsciiStringBufferAppend (
+    SaveContext->StringBuffer,
+    "\t\t\t</data>\n"
+    );
   if (EFI_ERROR (Status)) {
     SaveContext->Status = Status;
     return OcProcessVariableAbort;
@@ -397,8 +426,8 @@ SaveNvram (
     "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
     "<plist version=\"1.0\">\n"
     "<dict>\n"
-    "        <key>Add</key>\n"
-    "        <dict>\n"
+    "\t<key>Add</key>\n"
+    "\t<dict>\n"
     );
 
   if (EFI_ERROR (Status)) {
@@ -423,9 +452,9 @@ SaveNvram (
 
     Status = OcAsciiStringBufferSPrint (
       Context.StringBuffer,
-      "                <key>%g</key>\n"
-      "                <dict>\n",
-      Context.SectionGuid
+      "\t\t<key>%g</key>%c"
+      "\t\t<dict>%c",
+      Context.SectionGuid, '\n', '\n'
       );
     if (EFI_ERROR (Status)) {
       break;
@@ -439,7 +468,7 @@ SaveNvram (
 
     Status = OcAsciiStringBufferAppend (
       Context.StringBuffer,
-      "                </dict>\n"
+      "\t\t</dict>\n"
       );
     if (EFI_ERROR (Status)) {
       break;
@@ -452,12 +481,14 @@ SaveNvram (
   if (!EFI_ERROR (Status)) {
     Status = OcAsciiStringBufferSPrint (
       Context.StringBuffer,
-      "        </dict>\n"
-      "        <key>Version</key>\n"
-      "        <integer>%u</integer>\n"
-      "</dict>\n"
-      "</plist>\n",
-      OC_NVRAM_STORAGE_VERSION);
+      "\t</dict>%c"
+      "\t<key>Version</key>%c"
+      "\t<integer>%u</integer>%c"
+      "</dict>%c"
+      "</plist>%c",
+      '\n', '\n', OC_NVRAM_STORAGE_VERSION,
+      '\n', '\n', '\n'
+      );
   }
   if (EFI_ERROR (Status)) {
     NvramDir->Close (NvramDir);
@@ -473,8 +504,8 @@ SaveNvram (
   Status = OcSetFileData (
     NvramDir,
     OPEN_CORE_NVRAM_FILENAME,
-    Context.StringBuffer,
-    Context.StringBuffer->StringLength + 1
+    Context.StringBuffer->String,
+    Context.StringBuffer->StringLength
     );
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "VAR: Error writing %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));

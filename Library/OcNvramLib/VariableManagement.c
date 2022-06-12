@@ -191,14 +191,15 @@ OcScanVariables (
   IN VOID                 *Context
   )
 {
-  EFI_GUID    CurrentGuid;
-  EFI_STATUS  Status;
-  CHAR16      *Buffer;
-  CHAR16      *TmpBuffer;
-  UINTN       BufferSize;
-  UINTN       RequestedSize;
-  BOOLEAN     Restart;
-  BOOLEAN     CriticalFailure;
+  EFI_GUID                    CurrentGuid;
+  EFI_STATUS                  Status;
+  CHAR16                      *Buffer;
+  CHAR16                      *TmpBuffer;
+  UINTN                       BufferSize;
+  UINTN                       RequestedSize;
+  BOOLEAN                     Restart;
+  BOOLEAN                     CriticalFailure;
+  OC_PROCESS_VARIABLE_RESULT  ProcessResult;
 
   //
   // Request 1024 byte buffer.
@@ -258,7 +259,15 @@ OcScanVariables (
     Status        = gRT->GetNextVariableName (&RequestedSize, Buffer, &CurrentGuid);
 
     if (!EFI_ERROR (Status)) {
-      Restart = ProcessVariable (&CurrentGuid, Buffer, Context);
+      ProcessResult = ProcessVariable (&CurrentGuid, Buffer, Context);
+      if (ProcessResult == OcProcessVariableAbort) {
+        break;
+      }
+      if (ProcessResult == OcProcessVariableRestart) {
+        Restart = TRUE;
+        continue;
+      }
+      ASSERT (ProcessResult == OcProcessVariableContinue);
     } else if ((Status != EFI_BUFFER_TOO_SMALL) && (Status != EFI_NOT_FOUND)) {
       if (!CriticalFailure) {
         DEBUG ((DEBUG_INFO, "OCB: Unexpected error (%r), trying to rescan\n", Status));
