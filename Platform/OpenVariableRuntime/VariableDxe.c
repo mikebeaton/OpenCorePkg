@@ -708,8 +708,8 @@ VariableServiceInitialize (
 
   gBS->CreateEventEx = OriginalCreateEventEx;
 
-  // Signal events immediately. Note that these are both called before
-  // OpenCore is loaded, when the equivalent driver is part of OpenDuet.
+  // Signal events immediately. These events occur in this order and before
+  // OpenCore is loaded when the equivalent driver is part of OpenDuet.
   gBS->SignalEvent (EndOfDxeEvent);
   gBS->SignalEvent (ReadyToBootEvent);
 
