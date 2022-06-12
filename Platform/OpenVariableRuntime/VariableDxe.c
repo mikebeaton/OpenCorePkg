@@ -17,21 +17,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "Variable.h"
 
 #include <Protocol/VariablePolicy.h>
-#include <Library/OcMiscLib.h>
 #include <Library/VariablePolicyLib.h>
-
-//
-// All protocols installed by VariableServiceInitialize.
-//
-STATIC
-EFI_GUID *
-  mVariableRuntimeProtocols[] = {
-  &gEdkiiVariableLockProtocolGuid,
-  &gEdkiiVarCheckProtocolGuid,
-  &gEfiVariableArchProtocolGuid,
-  &gEfiVariableWriteArchProtocolGuid,
-  &gEdkiiVariablePolicyProtocolGuid
-};
 
 EFI_STATUS
 EFIAPI
@@ -585,23 +571,14 @@ VariableServiceInitialize (
   )
 {
   EFI_STATUS  Status;
-  UINTN       Index;
   EFI_EVENT   ReadyToBootEvent;
   EFI_EVENT   EndOfDxeEvent;
   VOID        *OriginalCreateEventEx;
 
   //
-  // Appears to work fine even without these uninstalls, but seems sane to do them.
+  // Probably worth noting that attempting to remove any pre-existing protocols here
+  // before installing them below seems to cause problems rather than solving them.
   //
-  for (Index = 0; Index < ARRAY_SIZE (mVariableRuntimeProtocols); ++Index) {
-    Status = OcUninstallAllProtocolInstances (mVariableRuntimeProtocols[Index]);
-    if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "Uninstall %g failed - %r\n", mVariableRuntimeProtocols[Index], Status));
-    } else {
-      // TODO: Remove!
-      DEBUG ((DEBUG_INFO, "Uninstalled %g - %r\n", mVariableRuntimeProtocols[Index], Status));
-    }
-  }
 
   Status = VariableCommonInitialize ();
   ASSERT_EFI_ERROR (Status);

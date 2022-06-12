@@ -104,6 +104,11 @@ LocateNvramDir (
     EFI_FILE_DIRECTORY
     );
   if (!EFI_ERROR (Status)) {
+    //
+    // TODO: This check is technically required in other places where OcSafeFileOpen
+    // is used to open/create a directory, since (e.g. on VMWare) the file will open
+    // successfully even if it is a file.
+    //
     Status = OcEnsureDirectoryFile (*NvramDir, TRUE);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "VAR: %s found but not a directory - %r\n", OPEN_CORE_NVRAM_ROOT_PATH, Status));
@@ -112,7 +117,7 @@ LocateNvramDir (
     }
   }
 
-  return EFI_SUCCESS;
+  return Status;
 }
 
 STATIC
@@ -168,7 +173,13 @@ LoadNvram (
   IsValid = ParseSerialized (&NvramStorage, &mNvramStorageRootSchema, FileBuffer, FileSize, NULL);
   FreePool (FileBuffer);
 
-  if (!IsValid || (NvramStorage.Version != OC_NVRAM_STORAGE_VERSION)) {
+  if (!IsValid) {
+    DEBUG ((DEBUG_WARN, "VAR: Invalid NVRAM data\n"));
+    OC_NVRAM_STORAGE_DESTRUCT (&NvramStorage, sizeof (NvramStorage));
+    return EFI_UNSUPPORTED;
+  }
+
+  if (NvramStorage.Version != OC_NVRAM_STORAGE_VERSION) {
     DEBUG ((
       DEBUG_WARN,
       "VAR: Incompatible NVRAM data, version %u vs %u\n",
