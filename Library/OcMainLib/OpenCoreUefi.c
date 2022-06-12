@@ -45,6 +45,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcHashServicesLib.h>
 #include <Library/OcMiscLib.h>
 #include <Library/OcMemoryLib.h>
+#include <Library/OcNvramLib.h>
 #include <Library/OcRtcLib.h>
 #include <Library/OcSmcLib.h>
 #include <Library/OcOSInfoLib.h>
@@ -100,9 +101,9 @@ OcLoadDrivers (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
   EFI_HANDLE                 *DriversToConnectIterator;
   VOID                       *DriverBinding;
-  BOOLEAN                    SkipDriver;
   OC_UEFI_DRIVER_ENTRY       *DriverEntry;
   CONST CHAR8                *DriverComment;
+  CONST CHAR8                *DriverLoad;
   CHAR8                      *DriverFileName;
   CONST CHAR8                *DriverArguments;
   CONST CHAR8                *UnescapedArguments;
@@ -119,26 +120,25 @@ OcLoadDrivers (
   for (Index = 0; Index < Config->Uefi.Drivers.Count; ++Index) {
     DriverEntry     = Config->Uefi.Drivers.Values[Index];
     DriverComment   = OC_BLOB_GET (&DriverEntry->Comment);
+    DriverLoad      = OC_BLOB_GET (&DriverEntry->Load);
     DriverFileName  = OC_BLOB_GET (&DriverEntry->Path);
     DriverArguments = OC_BLOB_GET (&DriverEntry->Arguments);
-
-    SkipDriver = DriverEntry->Early != LoadEarly || !DriverEntry->Enabled || DriverFileName == NULL || DriverFileName[0] == '\0';
-
-    DEBUG ((
-      DEBUG_INFO,
-      "OC: Driver %a at %u (%a) is %a\n",
-      DriverFileName,
-      Index,
-      DriverComment,
-      SkipDriver ? "skipped!" : "being loaded..."
-      ));
 
     //
     // Skip disabled drivers.
     //
-    if (SkipDriver) {
+    if ((DriverFileName == NULL) || (DriverFileName[0] == '\0')
+      || (LoadEarly ? (AsciiStrCmp (DriverLoad, "Early") != 0) : (AsciiStrCmp (DriverLoad, "Enabled") != 0))) {
       continue;
     }
+
+    DEBUG ((
+      DEBUG_INFO,
+      "OC: Driver %a at %u (%a) is being loaded...\n",
+      DriverFileName,
+      Index,
+      DriverComment
+      ));
 
     Status = OcUnicodeSafeSPrint (
                DriverPath,

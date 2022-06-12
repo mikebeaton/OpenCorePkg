@@ -12,8 +12,6 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#include "VariableRuntimeInternal.h"
-
 #include <Library/OcMainLib.h>
 
 #include <Guid/OcVariable.h>
@@ -25,6 +23,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcCpuLib.h>
 #include <Library/OcDeviceMiscLib.h>
 #include <Library/OcFileLib.h>
+#include <Library/OcNvramLib.h>
 #include <Library/OcSerializeLib.h>
 #include <Library/OcStringLib.h>
 #include <Library/OcVariableLib.h>
@@ -67,7 +66,7 @@ OcReportVersion (
 }
 
 EFI_STATUS
-InternalProcessVariableGuid (
+OcProcessVariableGuid (
   IN  CONST CHAR8            *AsciiVariableGuid,
   OUT GUID                   *VariableGuid,
   IN  OC_NVRAM_LEGACY_MAP    *Schema  OPTIONAL,
@@ -98,7 +97,7 @@ InternalProcessVariableGuid (
 }
 
 BOOLEAN
-InternalIsAllowedBySchemaEntry (
+OcVariableIsAllowedBySchemaEntry (
   IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
   IN CONST VOID             *VariableName,
   IN OC_STRING_FORMAT       StringFormat
@@ -139,13 +138,13 @@ InternalIsAllowedBySchemaEntry (
 }
 
 VOID
-InternalSetNvramVariable (
+OcDirectSetNvramVariable (
   IN CONST CHAR8            *AsciiVariableName,
   IN EFI_GUID               *VariableGuid,
   IN UINT32                 Attributes,
   IN UINT32                 VariableSize,
   IN VOID                   *VariableData,
-  IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
+  IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry OPTIONAL,
   IN BOOLEAN                Overwrite
   )
 {
@@ -157,7 +156,7 @@ InternalSetNvramVariable (
   UINT32      OrgAttributes;
 
 
-  if (!InternalIsAllowedBySchemaEntry (SchemaEntry, AsciiVariableName, OcStringFormatAscii)) {
+  if (!OcVariableIsAllowedBySchemaEntry (SchemaEntry, AsciiVariableName, OcStringFormatAscii)) {
     DEBUG ((DEBUG_INFO, "OC: Setting NVRAM %g:%a is not permitted\n", VariableGuid, AsciiVariableName));
     return;
   }
@@ -438,7 +437,7 @@ OcDeleteNvram (
   BOOLEAN      SameContents;
 
   for (DeleteGuidIndex = 0; DeleteGuidIndex < Config->Nvram.Delete.Count; ++DeleteGuidIndex) {
-    Status = InternalProcessVariableGuid (
+    Status = OcProcessVariableGuid (
                OC_BLOB_GET (Config->Nvram.Delete.Keys[DeleteGuidIndex]),
                &VariableGuid,
                NULL,
@@ -540,7 +539,7 @@ OcAddNvram (
   OC_ASSOC    *VariableMap;
 
   for (GuidIndex = 0; GuidIndex < Config->Nvram.Add.Count; ++GuidIndex) {
-    Status = InternalProcessVariableGuid (
+    Status = OcProcessVariableGuid (
                OC_BLOB_GET (Config->Nvram.Add.Keys[GuidIndex]),
                &VariableGuid,
                NULL,
@@ -554,7 +553,7 @@ OcAddNvram (
     VariableMap = Config->Nvram.Add.Values[GuidIndex];
 
     for (VariableIndex = 0; VariableIndex < VariableMap->Count; ++VariableIndex) {
-      InternalSetNvramVariable (
+      OcDirectSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
         Config->Nvram.WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,

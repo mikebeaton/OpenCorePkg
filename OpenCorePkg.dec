@@ -915,6 +915,9 @@
   OcMiscLib|Include/Acidanthera/Library/OcMiscLib.h
 
   ##  @libraryclass
+  OcNvramLib|Include/Acidanthera/Library/OcNvramLib.h
+
+  ##  @libraryclass
   OcOSInfoLib|Include/Acidanthera/Library/OcOSInfoLib.h
 
   ##  @libraryclass

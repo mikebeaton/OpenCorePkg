@@ -10,6 +10,7 @@
 
 #include <Uefi.h>
 #include <Library/BaseLib.h>
+#include <Library/OcNvramLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 

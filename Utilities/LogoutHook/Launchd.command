@@ -33,8 +33,7 @@ fi
 #
 usage() {
   echo "Usage: ${SELFNAME} [install|uninstall|status] [logout|agent|daemon]"
-  echo "  - [install|uninstall|status] with no type to uses"
-  echo "    recommended settings (i.e. daemon)."
+  echo "  - [install|uninstall|status] with no type uses recommended type (daemon)."
   echo ""
 }
 
@@ -352,13 +351,18 @@ saveNvram() {
 
   if [ -f "${nvram_dir}/nvram.plist" ] ; then
     cp "${nvram_dir}/nvram.plist" "${nvram_dir}/nvram.fallback" || abort "Failed to create nvram.fallback!"
-    doLog "nvram.fallback copied"
+    doLog "Created nvram.fallback"
   fi
 
   cp /tmp/nvram.plist "${nvram_dir}/nvram.plist" || abort "Failed to copy nvram.plist!"
-  doLog "nvram.plist saved"
+  doLog "Saved nvram.plist"
 
   rm -f /tmp/nvram.plist
+
+  if [ -f "${nvram_dir}/nvram.used" ] ; then
+    rm "${nvram_dir}/nvram.used" || abort "Failed to delete nvram.used!"
+    doLog "Deleted nvram.used"
+  fi
 
   if [ "${WRITE_HOOK_LOG}" = "1" ] ; then
     date >> "${nvram_dir}/${2}.hook.log" || abort "Failed to write to ${2}.hook.log!"

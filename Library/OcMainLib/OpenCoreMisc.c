@@ -32,6 +32,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcDebugLogLib.h>
 #include <Library/OcDeviceMiscLib.h>
 #include <Library/OcLogAggregatorLib.h>
+#include <Library/OcNvramLib.h>
 #include <Library/OcSmbiosLib.h>
 #include <Library/OcStringLib.h>
 #include <Library/OcVariableLib.h>

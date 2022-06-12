@@ -43,5 +43,6 @@
 [LibraryClasses]
   OcBootManagementLib
   OcConsoleControlEntryModeGenericLib
+  OcNvramLib
   UefiApplicationEntryPoint
   UefiBootServicesTableLib

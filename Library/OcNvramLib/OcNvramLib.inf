@@ -1,0 +1,54 @@
+## @file
+#  OpenCore NVRAM coordination library
+#
+#  Copyright (c) 2019-2022, vit9696, mikebeaton. All rights reserved.<BR>
+#  SPDX-License-Identifier: BSD-3-Clause
+##
+
+[Defines]
+  INF_VERSION                         = 0x00010005
+  BASE_NAME                           = OcNvramLib
+  FILE_GUID                           = 3ACCF197-9B2B-4CDF-8541-F29A4B494A6B
+  MODULE_TYPE                         = DXE_DRIVER
+  VERSION_STRING                      = 1.0
+  LIBRARY_CLASS                       = OcNvramLib|PEIM DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_DRIVER UEFI_APPLICATION DXE_SMM_DRIVER
+
+[Sources]
+  OpenCoreNvram.c
+  VariableManagement.c
+
+[Packages]
+  OpenCorePkg/OpenCorePkg.dec
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  UefiCpuPkg/UefiCpuPkg.dec
+
+[Guids]
+  gAppleBootVariableGuid                        ## SOMETIMES_CONSUMES
+  gAppleCoreStorageVariableGuid                 ## SOMETIMES_CONSUMES
+  gAppleNetbootVariableGuid                     ## SOMETIMES_CONSUMES
+  gApplePersonalizationVariableGuid             ## SOMETIMES_CONSUMES
+  gAppleSecureBootVariableGuid                  ## SOMETIMES_CONSUMES
+  gAppleTamperResistantBootEfiUserVariableGuid  ## SOMETIMES_CONSUMES
+  gAppleTamperResistantBootSecureVariableGuid   ## SOMETIMES_CONSUMES
+  gAppleTamperResistantBootVariableGuid         ## SOMETIMES_CONSUMES
+  gAppleVendorVariableGuid                      ## SOMETIMES_CONSUMES
+  gAppleWirelessNetworkVariableGuid             ## SOMETIMES_CONSUMES
+  gEfiGlobalVariableGuid                        ## SOMETIMES_CONSUMES
+  gMicrosoftVariableGuid                        ## SOMETIMES_CONSUMES
+  gOcReadOnlyVariableGuid                       ## SOMETIMES_CONSUMES
+  gOcVendorVariableGuid                         ## SOMETIMES_CONSUMES
+  gOcWriteOnlyVariableGuid                      ## SOMETIMES_CONSUMES
+
+[Protocols]
+  gOcFirmwareRuntimeProtocolGuid      ## SOMETIMES_CONSUMES
+  gOcVariableRuntimeProtocolGuid      ## SOMETIMES_CONSUMES
+
+[LibraryClasses]
+  OcDeviceMiscLib
+  OcMiscLib
+  OcVariableLib
+  PrintLib
+  UefiBootServicesTableLib
+  UefiLib
+  UefiRuntimeServicesTableLib

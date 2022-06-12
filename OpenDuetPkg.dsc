@@ -138,7 +138,15 @@
   MdeModulePkg/Universal/WatchdogTimerDxe/WatchdogTimer.inf
   MdeModulePkg/Core/RuntimeDxe/RuntimeDxe.inf
   MdeModulePkg/Universal/MonotonicCounterRuntimeDxe/MonotonicCounterRuntimeDxe.inf
-  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
+    <LibraryClasses>
+      OcFlexArrayLib|OpenCorePkg/Library/OcFlexArrayLib/OcFlexArrayLib.inf
+      OcNvramLib|OpenCorePkg/Library/OcNvramLib/OcNvramLib.inf
+      OcSerializeLib|OpenCorePkg/Library/OcSerializeLib/OcSerializeLib.inf
+      OcTemplateLib|OpenCorePkg/Library/OcTemplateLib/OcTemplateLib.inf
+      OcXmlLib|OpenCorePkg/Library/OcXmlLib/OcXmlLib.inf
+      NULL|OpenCorePkg/Library/OcVariableRuntimeLib/OcVariableRuntimeLib.inf
+  }
 
   MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf
   MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf

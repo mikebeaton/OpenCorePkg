@@ -53,14 +53,6 @@
 
 #define OPEN_CORE_LOG_PREFIX_PATH  L"opencore"
 
-#define OPEN_CORE_NVRAM_ROOT_PATH  L"NVRAM"
-
-#define OPEN_CORE_NVRAM_FILENAME       L"nvram.plist"
-
-#define OPEN_CORE_NVRAM_FALLBACK_FILENAME  L"nvram.fallback"
-
-#define OPEN_CORE_NVRAM_USED_FILENAME      L"nvram.used"
-
 #define OPEN_CORE_ACPI_PATH  L"ACPI\\"
 
 #define OPEN_CORE_UEFI_DRIVER_PATH  L"Drivers\\"
@@ -68,12 +60,6 @@
 #define OPEN_CORE_KEXT_PATH  L"Kexts\\"
 
 #define OPEN_CORE_TOOL_PATH  L"Tools\\"
-
-#define OPEN_CORE_NVRAM_ATTR  (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)
-
-#define OPEN_CORE_NVRAM_NV_ATTR  (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE)
-
-#define OPEN_CORE_INT_NVRAM_ATTR  EFI_VARIABLE_BOOTSERVICE_ACCESS
 
 /**
   Obtain cryptographic key if it was installed.
@@ -183,57 +169,6 @@ OcKernelBlockKexts (
 **/
 VOID
 OcUnloadKernelSupport (
-  VOID
-  );
-
-/**
-  Load NVRAM compatibility support.
-
-  @param[in]  Storage   OpenCore storage.
-  @param[in]  Config    OpenCore configuration.
-**/
-VOID
-OcLoadNvramSupport (
-  IN OC_STORAGE_CONTEXT  *Storage,
-  IN OC_GLOBAL_CONFIG    *Config
-  );
-
-/**
-  Install emulated NVRAM protocol on provided image handle.
-
-  @param[in]  ImageHandle   Image handle to use.
-**/
-EFI_STATUS
-EFIAPI
-OcInstallVariableRuntimeProtocol (
-  IN EFI_HANDLE        ImageHandle
-  );
-
-/**
-  Save to emulated NVRAM using installed protocol when present.
-**/
-VOID
-EFIAPI
-OcSaveLegacyNvram (
-  VOID
-  );
-
-/**
-  Reset emulated NVRAM using installed protocol when present.
-  If protocol is present, does not return and restarts system.
-**/
-VOID
-EFIAPI
-OcResetLegacyNvram (
-  VOID
-  );
-
-/**
-  Switch to fallback emulated NVRAM using installed protocol when present.
-**/
-VOID
-EFIAPI
-OcSwitchToFallbackLegacyNvram (
   VOID
   );
 

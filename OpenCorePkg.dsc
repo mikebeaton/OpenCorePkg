@@ -100,6 +100,7 @@
   OcMemoryLib|OpenCorePkg/Library/OcMemoryLib/OcMemoryLib.inf
   OcMiscLib|OpenCorePkg/Library/OcMiscLib/OcMiscLib.inf
   OcMp3Lib|OpenCorePkg/Library/OcMp3Lib/OcMp3Lib.inf
+  OcNvramLib|OpenCorePkg/Library/OcNvramLib/OcNvramLib.inf
   OcOSInfoLib|OpenCorePkg/Library/OcOSInfoLib/OcOSInfoLib.inf
   OcPngLib|OpenCorePkg/Library/OcPngLib/OcPngLib.inf
   OcRngLib|OpenCorePkg/Library/OcRngLib/OcRngLib.inf

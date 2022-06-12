@@ -26,13 +26,11 @@
   OpenCoreKernel.c
   OpenCoreKernelPatch.c
   OpenCoreMisc.c
-  OpenCoreNvram.c
   OpenCorePlatform.c
   OpenCoreUefi.c
   OpenCoreUefiAudio.c
   OpenCoreUefiInOut.c
   OpenCoreVault.c
-  OpenVariableRuntime.c
 
 [Packages]
   OpenCorePkg/OpenCorePkg.dec
@@ -54,8 +52,6 @@
   gOcInterfaceProtocolGuid            ## SOMETIMES_CONSUMES
   gEfiSecurityArchProtocolGuid        ## SOMETIMES_CONSUMES
   gEfiSecurity2ArchProtocolGuid       ## SOMETIMES_CONSUMES
-  gOcFirmwareRuntimeProtocolGuid      ## SOMETIMES_CONSUMES
-  gOcVariableRuntimeProtocolGuid      ## SOMETIMES_CONSUMES
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterAccessWidth     ## SOMETIMES_CONSUMES

@@ -23,18 +23,16 @@
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
-#include <Library/OcBootManagementLib.h>
 #include <Library/OcDeviceMiscLib.h>
 #include <Library/OcDebugLogLib.h>
 #include <Library/OcMiscLib.h>
+#include <Library/OcNvramLib.h>
 #include <Library/OcStringLib.h>
 #include <Library/PrintLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiLib.h>
 #include <Protocol/OcFirmwareRuntime.h>
-
-#include "BootManagementInternal.h"
 
 STATIC
 EFI_GUID
@@ -59,6 +57,48 @@ EFI_GUID
   mBootChimeVendorVariableGuid = {
   0x89D4F995, 0x67E3, 0x4895, { 0x8F, 0x18, 0x45, 0x4B, 0x65, 0x1D, 0x92, 0x15 }
 };
+
+EFI_LOAD_OPTION *
+OcGetBootOptionData (
+  OUT UINTN           *OptionSize,
+  IN  UINT16          BootOption,
+  IN  CONST EFI_GUID  *BootGuid
+  )
+{
+  EFI_STATUS       Status;
+  CHAR16           BootVarName[L_STR_LEN (L"Boot####") + 1];
+  UINTN            LoadOptionSize;
+  EFI_LOAD_OPTION  *LoadOption;
+
+  if (CompareGuid (BootGuid, &gOcVendorVariableGuid)) {
+    UnicodeSPrint (
+      BootVarName,
+      sizeof (BootVarName),
+      OC_VENDOR_BOOT_VARIABLE_PREFIX L"%04x",
+      BootOption
+      );
+  } else {
+    UnicodeSPrint (BootVarName, sizeof (BootVarName), L"Boot%04x", BootOption);
+  }
+
+  Status = GetVariable2 (
+             BootVarName,
+             BootGuid,
+             (VOID **)&LoadOption,
+             &LoadOptionSize
+             );
+  if (EFI_ERROR (Status)) {
+    return NULL;
+  }
+
+  if (LoadOptionSize < sizeof (*LoadOption)) {
+    FreePool (LoadOption);
+    return NULL;
+  }
+
+  *OptionSize = LoadOptionSize;
+  return LoadOption;
+}
 
 STATIC
 BOOLEAN
@@ -302,8 +342,9 @@ DeleteVariables (
   OcScanVariables (DeleteVariable, &PreserveBoot);
 }
 
+STATIC
 VOID *
-InternalGetBootstrapBootData (
+GetBootstrapBootData (
   OUT UINTN   *OptionSize,
   OUT UINT16  *Option
   )
@@ -355,7 +396,7 @@ InternalGetBootstrapBootData (
   //
   // OpenCore moved Bootstrap to BootOrder[0] on initialisation.
   //
-  OptionData = InternalGetBootOptionData (
+  OptionData = OcGetBootOptionData (
                  OptionSize,
                  BootOrder[0],
                  &gEfiGlobalVariableGuid
@@ -520,7 +561,7 @@ OcDeleteVariables (
   }
 
   if ((BootProtect & OC_BOOT_PROTECT_VARIABLE_BOOTSTRAP) != 0) {
-    BootOption = InternalGetBootstrapBootData (&BootOptionSize, &BootOptionIndex);
+    BootOption = GetBootstrapBootData (&BootOptionSize, &BootOptionIndex);
     if (BootOption != NULL) {
       DEBUG ((
         DEBUG_INFO,

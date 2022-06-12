@@ -698,8 +698,7 @@ OC_SCHEMA
 mUefiDriversSchemaEntry[] = {
   OC_SCHEMA_STRING_IN   ("Arguments", OC_UEFI_DRIVER_ENTRY, Arguments),
   OC_SCHEMA_STRING_IN   ("Comment",   OC_UEFI_DRIVER_ENTRY, Comment),
-  OC_SCHEMA_BOOLEAN_IN  ("Early",     OC_UEFI_DRIVER_ENTRY, Early),
-  OC_SCHEMA_BOOLEAN_IN  ("Enabled",   OC_UEFI_DRIVER_ENTRY, Enabled),
+  OC_SCHEMA_STRING_IN   ("Load",      OC_UEFI_DRIVER_ENTRY, Load),
   OC_SCHEMA_STRING_IN   ("Path",      OC_UEFI_DRIVER_ENTRY, Path),
 };
 

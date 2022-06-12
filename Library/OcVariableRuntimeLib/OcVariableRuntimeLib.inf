@@ -26,4 +26,7 @@
   gOcVariableRuntimeProtocolGuid       ## PRODUCES
 
 [LibraryClasses]
-  OcMainLib
+  OcNvramLib
+  OcSerializeLib
+  OcFlexArrayLib
+
