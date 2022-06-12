@@ -45,9 +45,7 @@
   gOcVariableRuntimeProtocolGuid      ## SOMETIMES_CONSUMES
 
 [LibraryClasses]
-  OcDeviceMiscLib
   OcMiscLib
-  OcVariableLib
   PrintLib
   UefiBootServicesTableLib
   UefiLib

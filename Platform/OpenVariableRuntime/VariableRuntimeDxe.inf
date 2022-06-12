@@ -53,6 +53,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  OpenCorePkg/OpenCorePkg.dec
 
 [LibraryClasses]
   MemoryAllocationLib
@@ -72,6 +73,7 @@
   VarCheckLib
   VariablePolicyLib
   VariablePolicyHelperLib
+  OcMiscLib
 
 [Protocols]
   gEfiFirmwareVolumeBlockProtocolGuid           ## CONSUMES

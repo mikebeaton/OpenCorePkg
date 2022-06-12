@@ -17,6 +17,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "Variable.h"
 
 #include <Protocol/VariablePolicy.h>
+#include <Library/OcMiscLib.h>
 #include <Library/VariablePolicyLib.h>
 
 //
@@ -31,64 +32,6 @@ EFI_GUID *
   &gEfiVariableWriteArchProtocolGuid,
   &gEdkiiVariablePolicyProtocolGuid
 };
-
-//
-// TODO: Should really be linked from OcMiscLib, but requires multiple additional libraries in OpenDuet.dsc.
-//
-STATIC
-EFI_STATUS
-UninstallAllProtocolInstances (
-  EFI_GUID  *Protocol
-  )
-{
-  EFI_STATUS  Status;
-  EFI_HANDLE  *Handles;
-  UINTN       Index;
-  UINTN       NoHandles;
-  VOID        *OriginalProto;
-
-  Status = gBS->LocateHandleBuffer (
-                  ByProtocol,
-                  Protocol,
-                  NULL,
-                  &NoHandles,
-                  &Handles
-                  );
-
-  if (Status == EFI_NOT_FOUND) {
-    return EFI_SUCCESS;
-  }
-
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
-
-  for (Index = 0; Index < NoHandles; ++Index) {
-    Status = gBS->HandleProtocol (
-                    Handles[Index],
-                    Protocol,
-                    &OriginalProto
-                    );
-
-    if (EFI_ERROR (Status)) {
-      break;
-    }
-
-    Status = gBS->UninstallProtocolInterface (
-                    Handles[Index],
-                    Protocol,
-                    OriginalProto
-                    );
-
-    if (EFI_ERROR (Status)) {
-      break;
-    }
-  }
-
-  FreePool (Handles);
-
-  return Status;
-}
 
 EFI_STATUS
 EFIAPI
@@ -651,7 +594,7 @@ VariableServiceInitialize (
   // Appears to work fine even without these uninstalls, but seems sane to do them.
   //
   for (Index = 0; Index < ARRAY_SIZE (mVariableRuntimeProtocols); ++Index) {
-    Status = UninstallAllProtocolInstances (mVariableRuntimeProtocols[Index]);
+    Status = OcUninstallAllProtocolInstances (mVariableRuntimeProtocols[Index]);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "Uninstall %g failed - %r\n", mVariableRuntimeProtocols[Index], Status));
     } else {
