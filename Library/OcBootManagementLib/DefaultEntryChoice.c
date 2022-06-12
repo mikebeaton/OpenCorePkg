@@ -1167,6 +1167,8 @@ OcSetDefaultBootEntry (
       ));
   }
 
+  OcSaveLegacyNvram ();
+
   return Status;
 }
 

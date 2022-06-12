@@ -43,57 +43,58 @@ typedef struct OC_VARIABLE_RUNTIME_PROTOCOL_ OC_VARIABLE_RUNTIME_PROTOCOL;
 /**
   Load NVRAM from storage, applying legacy filter from config.
 
-  @param[in]  Storage           OpenCore storage context.
-  @param[in]  NvramConfig       OpenCore NVRAM config.
+  @param[in]  StorageContext      OpenCore storage context.
+  @param[in]  NvramConfig         OpenCore NVRAM config.
 
-  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
-  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
-  @retval EFI_SUCCESS           NVRAM contents were successfully loaded from storage.
+  @retval EFI_INVALID_PARAMETER   StorageContext or NvramConfig is NULL.
+  @retval EFI_ALREADY_STARTED     Has been called already.
+  @retval EFI_NOT_FOUND           Invalid or missing NVRAM storage.
+  @retval EFI_UNSUPPORTED         Invalid NVRAM storage contents.
+  @retval EFI_SUCCESS             On success.
 **/
 typedef
 EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM)(
-  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_STORAGE_CONTEXT               *StorageContext,
   IN OC_NVRAM_CONFIG                  *NvramConfig
   );
 
 /**
   Save NVRAM to storage, applying legacy filter from config.
 
-  @param[in]  Storage           OpenCore storage context.
-  @param[in]  NvramConfig       OpenCore NVRAM config.
+  @param[in]  Storage             OpenCore storage context.
+  @param[in]  NvramConfig         OpenCore NVRAM config.
 
-  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
-  @retval **TODO**
-  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
-  @retval EFI_SUCCESS           NVRAM contents were successfully saved to storage.
+  @retval EFI_NOT_READY           If called before LoadNvram.
+  @retval EFI_NOT_FOUND           Invalid or missing NVRAM storage.
+  @retval EFI_UNSUPPORTED         Invalid NVRAM storage contents.
+  @retval EFI_OUT_OF_RESOURCES    Out of memory.
+  @retval other                   Other error from child function.
+  @retval EFI_SUCCESS             On success.
 **/
 typedef
 EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM)(
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   );
 
 /**
   Reset NVRAM.
 
-  @param[in]  Storage           OpenCore storage context.
-  @param[in]  NvramConfig       OpenCore NVRAM config.
+  @param[in]  Storage             OpenCore storage context.
 
-  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
-  @retval **TODO**
-  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
-  @retval EFI_SUCCESS           NVRAM contents were successfully reset.
+  @retval EFI_NOT_READY           If called before LoadNvram.
+  @retval EFI_NOT_FOUND           Invalid or missing NVRAM storage.
+  @retval other                   Other error from child function.
+  @retval EFI_SUCCESS             On success.
 **/
 typedef
 EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM)(
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   );
 
 /**
@@ -103,20 +104,19 @@ EFIAPI
   In existing implementation this works in combination with Launchd.command,
   which renames previous nvram.plist as nvram.fallback on each save of new file.
 
-  @param[in]  Storage           OpenCore storage context.
-  @param[in]  NvramConfig       OpenCore NVRAM config.
+  @param[in]  Storage             OpenCore storage context.
 
-  @retval EFI_NOT_FOUND         Invalid or missing NVRAM storage.
-  @retval **TODO**
-  @retval EFI_UNSUPPORTED       Invalid NVRAM storage contents.
-  @retval EFI_SUCCESS           Successfully switched to fallback NVRAM contexts.
+  @retval EFI_NOT_READY           If called before LoadNvram.
+  @retval EFI_NOT_FOUND           Invalid or missing NVRAM storage.
+  @retval EFI_OUT_OF_RESOURCES    Out of memory.
+  @retval other                   Other error from child function.
+  @retval EFI_SUCCESS             On success.
 **/
 typedef
 EFI_STATUS
 EFIAPI
 (EFIAPI *OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK)(
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   );
 
 /**

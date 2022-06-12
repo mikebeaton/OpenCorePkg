@@ -187,42 +187,6 @@ OcUnloadKernelSupport (
   );
 
 /**
-  Save to emulated NVRAM using installed protocol if present.
-
-  @param[in]  Storage   OpenCore storage.
-  @param[in]  Config    OpenCore configuration.
-**/
-VOID
-OcSaveLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
-  );
-
-/**
-  Reset emulated NVRAM using installed protocol if present.
-
-  @param[in]  Storage   OpenCore storage.
-  @param[in]  Config    OpenCore configuration.
-**/
-VOID
-OcResetLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
-  );
-
-/**
-  Switch to fallback emulated NVRAM using installed protocol if present.
-
-  @param[in]  Storage   OpenCore storage.
-  @param[in]  Config    OpenCore configuration.
-**/
-VOID
-OcSwitchToFallbackLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
-  );
-
-/**
   Load NVRAM compatibility support.
 
   @param[in]  Storage   OpenCore storage.
@@ -243,6 +207,34 @@ EFI_STATUS
 EFIAPI
 OcInstallVariableRuntimeProtocol (
   IN EFI_HANDLE        ImageHandle
+  );
+
+/**
+  Save to emulated NVRAM using installed protocol when present.
+**/
+VOID
+EFIAPI
+OcSaveLegacyNvram (
+  VOID
+  );
+
+/**
+  Reset emulated NVRAM using installed protocol when present.
+  If protocol is present, does not return and restarts system.
+**/
+VOID
+EFIAPI
+OcResetLegacyNvram (
+  VOID
+  );
+
+/**
+  Switch to fallback emulated NVRAM using installed protocol when present.
+**/
+VOID
+EFIAPI
+OcSwitchToFallbackLegacyNvram (
+  VOID
   );
 
 /**

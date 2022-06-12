@@ -10,6 +10,7 @@
 #include <Uefi.h>
 #include <Library/BaseLib.h>
 #include <Library/OcDeviceMiscLib.h>
+#include <Library/OcMainLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
@@ -44,6 +45,8 @@ SystemActionResetNvram (
   UINT8  ResetNVRam = 1;
 
   WaitForChime (PickerContext);
+
+  OcResetLegacyNvram ();
 
   if (!mUseApple) {
     return OcResetNvram (mPreserveBoot);

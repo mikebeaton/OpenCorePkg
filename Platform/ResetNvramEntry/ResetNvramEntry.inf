@@ -25,6 +25,7 @@
   OcBootManagementLib
   OcDeviceMiscLib
   OcFlexArrayLib
+  OcMainLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
   UefiDriverEntryPoint

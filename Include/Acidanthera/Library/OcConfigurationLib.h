@@ -474,6 +474,9 @@ OC_DECLARE (OC_NVRAM_LEGACY_ENTRY)
   OC_MAP (OC_STRING, OC_NVRAM_LEGACY_ENTRY, _, __)
 OC_DECLARE (OC_NVRAM_LEGACY_MAP)
 
+//
+// Modifications to OC_NVRAM_CONFIG require updating OC_VARIABLE_RUNTIME_PROTOCOL_REVISION.
+//
 #define OC_NVRAM_CONFIG_FIELDS(_, __) \
   _(OC_NVRAM_ADD_MAP           , Add               ,     , OC_CONSTR2 (OC_NVRAM_ADD_MAP, _, __)        , OC_DESTR (OC_NVRAM_ADD_MAP)) \
   _(OC_NVRAM_DELETE_MAP        , Delete            ,     , OC_CONSTR2 (OC_NVRAM_DELETE_MAP, _, __)     , OC_DESTR (OC_NVRAM_DELETE_MAP)) \

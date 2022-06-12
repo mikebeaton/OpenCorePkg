@@ -23,6 +23,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/PrintLib.h>
 #include <Library/OcCpuLib.h>
+#include <Library/OcDeviceMiscLib.h>
 #include <Library/OcFileLib.h>
 #include <Library/OcSerializeLib.h>
 #include <Library/OcStringLib.h>
@@ -353,9 +354,9 @@ OcLoadLegacyNvram (
 }
 
 VOID
+EFIAPI
 OcSaveLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -366,7 +367,7 @@ OcSaveLegacyNvram (
     return;
   }
 
-  Status = OcVariableRuntimeProtocol->SaveNvram (Storage, &Config->Nvram);
+  Status = OcVariableRuntimeProtocol->SaveNvram ();
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM save failed - %r\n", Status));
@@ -374,9 +375,9 @@ OcSaveLegacyNvram (
 }
 
 VOID
+EFIAPI
 OcResetLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -387,17 +388,19 @@ OcResetLegacyNvram (
     return;
   }
 
-  Status = OcVariableRuntimeProtocol->ResetNvram (Storage, &Config->Nvram);
+  Status = OcVariableRuntimeProtocol->ResetNvram ();
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM reset failed - %r\n", Status));
   }
+
+  DirectResetCold ();
 }
 
 VOID
+EFIAPI
 OcSwitchToFallbackLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -408,7 +411,7 @@ OcSwitchToFallbackLegacyNvram (
     return;
   }
 
-  Status = OcVariableRuntimeProtocol->SwitchToFallback (Storage, &Config->Nvram);
+  Status = OcVariableRuntimeProtocol->SwitchToFallback ();
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM switch to fallback failed - %r\n", Status));

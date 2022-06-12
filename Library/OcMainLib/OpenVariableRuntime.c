@@ -67,54 +67,62 @@ OC_SCHEMA_INFO
 };
 
 STATIC
-EFI_FILE_PROTOCOL *
+OC_STORAGE_CONTEXT
+*mStorageContext = NULL;
+
+STATIC
+OC_NVRAM_CONFIG
+*mNvramConfig = NULL;
+
+STATIC
+EFI_STATUS
 LocateNvramDir (
-  IN OC_STORAGE_CONTEXT               *Storage
+  OUT EFI_FILE_PROTOCOL **NvramDir
   )
 {
   EFI_STATUS                    Status;
   EFI_FILE_PROTOCOL             *Root;
-  EFI_FILE_PROTOCOL             *NvramDir;
 
-  ASSERT (Storage != NULL);
-
-  if (Storage->FileSystem == NULL) {
-    DEBUG ((DEBUG_WARN, "VAR: No file system\n"));
-    return NULL;
+  if (mStorageContext == NULL || mNvramConfig == NULL) {
+    return EFI_NOT_READY;
   }
 
-  Status = Storage->FileSystem->OpenVolume (Storage->FileSystem, &Root);
+  if (mStorageContext->FileSystem == NULL) {
+    DEBUG ((DEBUG_WARN, "VAR: No file system\n"));
+    return EFI_NOT_FOUND;
+  }
+
+  Status = mStorageContext->FileSystem->OpenVolume (mStorageContext->FileSystem, &Root);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "VAR: Invalid root volume - %r\n", Status));
-    return NULL;
+    return EFI_NOT_FOUND;
   }
 
   // TODO: What actually happens if we open/create here, and the file exists but is not a directory?
   Status = OcSafeFileOpen (
     Root,
-    &NvramDir,
+    NvramDir,
     OPEN_CORE_NVRAM_ROOT_PATH,
     EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
     EFI_FILE_DIRECTORY
     );
   if (!EFI_ERROR (Status)) {
-    Status = OcEnsureDirectoryFile (NvramDir, TRUE);
+    Status = OcEnsureDirectoryFile (*NvramDir, TRUE);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "VAR: %s found but not a directory - %r\n", OPEN_CORE_NVRAM_ROOT_PATH, Status));
+      (*NvramDir)->Close (*NvramDir);
+      *NvramDir = NULL;
     }
-
-    NvramDir->Close (NvramDir);
-    return NULL;
   }
 
-  return NvramDir;
+  return EFI_SUCCESS;
 }
 
 STATIC
 EFI_STATUS
 EFIAPI
 LoadNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
+  IN OC_STORAGE_CONTEXT               *StorageContext,
   IN OC_NVRAM_CONFIG                  *NvramConfig
   )
 {
@@ -132,9 +140,20 @@ LoadNvram (
 
   DEBUG ((DEBUG_INFO, "VAR: Loading NVRAM...\n"));
 
-  NvramDir = LocateNvramDir (Storage);
-  if (NvramDir == NULL) {
-    return EFI_NOT_FOUND;
+  if (mStorageContext != NULL || mNvramConfig != NULL) {
+    return EFI_ALREADY_STARTED;
+  }
+
+  if (StorageContext == NULL || NvramConfig == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  mStorageContext = StorageContext;
+  mNvramConfig = NvramConfig;
+
+  Status = LocateNvramDir (&NvramDir);
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
@@ -167,7 +186,7 @@ LoadNvram (
     Status = InternalProcessVariableGuid (
                OC_BLOB_GET (NvramStorage.Add.Keys[GuidIndex]),
                &VariableGuid,
-               &NvramConfig->Legacy,
+               &mNvramConfig->Legacy,
                &SchemaEntry
                );
 
@@ -181,11 +200,11 @@ LoadNvram (
       InternalSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
-        NvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
+        mNvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
         VariableMap->Values[VariableIndex]->Size,
         OC_BLOB_GET (VariableMap->Values[VariableIndex]),
         SchemaEntry,
-        NvramConfig->LegacyOverwrite
+        mNvramConfig->LegacyOverwrite
         );
     }
   }
@@ -324,8 +343,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 SaveNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -335,9 +353,9 @@ SaveNvram (
 
   DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM...\n"));
 
-  NvramDir = LocateNvramDir (Storage);
-  if (NvramDir == NULL) {
-      return EFI_NOT_FOUND;
+  Status = LocateNvramDir (&NvramDir);
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   Context.Status = EFI_SUCCESS;
@@ -383,11 +401,11 @@ SaveNvram (
     return Status;
   }
 
-  for (GuidIndex = 0; GuidIndex < NvramConfig->Legacy.Count; ++GuidIndex) {
+  for (GuidIndex = 0; GuidIndex < mNvramConfig->Legacy.Count; ++GuidIndex) {
     Status = InternalProcessVariableGuid (
-      OC_BLOB_GET (NvramConfig->Legacy.Keys[GuidIndex]),
+      OC_BLOB_GET (mNvramConfig->Legacy.Keys[GuidIndex]),
       &Context.SectionGuid,
-      &NvramConfig->Legacy,
+      &mNvramConfig->Legacy,
       &Context.SchemaEntry
       );
     if (EFI_ERROR (Status)) {
@@ -464,8 +482,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 ResetNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -474,9 +491,9 @@ ResetNvram (
 
   DEBUG ((DEBUG_INFO, "VAR: Resetting NVRAM...\n"));
 
-  NvramDir = LocateNvramDir (Storage);
-  if (NvramDir == NULL) {
-    return EFI_NOT_FOUND;
+  Status = LocateNvramDir (&NvramDir);
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
@@ -498,8 +515,7 @@ STATIC
 EFI_STATUS
 EFIAPI
 SwitchToFallback (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  VOID
   )
 {
   EFI_STATUS                    Status;
@@ -511,9 +527,9 @@ SwitchToFallback (
 
   DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM...\n"));
 
-  NvramDir = LocateNvramDir (Storage);
-  if (NvramDir == NULL) {
-    return EFI_NOT_FOUND;
+  Status = LocateNvramDir (&NvramDir);
+  if (EFI_ERROR (Status)) {
+    return Status;
   }
 
   //
