@@ -559,11 +559,9 @@ SwitchToFallback (
 {
   EFI_STATUS                    Status;
   EFI_FILE_PROTOCOL             *NvramDir;
+  UINT8                         *FileBuffer;
+  UINT32                        FileSize;
   EFI_FILE_PROTOCOL             *FallbackFile;
-  EFI_FILE_PROTOCOL             *NvramFile;
-  EFI_FILE_PROTOCOL             *UsedFile;
-  EFI_FILE_INFO                 *FileInfo;
-  UINTN                         FileInfoSize;
 
   DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM...\n"));
 
@@ -572,60 +570,44 @@ SwitchToFallback (
     return Status;
   }
 
-  //
-  // Do not do anything to main file if fallback file does not exist.
-  //
   Status = OcSafeFileOpen (NvramDir, &FallbackFile, OPEN_CORE_NVRAM_FALLBACK_FILENAME, EFI_FILE_MODE_READ, 0);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: %s cannot be opened, not switching to fallback! - %r", OPEN_CORE_NVRAM_FALLBACK_FILENAME, Status));
+    DEBUG ((DEBUG_WARN, "VAR: %s cannot be opened, not switching to fallback! - %r\n", OPEN_CORE_NVRAM_FALLBACK_FILENAME, Status));
     NvramDir->Close (NvramDir);
     return Status;
   }
   FallbackFile->Close (FallbackFile);
-  
-  Status = OcSafeFileOpen (NvramDir, &NvramFile, OPEN_CORE_NVRAM_FILENAME, EFI_FILE_MODE_READ, 0);
+
+  FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
+  if (FileBuffer == NULL) {
+    DEBUG ((DEBUG_INFO, "VAR: %s cannot be opened, already switched to fallback?\n", OPEN_CORE_NVRAM_FILENAME));
+    NvramDir->Close (NvramDir);
+    return EFI_NOT_FOUND;
+  }
+
+  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_USED_FILENAME);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_USED_FILENAME, Status));
+  }
+
+  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
+  }
+
+  Status = OcSetFileData (
+    NvramDir,
+    OPEN_CORE_NVRAM_USED_FILENAME,
+    FileBuffer,
+    FileSize
+    );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Error writing %s - %r\n", OPEN_CORE_NVRAM_USED_FILENAME, Status));
+  }
+
   NvramDir->Close (NvramDir);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((Status == EFI_NOT_FOUND ? DEBUG_INFO : DEBUG_WARN, "VAR: %s cannot be opened, already switched to fallback! - %r", OPEN_CORE_NVRAM_FILENAME, Status));
-    return Status == EFI_NOT_FOUND ? EFI_SUCCESS : Status;
-  }
+  FreePool (FileBuffer);
 
-  FileInfoSize = 0;
-  Status = NvramFile->GetInfo (NvramFile, &gEfiFileInfoGuid, &FileInfoSize, NULL);
-  if (Status != EFI_BUFFER_TOO_SMALL) {
-    DEBUG ((DEBUG_WARN, "VAR: %s cannot get file info size, not switching to fallback! - %r", OPEN_CORE_NVRAM_FILENAME, Status));
-    return Status;
-  }
-
-  FileInfo = AllocatePool (FileInfoSize);
-  if (FileInfo == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-  
-  Status = NvramFile->GetInfo (NvramFile, &gEfiFileInfoGuid, &FileInfoSize, FileInfo);
-  if (Status != EFI_BUFFER_TOO_SMALL) {
-    DEBUG ((DEBUG_WARN, "VAR: %s cannot get file info, not switching to fallback! - %r", OPEN_CORE_NVRAM_FILENAME, Status));
-    FreePool (FileInfo);
-    return Status;
-  }
-
-  Status = OcSafeFileOpen (NvramDir, &UsedFile, OPEN_CORE_NVRAM_USED_FILENAME, EFI_FILE_MODE_READ, 0);
-  if (!EFI_ERROR (Status)) {
-    Status = UsedFile->Delete (UsedFile);
-    if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r", OPEN_CORE_NVRAM_USED_FILENAME, Status));
-    }
-  }
-
-  STATIC_ASSERT (L_STR_LEN (OPEN_CORE_NVRAM_USED_FILENAME) <= L_STR_LEN (OPEN_CORE_NVRAM_FILENAME), "NVRAM_USED_FILENAME length should be shorter than or equal to NVRAM_FILENAME length");
-  StrCpyS (FileInfo->FileName, L_STR_SIZE (OPEN_CORE_NVRAM_USED_FILENAME), OPEN_CORE_NVRAM_USED_FILENAME);
-
-  Status = NvramFile->SetInfo (NvramFile, &gEfiFileInfoGuid, FileInfoSize, FileInfo);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Failure renaming %s -> %s - %r", OPEN_CORE_NVRAM_FILENAME, OPEN_CORE_NVRAM_USED_FILENAME, Status));
-  }
-
-  FreePool (FileInfo);
   return Status;
 }
 

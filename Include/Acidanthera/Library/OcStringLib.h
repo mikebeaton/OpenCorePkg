@@ -129,7 +129,7 @@ AsciiStrCopyToUnicode (
   );
 
 /**
-  Convert 64-bit unsigned integer to a nul-termianted hex string.
+  Convert 64-bit unsigned integer to a nul-terminated hex string.
 
   @param[out]  Buffer      Destination buffer.
   @param[in]   BufferSize  Destination buffer size in bytes.
