@@ -497,13 +497,8 @@ SaveNvram (
   }
 
   Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((
-      (Status == EFI_NOT_FOUND) ? DEBUG_INFO : DEBUG_WARN,
-      "VAR: Deleting previous %s - %r\n",
-      OPEN_CORE_NVRAM_FILENAME,
-      Status
-      ));
+  if (EFI_ERROR (Status) && (Status != EFI_NOT_FOUND)) {
+    DEBUG ((DEBUG_WARN, "VAR: Deleting previous %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
   }
 
   Status = OcSetFileData (
