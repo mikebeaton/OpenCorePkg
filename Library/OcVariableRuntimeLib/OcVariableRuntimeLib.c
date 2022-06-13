@@ -131,7 +131,7 @@ LoadNvram (
   OC_ASSOC                      *VariableMap;
   OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
 
-  DEBUG ((DEBUG_INFO, "VAR: Loading NVRAM...\n"));
+  DEBUG ((DEBUG_INFO, "VAR: Loading NVRAM from storage...\n"));
 
   if (mStorageContext != NULL || mNvramConfig != NULL) {
     return EFI_ALREADY_STARTED;
@@ -260,7 +260,7 @@ SerializeSectionVariables (
   }
 
   if (!OcVariableIsAllowedBySchemaEntry (SaveContext->SchemaEntry, Name, OcStringFormatUnicode)) {
-    DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM %g:%s is not permitted\n", Guid, Name));
+    DEBUG ((DEBUG_INFO, "VAR: NVRAM %g:%s is not permitted\n", Guid, Name));
     return OcProcessVariableContinue;
   }
 
@@ -300,7 +300,7 @@ SerializeSectionVariables (
   //
   if (((Attributes & EFI_VARIABLE_RUNTIME_ACCESS) == 0)
     || ((Attributes & EFI_VARIABLE_NON_VOLATILE) == 0)) {
-    DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM %g:%s skipped due to attributes 0x%X\n", Guid, Name, Attributes));
+    DEBUG ((DEBUG_INFO, "VAR: NVRAM %g:%s skipped w/ attributes 0x%X\n", Guid, Name, Attributes));
     return OcProcessVariableContinue;
   }
 
@@ -388,7 +388,7 @@ SaveNvram (
   UINT32                        GuidIndex;
   NVRAM_SAVE_CONTEXT            Context;
 
-  DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM...\n"));
+  DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM to storage...\n"));
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -498,7 +498,12 @@ SaveNvram (
 
   Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Error deleting %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
+    DEBUG ((
+      (Status == EFI_NOT_FOUND) ? DEBUG_INFO : DEBUG_WARN,
+      "VAR: Deleting previous %s - %r\n",
+      OPEN_CORE_NVRAM_FILENAME,
+      Status
+      ));
   }
 
   Status = OcSetFileData (
@@ -528,7 +533,7 @@ ResetNvram (
   EFI_STATUS                    AltStatus;
   EFI_FILE_PROTOCOL             *NvramDir;
 
-  DEBUG ((DEBUG_INFO, "VAR: Resetting NVRAM...\n"));
+  DEBUG ((DEBUG_INFO, "VAR: Resetting NVRAM storage...\n"));
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -563,7 +568,7 @@ SwitchToFallback (
   UINT32                        FileSize;
   EFI_FILE_PROTOCOL             *FallbackFile;
 
-  DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM...\n"));
+  DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM storage...\n"));
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
