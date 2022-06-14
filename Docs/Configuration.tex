@@ -6346,10 +6346,12 @@ even cause permanent firmware damage. Some of the known drivers are listed below
 & USB keyboard driver adding support for \texttt{AppleKeyMapAggregator} protocols
   on top of a custom USB keyboard driver implementation. This is an alternative to
   builtin \texttt{KeySupport}, which may work better or worse depending on the firmware. \\
-\href{https://github.com/acidanthera/OcBinaryData}{\texttt{OpenPartitionDxe}}\textbf{*}
+\href{https://github.com/acidanthera/OpenCorePkg}{\texttt{OpenPartitionDxe}}\textbf{*}
 & Partition management driver with Apple Partitioning Scheme support.
-  This driver can be used to support loading older DMG recoveries such as
-  macOS 10.9 using Apple Partitioning Scheme. OpenDuet already includes this driver. \\
+  This driver can be used to support loading older DMG recoveries such as macOS 10.9
+  using Apple Partitioning Scheme, or for loading other macOS Installers where these were
+  created using the Apple Partitioning Scheme (creating macOS Installers using GPT avoids
+  the need for this). OpenDuet already includes this driver. \\
 \href{https://github.com/acidanthera/audk}{\texttt{Ps2KeyboardDxe}}\textbf{*}
 & PS/2 keyboard driver from \texttt{MdeModulePkg}. \texttt{OpenDuetPkg} and some types of firmware
   may not include this driver, but it is necessary for PS/2 keyboard to work.
