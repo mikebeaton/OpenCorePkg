@@ -101,6 +101,7 @@ OcLoadDrivers (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
   EFI_HANDLE                 *DriversToConnectIterator;
   VOID                       *DriverBinding;
+  BOOLEAN                    SkipDriver;
   OC_UEFI_DRIVER_ENTRY       *DriverEntry;
   CONST CHAR8                *DriverComment;
   CONST CHAR8                *DriverLoad;
@@ -124,21 +125,33 @@ OcLoadDrivers (
     DriverFileName  = OC_BLOB_GET (&DriverEntry->Path);
     DriverArguments = OC_BLOB_GET (&DriverEntry->Arguments);
 
+    SkipDriver = (
+         (DriverFileName == NULL)
+      || (DriverFileName[0] == '\0')
+      || (
+        LoadEarly
+        ? (AsciiStrCmp (DriverLoad, "Early") != 0)
+        : (AsciiStrCmp (DriverLoad, "Enabled") != 0)
+        )
+      );
+
+    if (!LoadEarly || !SkipDriver) {
+      DEBUG ((
+        DEBUG_INFO,
+        "OC: Driver %a at %u (%a) is %a\n",
+        DriverFileName,
+        Index,
+        DriverComment,
+        SkipDriver ? "skipped!" : "being loaded..."
+        ));
+    }
+
     //
     // Skip disabled drivers.
     //
-    if ((DriverFileName == NULL) || (DriverFileName[0] == '\0')
-      || (LoadEarly ? (AsciiStrCmp (DriverLoad, "Early") != 0) : (AsciiStrCmp (DriverLoad, "Enabled") != 0))) {
+    if (SkipDriver) {
       continue;
     }
-
-    DEBUG ((
-      DEBUG_INFO,
-      "OC: Driver %a at %u (%a) is being loaded...\n",
-      DriverFileName,
-      Index,
-      DriverComment
-      ));
 
     Status = OcUnicodeSafeSPrint (
                DriverPath,
