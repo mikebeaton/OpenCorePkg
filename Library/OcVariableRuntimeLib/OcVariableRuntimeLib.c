@@ -545,6 +545,12 @@ ResetNvram (
   return EFI_ERROR (Status) ? Status : AltStatus;
 }
 
+//
+// If Luanchd.command is installed this should correctly handle reboots during full or partial OTA updates.
+// When installing from USB we will likely go to the wrong OS after first reboot: the one in nvram.fallback,
+// if present (which might or might not be the drive we installed to); otherwise the empty NVRAM default OS
+// (likewise). Apart from needing to manually select that, at some point, the install should otherwise be correct.
+//
 STATIC
 EFI_STATUS
 EFIAPI
@@ -564,15 +570,15 @@ SwitchToFallback (
     return Status;
   }
 
-  if (!OcFileExists (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME)) {
-    DEBUG ((DEBUG_WARN, "VAR: %s does not exist, not switching to fallback!\n", OPEN_CORE_NVRAM_FALLBACK_FILENAME));
-    NvramDir->Close (NvramDir);
-    return EFI_NOT_FOUND;
-  }
+  //
+  // Given that this approach is designed to avoid continually displaying 'macOS Installer' option,
+  // we want to switch back to empty NVRAM defaults even if nvram.fallback does not exist, so we
+  // do not check that.
+  //
 
   FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
   if (FileBuffer == NULL) {
-    DEBUG ((DEBUG_INFO, "VAR: %s cannot be opened, already switched to fallback?\n", OPEN_CORE_NVRAM_FILENAME));
+    DEBUG ((DEBUG_INFO, "VAR: %s cannot be opened, already at fallback\n", OPEN_CORE_NVRAM_FILENAME));
     NvramDir->Close (NvramDir);
     return EFI_SUCCESS;
   }
