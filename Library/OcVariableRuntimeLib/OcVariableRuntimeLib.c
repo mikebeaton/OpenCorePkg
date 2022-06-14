@@ -213,26 +213,6 @@ LoadNvram (
   return EFI_SUCCESS;
 }
 
-STATIC
-EFI_STATUS
-DeleteFile (
-  IN EFI_FILE_PROTOCOL             *NvramDir,
-  IN CONST CHAR16                  *FileName
-  )
-{
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *File;
-
-  Status = OcSafeFileOpen (NvramDir, &File, OPEN_CORE_NVRAM_FILENAME, EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE, 0);
-  if (!EFI_ERROR (Status)) {
-    Status = File->Delete (File);
-    if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_WARN, "VAR: Cannot delete %s! - %r\n", FileName, Status));
-    }
-  }
-  return Status;
-}
-
 //
 // Serialize one section at a time, NVRAM scan per section.
 //
@@ -496,7 +476,7 @@ SaveNvram (
     return Status;
   }
 
-  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
+  Status = OcDeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   if (EFI_ERROR (Status) && (Status != EFI_NOT_FOUND)) {
     DEBUG ((DEBUG_WARN, "VAR: Deleting previous %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
   }
@@ -535,14 +515,14 @@ ResetNvram (
     return Status;
   }
 
-  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
-  if (Status == EFI_NOT_FOUND) {
-    Status = EFI_SUCCESS;
+  Status = OcDeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
   }
 
-  AltStatus = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME);
-  if (AltStatus == EFI_NOT_FOUND) {
-    AltStatus = EFI_SUCCESS;
+  AltStatus = OcDeleteFile (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_FALLBACK_FILENAME, Status));
   }
 
   NvramDir->Close (NvramDir);
@@ -561,7 +541,6 @@ SwitchToFallback (
   EFI_FILE_PROTOCOL             *NvramDir;
   UINT8                         *FileBuffer;
   UINT32                        FileSize;
-  EFI_FILE_PROTOCOL             *FallbackFile;
 
   DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM storage...\n"));
 
@@ -570,13 +549,11 @@ SwitchToFallback (
     return Status;
   }
 
-  Status = OcSafeFileOpen (NvramDir, &FallbackFile, OPEN_CORE_NVRAM_FALLBACK_FILENAME, EFI_FILE_MODE_READ, 0);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: %s cannot be opened, not switching to fallback! - %r\n", OPEN_CORE_NVRAM_FALLBACK_FILENAME, Status));
+  if (!OcFileExists (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME)) {
+    DEBUG ((DEBUG_WARN, "VAR: %s does not exist, not switching to fallback! - %r\n", OPEN_CORE_NVRAM_FALLBACK_FILENAME, Status));
     NvramDir->Close (NvramDir);
     return Status;
   }
-  FallbackFile->Close (FallbackFile);
 
   FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
   if (FileBuffer == NULL) {
@@ -585,12 +562,12 @@ SwitchToFallback (
     return EFI_NOT_FOUND;
   }
 
-  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_USED_FILENAME);
+  Status = OcDeleteFile (NvramDir, OPEN_CORE_NVRAM_USED_FILENAME);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_USED_FILENAME, Status));
   }
 
-  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
+  Status = OcDeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
   }

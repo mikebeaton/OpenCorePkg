@@ -27,7 +27,7 @@
 
 EFI_STATUS
 OcSafeFileOpen (
-  IN     CONST EFI_FILE_PROTOCOL  *Protocol,
+  IN     CONST EFI_FILE_PROTOCOL  *Directory,
   OUT       EFI_FILE_PROTOCOL     **NewHandle,
   IN     CONST CHAR16             *FileName,
   IN     CONST UINT64             OpenMode,
@@ -48,8 +48,8 @@ OcSafeFileOpen (
   DEBUG_CODE_END ();
 
   *NewHandle = NULL;
-  Status     = Protocol->Open (
-                           (EFI_FILE_PROTOCOL  *)Protocol,
+  Status     = Directory->Open (
+                           (EFI_FILE_PROTOCOL  *)Directory,
                            NewHandle,
                            (CHAR16 *)FileName,
                            OpenMode,
