@@ -391,6 +391,9 @@ onComplete() {
 }
 
 if [ "$INSTALL" = "1" ] ; then
+  # Get root immediately (not required, looks nicer than doing a bunch of stuff and then asking)
+  sudo echo -n
+
   # Save nvram immediately, will become the fallback after the first daemon shutdown.
   # Do not install if this fails, since this indicates that required boot path from
   # OC is not available, or other fatal error.
