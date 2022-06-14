@@ -351,7 +351,7 @@ saveNvram() {
 
   if [ -f "${nvram_dir}/nvram.plist" ] ; then
     cp "${nvram_dir}/nvram.plist" "${nvram_dir}/nvram.fallback" || abort "Failed to create nvram.fallback!"
-    doLog "Created nvram.fallback"
+    doLog "Copied nvram.fallback"
   fi
 
   cp /tmp/nvram.plist "${nvram_dir}/nvram.plist" || abort "Failed to copy nvram.plist!"
