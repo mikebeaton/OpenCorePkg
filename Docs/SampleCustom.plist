@@ -1776,7 +1776,7 @@
 				<key>Load</key>
 				<string>Disabled</string>
 				<key>Path</key>
-				<string>OpenVariableRuntime.efi</string>
+				<string>OpenVariableRuntimeDxe.efi</string>
 			</dict>
 			<dict>
 				<key>Arguments</key>

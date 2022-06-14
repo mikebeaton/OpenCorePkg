@@ -274,7 +274,7 @@
   OpenCorePkg/Platform/OpenPartitionDxe/PartitionDxe.inf
   OpenCorePkg/Platform/OpenRuntime/OpenRuntime.inf
   OpenCorePkg/Platform/OpenUsbKbDxe/UsbKbDxe.inf
-  OpenCorePkg/Platform/OpenVariableRuntime/VariableRuntimeDxe.inf {
+  OpenCorePkg/Platform/OpenVariableRuntimeDxe/VariableRuntimeDxe.inf {
     <PcdsFixedAtBuild>
       gEfiMdeModulePkgTokenSpaceGuid.PcdEmuVariableNvModeEnable|TRUE
       gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x10000

@@ -84,7 +84,7 @@ else
 fi
 
 # remove files we will rebuild
-echo "Removing OpenCore.efi, OpenCanopy.efi, OpenShell.efi, AudioDxe.efi, OpenLinuxBoot.efi, ResetNvramEntry.efi, ToggleSipEntry.efi, OpenVariableRuntime.efi from ${OC_VOLUME_DIR}..."
+echo "Removing OpenCore.efi, OpenCanopy.efi, OpenShell.efi, AudioDxe.efi, OpenLinuxBoot.efi, ResetNvramEntry.efi, ToggleSipEntry.efi, OpenVariableRuntimeDxe.efi from ${OC_VOLUME_DIR}..."
 #rm ${OC_VOLUME_DIR}/EFI/BOOT/BOOTx64.efi
 rm ${OC_VOLUME_DIR}/EFI/OC/OpenCore.efi
 rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/OpenCanopy.efi
@@ -93,7 +93,7 @@ rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/AudioDxe.efi
 rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/OpenLinuxBoot.efi
 rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/ResetNvramEntry.efi
 rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/ToggleSipEntry.efi
-rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/OpenVariableRuntime.efi
+rm ${OC_VOLUME_DIR}/EFI/OC/Drivers/OpenVariableRuntimeDxe.efi
 
 if [ "$SKIP_BUILD" != "1" ]; then
   # rebuild them
@@ -105,7 +105,7 @@ if [ "$SKIP_BUILD" != "1" ]; then
 fi
 
 # put them back
-echo "Copying ${MY_BRANCH} ${TARGET} OpenCore.efi, OpenCanopy.efi, OpenShell.efi, AudioDxe.efi, OpenLinuxBoot.efi, ResetNvramEntry.efi, ToggleSipEntry.efi, OpenVariableRuntime.efi to ${OC_VOLUME_DIR}..."
+echo "Copying ${MY_BRANCH} ${TARGET} OpenCore.efi, OpenCanopy.efi, OpenShell.efi, AudioDxe.efi, OpenLinuxBoot.efi, ResetNvramEntry.efi, ToggleSipEntry.efi, OpenVariableRuntimeDxe.efi to ${OC_VOLUME_DIR}..."
 #cp ${BUILD_DIR}/Bootstrap.efi ${OC_VOLUME_DIR}/EFI/BOOT/BOOTx64.efi || exit 1
 cp ${BUILD_DIR}/OpenCore.efi ${OC_VOLUME_DIR}/EFI/OC || exit 1
 cp ${BUILD_DIR}/OpenCanopy.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
@@ -114,7 +114,7 @@ cp ${BUILD_DIR}/AudioDxe.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
 cp ${BUILD_DIR}/OpenLinuxBoot.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
 cp ${BUILD_DIR}/ResetNvramEntry.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
 cp ${BUILD_DIR}/ToggleSipEntry.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
-cp ${BUILD_DIR}/OpenVariableRuntime.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
+cp ${BUILD_DIR}/OpenVariableRuntimeDxe.efi ${OC_VOLUME_DIR}/EFI/OC/Drivers || exit 1
 
 # Mark binaries to be recognisable by OcBootManagementLib.
 bootsig="./Library/OcBootManagementLib/BootSignature.bin"

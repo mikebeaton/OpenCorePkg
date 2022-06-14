@@ -310,7 +310,7 @@ OcLoadLegacyNvram (
   // NVRAM, i.e. one less thing to have to remember to switch, since with this code everything
   // works as expected with or without RequestBootVarRouting. (Without it, boot entries do not
   // restore to the right place when RequestBootVarRouting is enabled.)
-  // OpenRuntime.efi must be loaded early, but after OpenVariableRuntime.efi, for this to work.
+  // OpenRuntime.efi must be loaded early, but after OpenVariableRuntimeDxe.efi, for this to work.
   //
   if (Config->Uefi.Quirks.RequestBootVarRouting) {
     Status = gBS->LocateProtocol (
