@@ -195,6 +195,11 @@ LoadNvram (
 
     VariableMap = NvramStorage.Add.Values[GuidIndex];
 
+    //
+    // TODO: Is OC LegacyOverwrite setting still needed, given that this code
+    // cannot be called unless emulated NVRAM is present (and by definition
+    // will be empty when it starts)?
+    //
     for (VariableIndex = 0; VariableIndex < VariableMap->Count; ++VariableIndex) {
       OcDirectSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
