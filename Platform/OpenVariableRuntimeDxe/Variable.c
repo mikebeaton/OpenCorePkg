@@ -373,7 +373,7 @@ InitializeVarErrorFlag (
   }
 
   Flag = mCurrentBootVarErrFlag;
-  DEBUG ((DEBUG_INFO, "Initialize variable error flag (%02x)\n", Flag));
+  DEBUG ((DEBUG_VERBOSE, "Initialize variable error flag (%02x)\n", Flag));
 
   Status = FindVariable (
              VAR_ERROR_FLAG_NAME,
@@ -1584,7 +1584,7 @@ AutoUpdateLangVariable (
                      );
         }
 
-        DEBUG ((DEBUG_INFO, "Variable Driver Auto Update PlatformLang, PlatformLang:%a, Lang:%a Status: %r\n", BestPlatformLang, BestLang, Status));
+        DEBUG ((DEBUG_VERBOSE, "Variable Driver Auto Update PlatformLang, PlatformLang:%a, Lang:%a Status: %r\n", BestPlatformLang, BestLang, Status));
       }
     }
   } else if (StrCmp (VariableName, EFI_LANG_VARIABLE_NAME) == 0) {
@@ -1641,7 +1641,7 @@ AutoUpdateLangVariable (
                      );
         }
 
-        DEBUG ((DEBUG_INFO, "Variable Driver Auto Update Lang, Lang:%a, PlatformLang:%a Status: %r\n", BestLang, BestPlatformLang, Status));
+        DEBUG ((DEBUG_VERBOSE, "Variable Driver Auto Update Lang, Lang:%a, PlatformLang:%a Status: %r\n", BestLang, BestPlatformLang, Status));
       }
     }
   }
@@ -2885,7 +2885,7 @@ VariableServiceSetVariable (
       // 2. The only attribute differing is EFI_VARIABLE_APPEND_WRITE
       //
       Status = EFI_INVALID_PARAMETER;
-      DEBUG ((DEBUG_INFO, "[Variable]: Rewritten a preexisting variable(0x%08x) with different attributes(0x%08x) - %g:%s\n", Variable.CurrPtr->Attributes, Attributes, VendorGuid, VariableName));
+      DEBUG ((DEBUG_VERBOSE, "[Variable]: Rewritten a preexisting variable(0x%08x) with different attributes(0x%08x) - %g:%s\n", Variable.CurrPtr->Attributes, Attributes, VendorGuid, VariableName));
       goto Done;
     }
   }
@@ -3351,7 +3351,7 @@ FlushHobVariableToFlash (
                    NULL
                    );
         DEBUG ((
-          DEBUG_INFO,
+          DEBUG_VERBOSE,
           "Variable driver flush the HOB variable to flash: %g %s %r\n",
           GetVendorGuidPtr (Variable, AuthFormat),
           GetVariableNamePtr (Variable, AuthFormat),
@@ -3372,7 +3372,7 @@ FlushHobVariableToFlash (
         // set the HOB variable to DELETED state in local.
         //
         DEBUG ((
-          DEBUG_INFO,
+          DEBUG_VERBOSE,
           "Variable driver set the HOB variable to DELETED state in local: %g %s\n",
           GetVendorGuidPtr (Variable, AuthFormat),
           GetVariableNamePtr (Variable, AuthFormat)
@@ -3401,7 +3401,7 @@ FlushHobVariableToFlash (
       //
       // All HOB variables have been flushed in flash.
       //
-      DEBUG ((DEBUG_INFO, "Variable driver: all HOB variables have been flushed in flash.\n"));
+      DEBUG ((DEBUG_VERBOSE, "Variable driver: all HOB variables have been flushed in flash.\n"));
       if (mVariableModuleGlobal->VariableGlobal.VariableRuntimeCacheContext.HobFlushComplete != NULL) {
         *(mVariableModuleGlobal->VariableGlobal.VariableRuntimeCacheContext.HobFlushComplete) = TRUE;
       }
@@ -3471,7 +3471,7 @@ VariableWriteServiceInitialize (
                                          GetVariableHeaderSize (mVariableModuleGlobal->VariableGlobal.AuthFormat);
     Status = AuthVariableLibInitialize (&mAuthContextIn, &mAuthContextOut);
     if (!EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Variable driver will work with auth variable support!\n"));
+      DEBUG ((DEBUG_VERBOSE, "Variable driver will work with auth variable support!\n"));
       mVariableModuleGlobal->VariableGlobal.AuthSupport = TRUE;
       if (mAuthContextOut.AuthVarEntry != NULL) {
         for (Index = 0; Index < mAuthContextOut.AuthVarEntryCount; Index++) {
@@ -3485,8 +3485,8 @@ VariableWriteServiceInitialize (
         }
       }
     } else if (Status == EFI_UNSUPPORTED) {
-      DEBUG ((DEBUG_INFO, "NOTICE - AuthVariableLibInitialize() returns %r!\n", Status));
-      DEBUG ((DEBUG_INFO, "Variable driver will continue to work without auth variable support!\n"));
+      DEBUG ((DEBUG_VERBOSE, "NOTICE - AuthVariableLibInitialize() returns %r!\n", Status));
+      DEBUG ((DEBUG_VERBOSE, "Variable driver will continue to work without auth variable support!\n"));
       mVariableModuleGlobal->VariableGlobal.AuthSupport = FALSE;
       Status                                            = EFI_SUCCESS;
     }
@@ -3742,14 +3742,14 @@ VariableCommonInitialize (
   // has been initialized in InitNonVolatileVariableStore().
   //
   if (mVariableModuleGlobal->VariableGlobal.AuthFormat) {
-    DEBUG ((DEBUG_INFO, "Variable driver will work with auth variable format!\n"));
+    DEBUG ((DEBUG_VERBOSE, "Variable driver will work with auth variable format!\n"));
     //
     // Set AuthSupport to FALSE first, VariableWriteServiceInitialize() will initialize it.
     //
     mVariableModuleGlobal->VariableGlobal.AuthSupport = FALSE;
     VariableGuid                                      = &gEfiAuthenticatedVariableGuid;
   } else {
-    DEBUG ((DEBUG_INFO, "Variable driver will work without auth variable support!\n"));
+    DEBUG ((DEBUG_VERBOSE, "Variable driver will work without auth variable support!\n"));
     mVariableModuleGlobal->VariableGlobal.AuthSupport = FALSE;
     VariableGuid                                      = &gEfiVariableGuid;
   }

@@ -80,7 +80,7 @@ InitEmuNonVolatileVariableStore (
         (VariableStore->State == VARIABLE_STORE_HEALTHY))
     {
       DEBUG ((
-        DEBUG_INFO,
+        DEBUG_VERBOSE,
         "Variable Store reserved at %p appears to be valid\n",
         VariableStore
         ));
@@ -183,7 +183,7 @@ InitRealNonVolatileVariableStore (
     if (GuidHob != NULL) {
       FtwLastWriteData = (FAULT_TOLERANT_WRITE_LAST_WRITE_DATA *)GET_GUID_HOB_DATA (GuidHob);
       if (FtwLastWriteData->TargetAddress == NvStorageBase) {
-        DEBUG ((DEBUG_INFO, "Variable: NV storage is backed up in spare block: 0x%x\n", (UINTN)FtwLastWriteData->SpareAddress));
+        DEBUG ((DEBUG_VERBOSE, "Variable: NV storage is backed up in spare block: 0x%x\n", (UINTN)FtwLastWriteData->SpareAddress));
         //
         // Copy the backed up NV storage data to the memory buffer from spare block.
         //
@@ -196,7 +196,7 @@ InitRealNonVolatileVariableStore (
         //
         BackUpOffset = (UINT32)(FtwLastWriteData->TargetAddress - NvStorageBase);
         BackUpSize   = NvStorageSize - BackUpOffset;
-        DEBUG ((DEBUG_INFO, "Variable: High partial NV storage from offset: %x is backed up in spare block: 0x%x\n", BackUpOffset, (UINTN)FtwLastWriteData->SpareAddress));
+        DEBUG ((DEBUG_VERBOSE, "Variable: High partial NV storage from offset: %x is backed up in spare block: 0x%x\n", BackUpOffset, (UINTN)FtwLastWriteData->SpareAddress));
         //
         // Copy the partial backed up NV storage data to the memory buffer from spare block.
         //
@@ -261,7 +261,7 @@ InitRealNonVolatileVariableStore (
   mVariableModuleGlobal->CommonRuntimeVariableSpace = mVariableModuleGlobal->CommonVariableSpace - BoottimeReservedNvVariableSpaceSize;
 
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_VERBOSE,
     "Variable driver common space: 0x%x 0x%x 0x%x\n",
     mVariableModuleGlobal->CommonVariableSpace,
     mVariableModuleGlobal->CommonMaxUserVariableSpace,
@@ -302,7 +302,7 @@ InitNonVolatileVariableStore (
     }
 
     mVariableModuleGlobal->VariableGlobal.EmuNvMode = TRUE;
-    DEBUG ((DEBUG_INFO, "Variable driver will work at emulated non-volatile variable mode!\n"));
+    DEBUG ((DEBUG_VERBOSE, "Variable driver will work at emulated non-volatile variable mode!\n"));
   } else {
     Status = InitRealNonVolatileVariableStore (&VariableStoreBase);
     if (EFI_ERROR (Status)) {
