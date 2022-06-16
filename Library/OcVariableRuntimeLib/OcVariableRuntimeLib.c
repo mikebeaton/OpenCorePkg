@@ -200,11 +200,16 @@ LoadNvram (
     // cannot be called unless emulated NVRAM is present (and by definition
     // will be empty when it starts)?
     //
+    // If we obey WriteFlash here then when it is TRUE SaveNvram fails to save anything,
+    // since everything is volatile. As we are in a context where LegacyNvram must be
+    // present, we always write non-volatile. (This issue does not affect saving NVRAM
+    // from OS since it saves everything in its filter without checking for V/NV.)
+    //
     for (VariableIndex = 0; VariableIndex < VariableMap->Count; ++VariableIndex) {
       OcDirectSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
-        mNvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
+        OPEN_CORE_NVRAM_NV_ATTR, //mNvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
         VariableMap->Values[VariableIndex]->Size,
         OC_BLOB_GET (VariableMap->Values[VariableIndex]),
         SchemaEntry,
