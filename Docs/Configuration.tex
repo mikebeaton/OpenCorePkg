@@ -7720,10 +7720,20 @@ for additional options.
   from \texttt{OC/Drivers} directory.
 
 \item
-  \texttt{Enabled}\\
-  \textbf{Type}: \texttt{plist\ boolean}\\
-  \textbf{Failsafe}: \texttt{false}\\
-  \textbf{Description}: If \texttt{false} this driver entry will be ignored.
+  \texttt{Load}\\
+  \textbf{Type}: \texttt{plist\ string}\\
+  \textbf{Failsafe}: \texttt{Disabled}\\
+  \textbf{Description}: When and whether to load this driver.
+
+  \begin{itemize}
+  \tightlist
+  \item \texttt{Disabled} --- Do not load this driver.
+  \item \texttt{Enabled} --- Load the driver normally.
+  \item \texttt{Early} --- Load the driver early in the OpenCore boot processes, before NVRAM setup.
+  \end{itemize}
+
+  \emph{Note}: Do not use the \texttt{Early} option unless specifically recommended to do so for a
+  given driver and purpose.
 
 \item
   \texttt{Arguments}\\
