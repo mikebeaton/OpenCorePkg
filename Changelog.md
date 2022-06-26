@@ -1,5 +1,11 @@
 OpenCore Changelog
 ==================
+
+#### v0.8.2
+- Added support for NVRAM reset and saving default entry in boot picker when using emulated NVRAM
+- Upgraded emulated NVRAM logout script to allow unsupervised installation of OTA upgrades for recent macOS
+- Added emulated NVRAM optional driver for use separately from OpenDuet
+
 #### v0.8.1
 - Improved `ExtendBTFeatureFlags` quirk on newer macOS versions, thx @lvs1974
 - Added notes about DMAR table and `ForceAquantiaEthernet`, thx @kokowski
