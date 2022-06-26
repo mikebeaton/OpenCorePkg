@@ -87,13 +87,11 @@ LocateNvramDir (
   }
 
   if (mStorageContext->FileSystem == NULL) {
-    DEBUG ((DEBUG_WARN, "VAR: No file system\n"));
     return EFI_NOT_FOUND;
   }
 
   Status = mStorageContext->FileSystem->OpenVolume (mStorageContext->FileSystem, &Root);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Invalid root volume - %r\n", Status));
     return EFI_NOT_FOUND;
   }
 
@@ -104,9 +102,6 @@ LocateNvramDir (
     EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
     EFI_FILE_DIRECTORY
     );
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Cannot open %s - %r\n", OPEN_CORE_NVRAM_ROOT_PATH, Status));
-  }
 
   return Status;
 }
@@ -131,8 +126,6 @@ LoadNvram (
   OC_ASSOC                      *VariableMap;
   OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
 
-  DEBUG ((DEBUG_INFO, "VAR: Loading NVRAM from storage...\n"));
-
   if (mStorageContext != NULL || mNvramConfig != NULL) {
     return EFI_ALREADY_STARTED;
   }
@@ -151,12 +144,10 @@ LoadNvram (
 
   FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
   if (FileBuffer == NULL) {
-    DEBUG ((DEBUG_INFO, "VAR: Trying fallback NVRAM data\n"));
     FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME, &FileSize, BASE_1MB);
   }
   NvramDir->Close (NvramDir);
   if (FileBuffer == NULL) {
-    DEBUG ((DEBUG_WARN, "VAR: Nvram data not found or not readable\n"));
     return EFI_NOT_FOUND;
   }
 
@@ -165,18 +156,11 @@ LoadNvram (
   FreePool (FileBuffer);
 
   if (!IsValid) {
-    DEBUG ((DEBUG_WARN, "VAR: Invalid NVRAM data\n"));
     OC_NVRAM_STORAGE_DESTRUCT (&NvramStorage, sizeof (NvramStorage));
     return EFI_UNSUPPORTED;
   }
 
   if (NvramStorage.Version != OC_NVRAM_STORAGE_VERSION) {
-    DEBUG ((
-      DEBUG_WARN,
-      "VAR: Incompatible NVRAM data, version %u vs %u\n",
-      NvramStorage.Version,
-      OC_NVRAM_STORAGE_VERSION
-      ));
     OC_NVRAM_STORAGE_DESTRUCT (&NvramStorage, sizeof (NvramStorage));
     return EFI_UNSUPPORTED;
   }
@@ -236,8 +220,6 @@ DeleteFile (
   if (EFI_ERROR (Status)) {
     if (Status == EFI_NOT_FOUND) {
       Status = EFI_SUCCESS;
-    } else {
-      DEBUG ((DEBUG_WARN, "VAR: Failure deleting %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
     }
   }
 
@@ -270,8 +252,7 @@ SerializeSectionVariables (
     return OcProcessVariableContinue;
   }
 
-  if (!OcVariableIsAllowedBySchemaEntry (SaveContext->SchemaEntry, Name, OcStringFormatUnicode)) {
-    DEBUG ((DEBUG_INFO, "VAR: NVRAM %g:%s is not permitted\n", Guid, Name));
+  if (!OcVariableIsAllowedBySchemaEntry (SaveContext->SchemaEntry, Guid, Name, OcStringFormatUnicode)) {
     return OcProcessVariableContinue;
   }
 
@@ -311,7 +292,7 @@ SerializeSectionVariables (
   //
   if (((Attributes & EFI_VARIABLE_RUNTIME_ACCESS) == 0)
     || ((Attributes & EFI_VARIABLE_NON_VOLATILE) == 0)) {
-    DEBUG ((DEBUG_INFO, "VAR: NVRAM %g:%s skipped w/ attributes 0x%X\n", Guid, Name, Attributes));
+    DEBUG ((DEBUG_VERBOSE, "NVRAM %g:%s skipped w/ attributes 0x%X\n", Guid, Name, Attributes));
     return OcProcessVariableContinue;
   }
 
@@ -398,8 +379,6 @@ SaveNvram (
   EFI_FILE_PROTOCOL             *NvramDir;
   UINT32                        GuidIndex;
   NVRAM_SAVE_CONTEXT            Context;
-
-  DEBUG ((DEBUG_INFO, "VAR: Saving NVRAM to storage...\n"));
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -514,9 +493,6 @@ SaveNvram (
     Context.StringBuffer->String,
     Context.StringBuffer->StringLength
     );
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Error writing %s - %r\n", OPEN_CORE_NVRAM_FILENAME, Status));
-  }
 
   OcAsciiStringBufferFree (&Context.StringBuffer);
   NvramDir->Close (NvramDir);
@@ -534,8 +510,6 @@ ResetNvram (
   EFI_STATUS                    Status;
   EFI_STATUS                    AltStatus;
   EFI_FILE_PROTOCOL             *NvramDir;
-
-  DEBUG ((DEBUG_INFO, "VAR: Resetting NVRAM storage...\n"));
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -568,8 +542,6 @@ SwitchToFallback (
   UINT8                         *FileBuffer;
   UINT32                        FileSize;
 
-  DEBUG ((DEBUG_INFO, "VAR: Switching to fallback NVRAM storage...\n"));
-
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
     return Status;
@@ -580,12 +552,10 @@ SwitchToFallback (
   // we want to switch back to empty NVRAM defaults even if nvram.fallback does not exist, so we
   // do not check that.
   //
-
   FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FILENAME, &FileSize, BASE_1MB);
   if (FileBuffer == NULL) {
-    DEBUG ((DEBUG_INFO, "VAR: %s cannot be opened, already at fallback\n", OPEN_CORE_NVRAM_FILENAME));
     NvramDir->Close (NvramDir);
-    return EFI_SUCCESS;
+    return EFI_ALREADY_STARTED;
   }
 
   DeleteFile (NvramDir, OPEN_CORE_NVRAM_USED_FILENAME);
@@ -596,9 +566,6 @@ SwitchToFallback (
     FileBuffer,
     FileSize
     );
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "VAR: Error writing %s - %r\n", OPEN_CORE_NVRAM_USED_FILENAME, Status));
-  }
 
   NvramDir->Close (NvramDir);
   FreePool (FileBuffer);

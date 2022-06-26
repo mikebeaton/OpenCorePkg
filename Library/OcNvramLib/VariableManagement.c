@@ -236,7 +236,7 @@ OcScanVariables (
       } else {
         DEBUG ((
           DEBUG_INFO,
-          "OCB: Failed to allocate variable name buffer of %u bytes\n",
+          "OCVAR: Failed to allocate variable name buffer of %u bytes\n",
           (UINT32)RequestedSize
           ));
         break;
@@ -270,10 +270,10 @@ OcScanVariables (
       ASSERT (ProcessResult == OcProcessVariableContinue);
     } else if ((Status != EFI_BUFFER_TOO_SMALL) && (Status != EFI_NOT_FOUND)) {
       if (!CriticalFailure) {
-        DEBUG ((DEBUG_INFO, "OCB: Unexpected error (%r), trying to rescan\n", Status));
+        DEBUG ((DEBUG_INFO, "OCVAR: Unexpected error (%r), trying to rescan\n", Status));
         CriticalFailure = TRUE;
       } else {
-        DEBUG ((DEBUG_INFO, "OCB: Unexpected error (%r), aborting\n", Status));
+        DEBUG ((DEBUG_INFO, "OCVAR: Unexpected error (%r), aborting\n", Status));
         break;
       }
     }
@@ -374,7 +374,7 @@ GetBootstrapBootData (
 
   DEBUG ((
     DEBUG_INFO,
-    "OCB: Have existing order of size %u - %r\n",
+    "OCVAR: Have existing order of size %u - %r\n",
     (UINT32)BootOrderSize,
     Status
     ));
@@ -385,7 +385,7 @@ GetBootstrapBootData (
 
   BootOrder = AllocatePool (BootOrderSize);
   if (BootOrder == NULL) {
-    DEBUG ((DEBUG_INFO, "OCB: Failed to allocate boot order\n"));
+    DEBUG ((DEBUG_INFO, "OCVAR: Failed to allocate boot order\n"));
     return NULL;
   }
 
@@ -397,7 +397,7 @@ GetBootstrapBootData (
                   BootOrder
                   );
   if (EFI_ERROR (Status) || (BootOrderSize == 0) || (BootOrderSize % sizeof (UINT16) != 0)) {
-    DEBUG ((DEBUG_INFO, "OCB: Failed to obtain boot order %u - %r\n", (UINT32)BootOrderSize, Status));
+    DEBUG ((DEBUG_INFO, "OCVAR: Failed to obtain boot order %u - %r\n", (UINT32)BootOrderSize, Status));
     FreePool (BootOrder);
     return NULL;
   }
@@ -490,7 +490,7 @@ OcToggleSip (
   Status = OcGetSip (&CsrConfig, &Attributes);
 
   if ((Status != EFI_NOT_FOUND) && EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "OCB: Error getting SIP status - %r\n", Status));
+    DEBUG ((DEBUG_ERROR, "OCVAR: Error getting SIP status - %r\n", Status));
   } else {
     if (Status == EFI_NOT_FOUND) {
       Attributes = CSR_APPLE_SIP_NVRAM_NV_ATTR;
@@ -502,13 +502,13 @@ OcToggleSip (
       CsrConfig = CsrActiveConfig;
       Status    = OcSetSip (&CsrConfig, Attributes);
       if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_ERROR, "OCB: Error disabling SIP - r\n", Status));
+        DEBUG ((DEBUG_ERROR, "OCVAR: Error disabling SIP - r\n", Status));
       }
     } else {
       CsrConfig = 0;
       Status    = OcSetSip (&CsrConfig, Attributes);
       if (EFI_ERROR (Status)) {
-        DEBUG ((DEBUG_ERROR, "OCB: Error enabling SIP - r\n", Status));
+        DEBUG ((DEBUG_ERROR, "OCVAR: Error enabling SIP - r\n", Status));
       }
     }
   }
@@ -530,7 +530,7 @@ OcDeleteVariables (
   UINTN                         BootOptionSize;
   UINT16                        BootOptionIndex;
 
-  DEBUG ((DEBUG_INFO, "OCB: NVRAM cleanup %d...\n", PreserveBoot));
+  DEBUG ((DEBUG_INFO, "OCVAR: NVRAM cleanup %d...\n", PreserveBoot));
 
   //
   // Obtain boot protection marker.
@@ -563,10 +563,10 @@ OcDeleteVariables (
   if (!EFI_ERROR (Status) && (FwRuntime->Revision == OC_FIRMWARE_RUNTIME_REVISION)) {
     ZeroMem (&Config, sizeof (Config));
     FwRuntime->SetOverride (&Config);
-    DEBUG ((DEBUG_INFO, "OCB: Found FW NVRAM, full access %d\n", Config.BootVariableRedirect));
+    DEBUG ((DEBUG_INFO, "OCVAR: Found FW NVRAM, full access %d\n", Config.BootVariableRedirect));
   } else {
     FwRuntime = NULL;
-    DEBUG ((DEBUG_INFO, "OCB: Missing compatible FW NVRAM, going on...\n"));
+    DEBUG ((DEBUG_INFO, "OCVAR: Missing compatible FW NVRAM, going on...\n"));
   }
 
   if ((BootProtect & OC_BOOT_PROTECT_VARIABLE_BOOTSTRAP) != 0) {
@@ -574,7 +574,7 @@ OcDeleteVariables (
     if (BootOption != NULL) {
       DEBUG ((
         DEBUG_INFO,
-        "OCB: Found %g:Boot%04x for preservation of %u bytes\n",
+        "OCVAR: Found %g:Boot%04x for preservation of %u bytes\n",
         &gEfiGlobalVariableGuid,
         BootOptionIndex,
         (UINT32)BootOptionSize
@@ -605,12 +605,12 @@ OcDeleteVariables (
                       );
     }
 
-    DEBUG ((DEBUG_INFO, "OCB: Set bootstrap option to Boot%04x - %r\n", BootOptionIndex, Status));
+    DEBUG ((DEBUG_INFO, "OCVAR: Set bootstrap option to Boot%04x - %r\n", BootOptionIndex, Status));
     FreePool (BootOption);
   }
 
   if (FwRuntime != NULL) {
-    DEBUG ((DEBUG_INFO, "OCB: Restoring FW NVRAM...\n"));
+    DEBUG ((DEBUG_INFO, "OCVAR: Restoring FW NVRAM...\n"));
     FwRuntime->SetOverride (NULL);
   }
 }

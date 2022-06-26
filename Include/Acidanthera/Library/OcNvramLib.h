@@ -86,12 +86,14 @@ OcProcessVariableGuid (
   Test NVRAM variable name against legacy schema.
 
   @param[in]  SchemaEntry         List of allowed names.
+  @param[in]  VariableGuid        Variable GUID (optional, for debug output only).
   @param[in]  VariableName        Variable name.
   @param[in]  StringFormat        Is VariableName Ascii or Unicode?
 **/
 BOOLEAN
 OcVariableIsAllowedBySchemaEntry (
   IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
+  IN EFI_GUID               *VariableGuid OPTIONAL,
   IN CONST VOID             *VariableName,
   IN OC_STRING_FORMAT       StringFormat
   );

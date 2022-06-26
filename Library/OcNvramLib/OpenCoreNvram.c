@@ -44,7 +44,7 @@ OcReportVersion (
 
   Version = OcMiscGetVersionString ();
 
-  DEBUG ((DEBUG_INFO, "OC: Current version is %a\n", Version));
+  DEBUG ((DEBUG_INFO, "OCVAR: Current version is %a\n", Version));
 
   if ((Config->Misc.Security.ExposeSensitiveData & OCS_EXPOSE_VERSION_VAR) != 0) {
     OcSetSystemVariable (
@@ -78,7 +78,7 @@ OcProcessVariableGuid (
 
   Status = AsciiStrToGuid (AsciiVariableGuid, VariableGuid);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "OC: Failed to convert NVRAM GUID %a - %r\n", AsciiVariableGuid, Status));
+    DEBUG ((DEBUG_WARN, "OCVAR: Failed to convert NVRAM GUID %a - %r\n", AsciiVariableGuid, Status));
   }
 
   if (!EFI_ERROR (Status) && (Schema != NULL)) {
@@ -89,7 +89,7 @@ OcProcessVariableGuid (
       }
     }
 
-    DEBUG ((DEBUG_INFO, "OC: Ignoring NVRAM GUID %a\n", AsciiVariableGuid));
+    DEBUG ((DEBUG_INFO, "OCVAR: Ignoring NVRAM GUID %a\n", AsciiVariableGuid));
     Status = EFI_SECURITY_VIOLATION;
   }
 
@@ -99,6 +99,7 @@ OcProcessVariableGuid (
 BOOLEAN
 OcVariableIsAllowedBySchemaEntry (
   IN OC_NVRAM_LEGACY_ENTRY  *SchemaEntry,
+  IN EFI_GUID               *VariableGuid OPTIONAL,
   IN CONST VOID             *VariableName,
   IN OC_STRING_FORMAT       StringFormat
   )
@@ -134,6 +135,10 @@ OcVariableIsAllowedBySchemaEntry (
     }
   }
 
+  if (!IsAllowed) {
+    DEBUG ((DEBUG_INFO, "OCVAR: NVRAM %g:%s is not permitted\n", VariableGuid, VariableName));
+  }
+
   return IsAllowed;
 }
 
@@ -156,8 +161,7 @@ OcDirectSetNvramVariable (
   UINT32      OrgAttributes;
 
 
-  if (!OcVariableIsAllowedBySchemaEntry (SchemaEntry, AsciiVariableName, OcStringFormatAscii)) {
-    DEBUG ((DEBUG_INFO, "OC: Setting NVRAM %g:%a is not permitted\n", VariableGuid, AsciiVariableName));
+  if (!OcVariableIsAllowedBySchemaEntry (SchemaEntry, VariableGuid, AsciiVariableName, OcStringFormatAscii)) {
     return;
   }
 
@@ -165,7 +169,7 @@ OcDirectSetNvramVariable (
   UnicodeVariableName = AsciiStrCopyToUnicode (AsciiVariableName, 0);
 
   if (UnicodeVariableName == NULL) {
-    DEBUG ((DEBUG_WARN, "OC: Failed to convert NVRAM variable name %a\n", AsciiVariableName));
+    DEBUG ((DEBUG_WARN, "OCVAR: Failed to convert NVRAM variable name %a\n", AsciiVariableName));
     return;
   }
 
@@ -193,7 +197,7 @@ OcDirectSetNvramVariable (
         if (EFI_ERROR (Status)) {
           DEBUG ((
             DEBUG_INFO,
-            "OC: Failed to delete overwritten variable %g:%a - %r\n",
+            "OCVAR: Failed to delete overwritten variable %g:%a - %r\n",
             VariableGuid,
             AsciiVariableName,
             Status
@@ -203,7 +207,7 @@ OcDirectSetNvramVariable (
       } else {
         DEBUG ((
           DEBUG_INFO,
-          "OC: Overwritten variable %g:%a has invalid attrs - %X\n",
+          "OCVAR: Overwritten variable %g:%a has invalid attrs - %X\n",
           VariableGuid,
           AsciiVariableName,
           Attributes
@@ -215,7 +219,7 @@ OcDirectSetNvramVariable (
     } else {
       DEBUG ((
         DEBUG_INFO,
-        "OC: Overwritten variable %g:%a has unknown attrs - %r\n",
+        "OCVAR: Overwritten variable %g:%a has unknown attrs - %r\n",
         VariableGuid,
         AsciiVariableName,
         Status
@@ -234,7 +238,7 @@ OcDirectSetNvramVariable (
                     );
     DEBUG ((
       EFI_ERROR (Status) && VariableSize > 0 ? DEBUG_WARN : DEBUG_INFO,
-      "OC: Setting NVRAM %g:%a - %r\n",
+      "OCVAR: Setting NVRAM %g:%a - %r\n",
       VariableGuid,
       AsciiVariableName,
       Status
@@ -242,7 +246,7 @@ OcDirectSetNvramVariable (
   } else {
     DEBUG ((
       DEBUG_INFO,
-      "OC: Setting NVRAM %g:%a - ignored, exists\n",
+      "OCVAR: Setting NVRAM %g:%a - ignored, exists\n",
       VariableGuid,
       AsciiVariableName,
       Status
@@ -269,14 +273,14 @@ InternalLocateVariableRuntimeProtocol (
                   );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "OC: Locate emulated NVRAM protocol - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "OCVAR: Locate emulated NVRAM protocol - %r\n", Status));
     return Status;
   }
 
   if ((*OcVariableRuntimeProtocol)->Revision != OC_VARIABLE_RUNTIME_PROTOCOL_REVISION) {
     DEBUG ((
       DEBUG_WARN,
-      "OC: Emulated NVRAM protocol incompatible revision %d != %d\n",
+      "OCVAR: Emulated NVRAM protocol incompatible revision %d != %d\n",
       (*OcVariableRuntimeProtocol)->Revision,
       OC_VARIABLE_RUNTIME_PROTOCOL_REVISION
       ));
@@ -322,32 +326,31 @@ OcLoadLegacyNvram (
     if (!EFI_ERROR (Status) && FwRuntime->Revision == OC_FIRMWARE_RUNTIME_REVISION) {
       FwRuntime->GetCurrent (&FwrtConfig);
       if (FwrtConfig.BootVariableRedirect) {
-        DEBUG ((DEBUG_INFO, "OC: Found FW NVRAM, redirect already present %d\n", FwrtConfig.BootVariableRedirect));
+        DEBUG ((DEBUG_INFO, "OCVAR: Found FW NVRAM, redirect already present %d\n", FwrtConfig.BootVariableRedirect));
         FwRuntime = NULL;
       } else {
         FwrtConfig.BootVariableRedirect = TRUE;
         FwRuntime->SetOverride (&FwrtConfig);
-        DEBUG ((DEBUG_INFO, "OC: Found FW NVRAM, forcing redirect %d\n", FwrtConfig.BootVariableRedirect));
+        DEBUG ((DEBUG_INFO, "OCVAR: Found FW NVRAM, forcing redirect %d\n", FwrtConfig.BootVariableRedirect));
       }
     } else {
       FwRuntime = NULL;
-      DEBUG ((DEBUG_INFO, "OC: Missing FW NVRAM, going on...\n"));
+      DEBUG ((DEBUG_INFO, "OCVAR: Missing FW NVRAM, going on...\n"));
     }
   } else {
     FwRuntime = NULL;
   }
 
-  //
-  // Let the protocol itself decide whether the storage options are suitable.
-  //
+  DEBUG ((DEBUG_INFO, "OCVAR: Loading NVRAM from storage...\n"));
+
   Status = OcVariableRuntimeProtocol->LoadNvram (Storage, &Config->Nvram);
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM load failed - %r\n", Status));
+    DEBUG ((DEBUG_WARN, "OCVAR: Emulated NVRAM load failed - %r\n", Status));
   }
 
   if (FwRuntime != NULL) {
-    DEBUG ((DEBUG_INFO, "OC: Restoring FW NVRAM...\n"));
+    DEBUG ((DEBUG_INFO, "OCVAR: Restoring FW NVRAM...\n"));
     FwRuntime->SetOverride (NULL);
   }
 }
@@ -366,10 +369,12 @@ OcSaveLegacyNvram (
     return;
   }
 
+  DEBUG ((DEBUG_INFO, "OCVAR: Saving NVRAM to storage...\n"));
+
   Status = OcVariableRuntimeProtocol->SaveNvram ();
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM save failed - %r\n", Status));
+    DEBUG ((DEBUG_WARN, "OCVAR: Emulated NVRAM save failed - %r\n", Status));
   }
 }
 
@@ -387,10 +392,12 @@ OcResetLegacyNvram (
     return;
   }
 
+  DEBUG ((DEBUG_INFO, "OCVAR: Resetting NVRAM storage...\n"));
+
   Status = OcVariableRuntimeProtocol->ResetNvram ();
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM reset failed - %r\n", Status));
+    DEBUG ((DEBUG_WARN, "OCVAR: Emulated NVRAM reset failed - %r\n", Status));
   }
 
   DirectResetCold ();
@@ -410,10 +417,12 @@ OcSwitchToFallbackLegacyNvram (
     return;
   }
 
+  DEBUG ((DEBUG_INFO, "OCVAR: Switching to fallback NVRAM storage...\n"));
+
   Status = OcVariableRuntimeProtocol->SwitchToFallback ();
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_WARN, "OC: Emulated NVRAM switch to fallback failed - %r\n", Status));
+    DEBUG ((DEBUG_WARN, "OCVAR: Emulated NVRAM switch to fallback failed - %r\n", Status));
   }
 }
 
@@ -471,14 +480,14 @@ OcDeleteNvram (
       // '#' is filtered in all keys, but for values we need to do it ourselves.
       //
       if (AsciiVariableName[0] == '#') {
-        DEBUG ((DEBUG_INFO, "OC: Variable skip deleting %a\n", AsciiVariableName));
+        DEBUG ((DEBUG_INFO, "OCVAR: Variable skip deleting %a\n", AsciiVariableName));
         continue;
       }
 
       UnicodeVariableName = AsciiStrCopyToUnicode (AsciiVariableName, 0);
 
       if (UnicodeVariableName == NULL) {
-        DEBUG ((DEBUG_WARN, "OC: Failed to convert NVRAM variable name %a\n", AsciiVariableName));
+        DEBUG ((DEBUG_WARN, "OCVAR: Failed to convert NVRAM variable name %a\n", AsciiVariableName));
         continue;
       }
 
@@ -505,7 +514,7 @@ OcDeleteNvram (
           }
 
           if (SameContents) {
-            DEBUG ((DEBUG_INFO, "OC: Not deleting NVRAM %g:%a, matches add\n", &VariableGuid, AsciiVariableName));
+            DEBUG ((DEBUG_INFO, "OCVAR: Not deleting NVRAM %g:%a, matches add\n", &VariableGuid, AsciiVariableName));
             FreePool (UnicodeVariableName);
             continue;
           }
@@ -515,7 +524,7 @@ OcDeleteNvram (
       Status = gRT->SetVariable (UnicodeVariableName, &VariableGuid, 0, 0, 0);
       DEBUG ((
         EFI_ERROR (Status) && Status != EFI_NOT_FOUND ? DEBUG_WARN : DEBUG_INFO,
-        "OC: Deleting NVRAM %g:%a - %r\n",
+        "OCVAR: Deleting NVRAM %g:%a - %r\n",
         &VariableGuid,
         AsciiVariableName,
         Status

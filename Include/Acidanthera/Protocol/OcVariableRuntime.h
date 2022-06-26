@@ -108,6 +108,7 @@ EFIAPI
 
   @retval EFI_NOT_READY           If called before LoadNvram.
   @retval EFI_NOT_FOUND           Invalid or missing NVRAM storage.
+  @retval EFI_ALREADY_STARTED     Already at fallback NVRAM.
   @retval EFI_OUT_OF_RESOURCES    Out of memory.
   @retval other                   Other error from child function.
   @retval EFI_SUCCESS             On success.
