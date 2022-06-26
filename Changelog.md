@@ -2,7 +2,7 @@ OpenCore Changelog
 ==================
 
 #### v0.8.2
-- Added support for NVRAM reset and saving default entry in boot picker when using emulated NVRAM
+- Added support for NVRAM reset and change default boot entry in picker when using emulated NVRAM
 - Upgraded emulated NVRAM logout script to allow unsupervised installation of OTA upgrades for recent macOS
 - Added emulated NVRAM optional driver for use separately from OpenDuet
 
