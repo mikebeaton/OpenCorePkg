@@ -6954,7 +6954,7 @@ protocol enabling the following:
   if it is present and \texttt{NVRAM/nvram.plist} is missing) on boot
   \item The Reset NVRAM option installed by the \texttt{ResetNvramEntry} driver removes the above files instead
   of affecting underlying NVRAM
-  \item CTRL+Enter in the OpenCore bootpicker updates or creates \texttt{NVRAM/nvram.plist}
+  \item \texttt{CTRL+Enter} in the OpenCore bootpicker updates or creates \texttt{NVRAM/nvram.plist}
 \end{itemize}
 
 Recommended configuration settings for this driver:
@@ -6971,7 +6971,7 @@ Recommended configuration settings for this driver:
 
 Variable loading happens prior to the NVRAM \texttt{Delete} (and \texttt{Add}) phases. Unless
 \texttt{LegacyOverwrite} is enabled, it will not overwrite any existing variable.
-Variables allowed for loading and for saving with CTRL+Enter must be specified in \texttt{LegacySchema}.
+Variables allowed for loading and for saving with \texttt{CTRL+Enter} must be specified in \texttt{LegacySchema}.
 
 In order to allow changes to NVRAM within macOS to be captured and saved,
 an additional script must be installed. An example of such script can be found in
@@ -7028,9 +7028,9 @@ entry is selected during the installer process:
 \end{itemize}
 
 The first reboot should correctly select \texttt{macOS Installer}. For second and subsequent reboots, if a \texttt{macOS Installer}
-entry is still present it should be manually selected (using just Enter, not CTRL+Enter). Once a \texttt{macOS Installer}
+entry is still present it should be manually selected (using just Enter, not \texttt{CTRL+Enter}). Once a \texttt{macOS Installer}
 entry is no longer present, the entry for the new OS will still be automatically selected if it was the previous boot default.
-If not, it should be manually selected (at this point, CTRL+Enter is a good idea as any final remaining installion restarts
+If not, it should be manually selected (at this point, \texttt{CTRL+Enter} is a good idea as any final remaining installion restarts
 will be to this entry).
 
 \emph{Note}: When using emulated NVRAM but not installing from within an existing installed macOS (i.e. when installing from
