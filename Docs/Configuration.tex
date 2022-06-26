@@ -6977,7 +6977,10 @@ In order to allow changes to NVRAM within macOS to be captured and saved,
 an additional script must be installed. An example of such script can be found in
 \href{https://github.com/acidanthera/OpenCorePkg/tree/master/Utilities/LogoutHook/Launchd.command}{\texttt{Utilities/LogoutHook/Launchd.command}}.
 
-\emph{Note}: The \texttt{nvram.plist} (and \texttt{nvram.fallback} if present) files must have a
+\emph{Note 1}: This driver requires working FAT write support in firmware, and sufficient free
+space on the OpenCore EFI partition for up to three saved NVRAM files.
+
+\emph{Note 2}: The \texttt{nvram.plist} (and \texttt{nvram.fallback} if present) files must have a
 root \texttt{plist\ dictionary} type and contain two fields:
 \begin{itemize}
 \tightlist
