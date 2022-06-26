@@ -10,6 +10,8 @@
 # Currently installs just as launch daemon, which is the only one that
 # on shutdown can access NVRAM after macOS installer vars are set.
 #
+# Examine log at /var/log/org.acidanthera.nvramhook.launchd/launchd.log.
+#
 
 if [ ! -x /usr/bin/dirname   ] ||
    [ ! -x /usr/bin/basename  ] ||
