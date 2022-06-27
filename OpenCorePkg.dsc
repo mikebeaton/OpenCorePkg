@@ -287,7 +287,7 @@
       VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
       VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
       TimerLib|OpenCorePkg/Library/DuetTimerLib/DuetTimerLib.inf
-      #DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
+      DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
       NULL|OpenCorePkg/Library/OcVariableRuntimeLib/OcVariableRuntimeLib.inf
   }
   OpenCorePkg/Platform/ResetNvramEntry/ResetNvramEntry.inf
