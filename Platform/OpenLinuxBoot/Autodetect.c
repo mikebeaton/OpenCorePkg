@@ -386,10 +386,10 @@ FreeEtcFiles (
 STATIC
 EFI_STATUS
 InsertOption (
-  IN     CONST UINTN              InsertIndex,
-  IN           OC_FLEX_ARRAY      *Options,
-  IN     CONST VOID               *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST UINTN             InsertIndex,
+  IN           OC_FLEX_ARRAY     *Options,
+  IN     CONST VOID              *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   EFI_STATUS  Status;
@@ -432,9 +432,9 @@ InsertOption (
 STATIC
 EFI_STATUS
 AddOption (
-  IN           OC_FLEX_ARRAY      *Options,
-  IN     CONST VOID               *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN           OC_FLEX_ARRAY     *Options,
+  IN     CONST VOID              *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   return InsertOption (Options->Count, Options, Value, StringFormat);

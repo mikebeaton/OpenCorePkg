@@ -263,10 +263,12 @@ OcScanVariables (
       if (ProcessResult == OcProcessVariableAbort) {
         break;
       }
+
       if (ProcessResult == OcProcessVariableRestart) {
         Restart = TRUE;
         continue;
       }
+
       ASSERT (ProcessResult == OcProcessVariableContinue);
     } else if ((Status != EFI_BUFFER_TOO_SMALL) && (Status != EFI_NOT_FOUND)) {
       if (!CriticalFailure) {
@@ -288,9 +290,9 @@ STATIC
 OC_PROCESS_VARIABLE_RESULT
 EFIAPI
 DeleteVariable (
-  IN EFI_GUID        *Guid,
-  IN CHAR16          *Name,
-  IN VOID            *Context
+  IN EFI_GUID  *Guid,
+  IN CHAR16    *Name,
+  IN VOID      *Context
   )
 {
   EFI_STATUS  Status;
@@ -302,7 +304,7 @@ DeleteVariable (
   ASSERT (Context != NULL);
 
   PreserveBoot = Context;
-  Restart = FALSE;
+  Restart      = FALSE;
 
   if (IsDeletableVariable (Name, Guid, *PreserveBoot)) {
     Status = gRT->SetVariable (Name, Guid, 0, 0, NULL);

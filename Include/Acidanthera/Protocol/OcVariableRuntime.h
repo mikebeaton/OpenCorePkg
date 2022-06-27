@@ -127,23 +127,23 @@ struct OC_VARIABLE_RUNTIME_PROTOCOL_ {
   //
   // Protocol revision.
   //
-  UINTN                                             Revision;
+  UINTN                                              Revision;
   //
   // Load NVRAM.
   //
-  OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM           LoadNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM            LoadNvram;
   //
   // Save NVRAM.
   //
-  OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM           SaveNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM            SaveNvram;
   //
   // Reset NVRAM.
   //
-  OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM          ResetNvram;
+  OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM           ResetNvram;
   //
   // Reset NVRAM.
   //
-  OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK   SwitchToFallback;
+  OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK    SwitchToFallback;
 };
 
 extern EFI_GUID  gOcVariableRuntimeProtocolGuid;

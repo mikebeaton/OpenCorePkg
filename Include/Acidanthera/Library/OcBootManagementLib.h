@@ -1870,9 +1870,9 @@ OcParseLoadOptions (
 **/
 EFI_STATUS
 OcParseVars (
-  IN           VOID               *StrVars,
-     OUT       OC_FLEX_ARRAY      **ParsedVars,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN           VOID              *StrVars,
+  OUT       OC_FLEX_ARRAY        **ParsedVars,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   );
 
 /**
@@ -1894,10 +1894,10 @@ OcParseVars (
 **/
 BOOLEAN
 OcParsedVarsGetStr (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       VOID                  **StrValue,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       VOID                 **StrValue,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   );
 
 /**
@@ -1956,9 +1956,9 @@ OcParsedVarsGetAsciiStr (
 **/
 BOOLEAN
 OcHasParsedVar (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   );
 
 /**
@@ -1975,10 +1975,10 @@ OcHasParsedVar (
 **/
 EFI_STATUS
 OcParsedVarsGetInt (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       UINTN                 *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       UINTN                *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   );
 
 /**
@@ -1995,10 +1995,10 @@ OcParsedVarsGetInt (
 **/
 EFI_STATUS
 OcParsedVarsGetGuid (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       EFI_GUID              *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       EFI_GUID             *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   );
 
 /**

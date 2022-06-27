@@ -104,8 +104,8 @@ OcVariableIsAllowedBySchemaEntry (
   IN OC_STRING_FORMAT       StringFormat
   )
 {
-  BOOLEAN     IsAllowed;
-  UINT32      VariableIndex;
+  BOOLEAN  IsAllowed;
+  UINT32   VariableIndex;
 
   if (SchemaEntry == NULL) {
     return TRUE;
@@ -122,14 +122,16 @@ OcVariableIsAllowedBySchemaEntry (
       break;
     }
 
-    if ((StringFormat == OcStringFormatAscii)
-      && AsciiStrCmp ((CONST CHAR8 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0) {
+    if (  (StringFormat == OcStringFormatAscii)
+       && (AsciiStrCmp ((CONST CHAR8 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0))
+    {
       IsAllowed = TRUE;
       break;
     }
 
-    if ((StringFormat == OcStringFormatUnicode)
-      && MixedStrCmp ((CONST CHAR16 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0) {
+    if (  (StringFormat == OcStringFormatUnicode)
+       && (MixedStrCmp ((CONST CHAR16 *)VariableName, OC_BLOB_GET (SchemaEntry->Values[VariableIndex])) == 0))
+    {
       IsAllowed = TRUE;
       break;
     }
@@ -160,11 +162,9 @@ OcDirectSetNvramVariable (
   UINTN       OrgSize;
   UINT32      OrgAttributes;
 
-
   if (!OcVariableIsAllowedBySchemaEntry (SchemaEntry, VariableGuid, AsciiVariableName, OcStringFormatAscii)) {
     return;
   }
-
 
   UnicodeVariableName = AsciiStrCopyToUnicode (AsciiVariableName, 0);
 
@@ -262,7 +262,7 @@ InternalLocateVariableRuntimeProtocol (
   OC_VARIABLE_RUNTIME_PROTOCOL  **OcVariableRuntimeProtocol
   )
 {
-  EFI_STATUS                    Status;
+  EFI_STATUS  Status;
 
   ASSERT (OcVariableRuntimeProtocol != NULL);
 
@@ -293,8 +293,8 @@ InternalLocateVariableRuntimeProtocol (
 STATIC
 VOID
 OcLoadLegacyNvram (
-  IN OC_STORAGE_CONTEXT               *Storage,
-  IN OC_GLOBAL_CONFIG                 *Config
+  IN OC_STORAGE_CONTEXT  *Storage,
+  IN OC_GLOBAL_CONFIG    *Config
   )
 {
   EFI_STATUS                    Status;
@@ -318,12 +318,12 @@ OcLoadLegacyNvram (
   //
   if (Config->Uefi.Quirks.RequestBootVarRouting) {
     Status = gBS->LocateProtocol (
-      &gOcFirmwareRuntimeProtocolGuid,
-      NULL,
-      (VOID **) &FwRuntime
-      );
+                    &gOcFirmwareRuntimeProtocolGuid,
+                    NULL,
+                    (VOID **)&FwRuntime
+                    );
 
-    if (!EFI_ERROR (Status) && FwRuntime->Revision == OC_FIRMWARE_RUNTIME_REVISION) {
+    if (!EFI_ERROR (Status) && (FwRuntime->Revision == OC_FIRMWARE_RUNTIME_REVISION)) {
       FwRuntime->GetCurrent (&FwrtConfig);
       if (FwrtConfig.BootVariableRedirect) {
         DEBUG ((DEBUG_INFO, "OCVAR: Found FW NVRAM, redirect already present %d\n", FwrtConfig.BootVariableRedirect));

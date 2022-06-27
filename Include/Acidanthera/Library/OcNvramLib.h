@@ -12,11 +12,11 @@
 
 #define OPEN_CORE_NVRAM_ROOT_PATH  L"NVRAM"
 
-#define OPEN_CORE_NVRAM_FILENAME       L"nvram.plist"
+#define OPEN_CORE_NVRAM_FILENAME  L"nvram.plist"
 
 #define OPEN_CORE_NVRAM_FALLBACK_FILENAME  L"nvram.fallback"
 
-#define OPEN_CORE_NVRAM_USED_FILENAME      L"nvram.used"
+#define OPEN_CORE_NVRAM_USED_FILENAME  L"nvram.used"
 
 #define OPEN_CORE_NVRAM_ATTR  (EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS)
 
@@ -177,7 +177,7 @@ typedef enum _OC_PROCESS_VARIABLE_RESULT {
 **/
 typedef
 OC_PROCESS_VARIABLE_RESULT
-(EFIAPI *OC_PROCESS_VARIABLE) (
+(EFIAPI *OC_PROCESS_VARIABLE)(
   IN EFI_GUID           *Guid,
   IN CHAR16             *Name,
   IN VOID               *Context OPTIONAL

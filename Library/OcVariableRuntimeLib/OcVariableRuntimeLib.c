@@ -16,17 +16,17 @@
 
 #include <Protocol/OcVariableRuntime.h>
 
-#define BASE64_CHUNK_SIZE (52)
+#define BASE64_CHUNK_SIZE  (52)
 
 typedef struct {
-  UINT8                         *DataBuffer;
-  UINTN                         DataBufferSize;
-  CHAR8                         *Base64Buffer;
-  UINTN                         Base64BufferSize;
-  OC_ASCII_STRING_BUFFER        *StringBuffer;
-  GUID                          SectionGuid;
-  OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
-  EFI_STATUS                    Status;
+  UINT8                     *DataBuffer;
+  UINTN                     DataBufferSize;
+  CHAR8                     *Base64Buffer;
+  UINTN                     Base64BufferSize;
+  OC_ASCII_STRING_BUFFER    *StringBuffer;
+  GUID                      SectionGuid;
+  OC_NVRAM_LEGACY_ENTRY     *SchemaEntry;
+  EFI_STATUS                Status;
 } NVRAM_SAVE_CONTEXT;
 
 /**
@@ -55,7 +55,7 @@ OC_SCHEMA
 STATIC
 OC_SCHEMA
   mNvramStorageNodesSchema[] = {
-  OC_SCHEMA_MAP_IN ("Add",         OC_NVRAM_STORAGE, Add,    &mNvramStorageAddSchema),
+  OC_SCHEMA_MAP_IN ("Add",         OC_NVRAM_STORAGE, Add,      &mNvramStorageAddSchema),
   OC_SCHEMA_INTEGER_IN ("Version", OC_NVRAM_STORAGE, Version),
 };
 
@@ -76,13 +76,13 @@ OC_NVRAM_CONFIG
 STATIC
 EFI_STATUS
 LocateNvramDir (
-  OUT EFI_FILE_PROTOCOL **NvramDir
+  OUT EFI_FILE_PROTOCOL  **NvramDir
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *Root;
+  EFI_STATUS         Status;
+  EFI_FILE_PROTOCOL  *Root;
 
-  if (mStorageContext == NULL || mNvramConfig == NULL) {
+  if ((mStorageContext == NULL) || (mNvramConfig == NULL)) {
     return EFI_NOT_READY;
   }
 
@@ -96,12 +96,12 @@ LocateNvramDir (
   }
 
   Status = OcSafeFileOpen (
-    Root,
-    NvramDir,
-    OPEN_CORE_NVRAM_ROOT_PATH,
-    EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
-    EFI_FILE_DIRECTORY
-    );
+             Root,
+             NvramDir,
+             OPEN_CORE_NVRAM_ROOT_PATH,
+             EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
+             EFI_FILE_DIRECTORY
+             );
 
   return Status;
 }
@@ -110,32 +110,32 @@ STATIC
 EFI_STATUS
 EFIAPI
 LoadNvram (
-  IN OC_STORAGE_CONTEXT               *StorageContext,
-  IN OC_NVRAM_CONFIG                  *NvramConfig
+  IN OC_STORAGE_CONTEXT  *StorageContext,
+  IN OC_NVRAM_CONFIG     *NvramConfig
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *NvramDir;
-  UINT8                         *FileBuffer;
-  UINT32                        FileSize;
-  BOOLEAN                       IsValid;
-  OC_NVRAM_STORAGE              NvramStorage;
-  UINT32                        GuidIndex;
-  UINT32                        VariableIndex;
-  GUID                          VariableGuid;
-  OC_ASSOC                      *VariableMap;
-  OC_NVRAM_LEGACY_ENTRY         *SchemaEntry;
+  EFI_STATUS             Status;
+  EFI_FILE_PROTOCOL      *NvramDir;
+  UINT8                  *FileBuffer;
+  UINT32                 FileSize;
+  BOOLEAN                IsValid;
+  OC_NVRAM_STORAGE       NvramStorage;
+  UINT32                 GuidIndex;
+  UINT32                 VariableIndex;
+  GUID                   VariableGuid;
+  OC_ASSOC               *VariableMap;
+  OC_NVRAM_LEGACY_ENTRY  *SchemaEntry;
 
-  if (mStorageContext != NULL || mNvramConfig != NULL) {
+  if ((mStorageContext != NULL) || (mNvramConfig != NULL)) {
     return EFI_ALREADY_STARTED;
   }
 
-  if (StorageContext == NULL || NvramConfig == NULL) {
+  if ((StorageContext == NULL) || (NvramConfig == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
 
   mStorageContext = StorageContext;
-  mNvramConfig = NvramConfig;
+  mNvramConfig    = NvramConfig;
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -146,6 +146,7 @@ LoadNvram (
   if (FileBuffer == NULL) {
     FileBuffer = OcReadFileFromDirectory (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME, &FileSize, BASE_1MB);
   }
+
   NvramDir->Close (NvramDir);
   if (FileBuffer == NULL) {
     return EFI_NOT_FOUND;
@@ -193,7 +194,7 @@ LoadNvram (
       OcDirectSetNvramVariable (
         OC_BLOB_GET (VariableMap->Keys[VariableIndex]),
         &VariableGuid,
-        OPEN_CORE_NVRAM_NV_ATTR, //mNvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
+        OPEN_CORE_NVRAM_NV_ATTR, // mNvramConfig->WriteFlash ? OPEN_CORE_NVRAM_NV_ATTR : OPEN_CORE_NVRAM_ATTR,
         VariableMap->Values[VariableIndex]->Size,
         OC_BLOB_GET (VariableMap->Values[VariableIndex]),
         SchemaEntry,
@@ -210,11 +211,11 @@ LoadNvram (
 STATIC
 EFI_STATUS
 DeleteFile (
-  IN EFI_FILE_PROTOCOL             *Directory,
-  IN CONST CHAR16                  *FileName
+  IN EFI_FILE_PROTOCOL  *Directory,
+  IN CONST CHAR16       *FileName
   )
 {
-  EFI_STATUS                    Status;
+  EFI_STATUS  Status;
 
   Status = OcDeleteFile (Directory, FileName);
   if (EFI_ERROR (Status)) {
@@ -233,17 +234,17 @@ STATIC
 OC_PROCESS_VARIABLE_RESULT
 EFIAPI
 SerializeSectionVariables (
-  IN EFI_GUID        *Guid,
-  IN CHAR16          *Name,
-  IN VOID            *Context
+  IN EFI_GUID  *Guid,
+  IN CHAR16    *Name,
+  IN VOID      *Context
   )
 {
-  EFI_STATUS              Status;
-  NVRAM_SAVE_CONTEXT      *SaveContext;
-  UINT32                  Attributes;
-  UINTN                   DataSize;
-  UINTN                   Base64Size;
-  UINTN                   Base64Pos;
+  EFI_STATUS          Status;
+  NVRAM_SAVE_CONTEXT  *SaveContext;
+  UINT32              Attributes;
+  UINTN               DataSize;
+  UINTN               Base64Size;
+  UINTN               Base64Pos;
 
   ASSERT (Context != NULL);
   SaveContext = Context;
@@ -258,13 +259,13 @@ SerializeSectionVariables (
 
   do {
     DataSize = SaveContext->DataBufferSize;
-    Status = gRT->GetVariable (
-                    Name,
-                    Guid,
-                    &Attributes,
-                    &DataSize,
-                    SaveContext->DataBuffer
-                    );
+    Status   = gRT->GetVariable (
+                      Name,
+                      Guid,
+                      &Attributes,
+                      &DataSize,
+                      SaveContext->DataBuffer
+                      );
     if (Status == EFI_BUFFER_TOO_SMALL) {
       while (DataSize > SaveContext->DataBufferSize) {
         if (OcOverflowMulUN (SaveContext->DataBufferSize, 2, &SaveContext->DataBufferSize)) {
@@ -272,6 +273,7 @@ SerializeSectionVariables (
           return OcProcessVariableAbort;
         }
       }
+
       FreePool (SaveContext->DataBuffer);
       SaveContext->DataBuffer = AllocatePool (SaveContext->DataBufferSize);
       if (SaveContext->DataBuffer == NULL) {
@@ -290,8 +292,9 @@ SerializeSectionVariables (
   // Only save non-volatile variables; also, match launchd script and only save
   // variables which it can save, i.e. runtime accessible.
   //
-  if (((Attributes & EFI_VARIABLE_RUNTIME_ACCESS) == 0)
-    || ((Attributes & EFI_VARIABLE_NON_VOLATILE) == 0)) {
+  if (  ((Attributes & EFI_VARIABLE_RUNTIME_ACCESS) == 0)
+     || ((Attributes & EFI_VARIABLE_NON_VOLATILE) == 0))
+  {
     DEBUG ((DEBUG_VERBOSE, "NVRAM %g:%s skipped w/ attributes 0x%X\n", Guid, Name, Attributes));
     return OcProcessVariableContinue;
   }
@@ -305,6 +308,7 @@ SerializeSectionVariables (
         return OcProcessVariableAbort;
       }
     }
+
     FreePool (SaveContext->Base64Buffer);
     SaveContext->Base64Buffer = AllocatePool (SaveContext->Base64BufferSize);
     if (SaveContext->Base64Buffer == NULL) {
@@ -312,17 +316,20 @@ SerializeSectionVariables (
       return OcProcessVariableAbort;
     }
   }
+
   Base64Encode (SaveContext->DataBuffer, DataSize, SaveContext->Base64Buffer, &Base64Size);
 
   //
   // %c works around BasePrintLibSPrintMarker converting \n to \r\n.
   //
   Status = OcAsciiStringBufferSPrint (
-    SaveContext->StringBuffer,
-    "\t\t\t<key>%s</key>%c"
-    "\t\t\t<data>%c",
-    Name, '\n', '\n'
-    );
+             SaveContext->StringBuffer,
+             "\t\t\t<key>%s</key>%c"
+             "\t\t\t<data>%c",
+             Name,
+             '\n',
+             '\n'
+             );
   if (EFI_ERROR (Status)) {
     SaveContext->Status = Status;
     return OcProcessVariableAbort;
@@ -330,26 +337,28 @@ SerializeSectionVariables (
 
   for (Base64Pos = 0; Base64Pos < (Base64Size - 1); Base64Pos += BASE64_CHUNK_SIZE) {
     Status = OcAsciiStringBufferAppend (
-      SaveContext->StringBuffer,
-      "\t\t\t"
-      );
+               SaveContext->StringBuffer,
+               "\t\t\t"
+               );
     if (EFI_ERROR (Status)) {
       SaveContext->Status = Status;
       return OcProcessVariableAbort;
     }
+
     Status = OcAsciiStringBufferAppendN (
-      SaveContext->StringBuffer,
-      &SaveContext->Base64Buffer[Base64Pos],
-      BASE64_CHUNK_SIZE
-      );
+               SaveContext->StringBuffer,
+               &SaveContext->Base64Buffer[Base64Pos],
+               BASE64_CHUNK_SIZE
+               );
     if (EFI_ERROR (Status)) {
       SaveContext->Status = Status;
       return OcProcessVariableAbort;
     }
+
     Status = OcAsciiStringBufferAppend (
-      SaveContext->StringBuffer,
-      "\n"
-      );
+               SaveContext->StringBuffer,
+               "\n"
+               );
     if (EFI_ERROR (Status)) {
       SaveContext->Status = Status;
       return OcProcessVariableAbort;
@@ -357,14 +366,14 @@ SerializeSectionVariables (
   }
 
   Status = OcAsciiStringBufferAppend (
-    SaveContext->StringBuffer,
-    "\t\t\t</data>\n"
-    );
+             SaveContext->StringBuffer,
+             "\t\t\t</data>\n"
+             );
   if (EFI_ERROR (Status)) {
     SaveContext->Status = Status;
     return OcProcessVariableAbort;
   }
-   
+
   return OcProcessVariableContinue;
 }
 
@@ -375,10 +384,10 @@ SaveNvram (
   VOID
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *NvramDir;
-  UINT32                        GuidIndex;
-  NVRAM_SAVE_CONTEXT            Context;
+  EFI_STATUS          Status;
+  EFI_FILE_PROTOCOL   *NvramDir;
+  UINT32              GuidIndex;
+  NVRAM_SAVE_CONTEXT  Context;
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -388,14 +397,14 @@ SaveNvram (
   Context.Status = EFI_SUCCESS;
 
   Context.DataBufferSize = BASE_1KB;
-  Context.DataBuffer = AllocatePool (Context.DataBufferSize);
+  Context.DataBuffer     = AllocatePool (Context.DataBufferSize);
   if (Context.DataBuffer == NULL) {
     NvramDir->Close (NvramDir);
     return EFI_OUT_OF_RESOURCES;
   }
 
   Context.Base64BufferSize = BASE_1KB;
-  Context.Base64Buffer = AllocatePool (Context.Base64BufferSize);
+  Context.Base64Buffer     = AllocatePool (Context.Base64BufferSize);
   if (Context.Base64Buffer == NULL) {
     NvramDir->Close (NvramDir);
     FreePool (Context.DataBuffer);
@@ -411,14 +420,14 @@ SaveNvram (
   }
 
   Status = OcAsciiStringBufferAppend (
-    Context.StringBuffer,
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
-    "<plist version=\"1.0\">\n"
-    "<dict>\n"
-    "\t<key>Add</key>\n"
-    "\t<dict>\n"
-    );
+             Context.StringBuffer,
+             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+             "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+             "<plist version=\"1.0\">\n"
+             "<dict>\n"
+             "\t<key>Add</key>\n"
+             "\t<dict>\n"
+             );
 
   if (EFI_ERROR (Status)) {
     NvramDir->Close (NvramDir);
@@ -430,22 +439,24 @@ SaveNvram (
 
   for (GuidIndex = 0; GuidIndex < mNvramConfig->Legacy.Count; ++GuidIndex) {
     Status = OcProcessVariableGuid (
-      OC_BLOB_GET (mNvramConfig->Legacy.Keys[GuidIndex]),
-      &Context.SectionGuid,
-      &mNvramConfig->Legacy,
-      &Context.SchemaEntry
-      );
+               OC_BLOB_GET (mNvramConfig->Legacy.Keys[GuidIndex]),
+               &Context.SectionGuid,
+               &mNvramConfig->Legacy,
+               &Context.SchemaEntry
+               );
     if (EFI_ERROR (Status)) {
       Status = EFI_SUCCESS;
       continue;
     }
 
     Status = OcAsciiStringBufferSPrint (
-      Context.StringBuffer,
-      "\t\t<key>%g</key>%c"
-      "\t\t<dict>%c",
-      Context.SectionGuid, '\n', '\n'
-      );
+               Context.StringBuffer,
+               "\t\t<key>%g</key>%c"
+               "\t\t<dict>%c",
+               Context.SectionGuid,
+               '\n',
+               '\n'
+               );
     if (EFI_ERROR (Status)) {
       break;
     }
@@ -457,9 +468,9 @@ SaveNvram (
     }
 
     Status = OcAsciiStringBufferAppend (
-      Context.StringBuffer,
-      "\t\t</dict>\n"
-      );
+               Context.StringBuffer,
+               "\t\t</dict>\n"
+               );
     if (EFI_ERROR (Status)) {
       break;
     }
@@ -470,16 +481,21 @@ SaveNvram (
 
   if (!EFI_ERROR (Status)) {
     Status = OcAsciiStringBufferSPrint (
-      Context.StringBuffer,
-      "\t</dict>%c"
-      "\t<key>Version</key>%c"
-      "\t<integer>%u</integer>%c"
-      "</dict>%c"
-      "</plist>%c",
-      '\n', '\n', OC_NVRAM_STORAGE_VERSION,
-      '\n', '\n', '\n'
-      );
+               Context.StringBuffer,
+               "\t</dict>%c"
+               "\t<key>Version</key>%c"
+               "\t<integer>%u</integer>%c"
+               "</dict>%c"
+               "</plist>%c",
+               '\n',
+               '\n',
+               OC_NVRAM_STORAGE_VERSION,
+               '\n',
+               '\n',
+               '\n'
+               );
   }
+
   if (EFI_ERROR (Status)) {
     NvramDir->Close (NvramDir);
     OcAsciiStringBufferFree (&Context.StringBuffer);
@@ -488,11 +504,11 @@ SaveNvram (
 
   DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   Status = OcSetFileData (
-    NvramDir,
-    OPEN_CORE_NVRAM_FILENAME,
-    Context.StringBuffer->String,
-    Context.StringBuffer->StringLength
-    );
+             NvramDir,
+             OPEN_CORE_NVRAM_FILENAME,
+             Context.StringBuffer->String,
+             Context.StringBuffer->StringLength
+             );
 
   OcAsciiStringBufferFree (&Context.StringBuffer);
   NvramDir->Close (NvramDir);
@@ -507,16 +523,16 @@ ResetNvram (
   VOID
   )
 {
-  EFI_STATUS                    Status;
-  EFI_STATUS                    AltStatus;
-  EFI_FILE_PROTOCOL             *NvramDir;
+  EFI_STATUS         Status;
+  EFI_STATUS         AltStatus;
+  EFI_FILE_PROTOCOL  *NvramDir;
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  Status = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
+  Status    = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   AltStatus = DeleteFile (NvramDir, OPEN_CORE_NVRAM_FALLBACK_FILENAME);
 
   NvramDir->Close (NvramDir);
@@ -537,10 +553,10 @@ SwitchToFallback (
   VOID
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *NvramDir;
-  UINT8                         *FileBuffer;
-  UINT32                        FileSize;
+  EFI_STATUS         Status;
+  EFI_FILE_PROTOCOL  *NvramDir;
+  UINT8              *FileBuffer;
+  UINT32             FileSize;
 
   Status = LocateNvramDir (&NvramDir);
   if (EFI_ERROR (Status)) {
@@ -561,11 +577,11 @@ SwitchToFallback (
   DeleteFile (NvramDir, OPEN_CORE_NVRAM_USED_FILENAME);
   DeleteFile (NvramDir, OPEN_CORE_NVRAM_FILENAME);
   Status = OcSetFileData (
-    NvramDir,
-    OPEN_CORE_NVRAM_USED_FILENAME,
-    FileBuffer,
-    FileSize
-    );
+             NvramDir,
+             OPEN_CORE_NVRAM_USED_FILENAME,
+             FileBuffer,
+             FileSize
+             );
 
   NvramDir->Close (NvramDir);
   FreePool (FileBuffer);
@@ -575,12 +591,12 @@ SwitchToFallback (
 
 STATIC
 OC_VARIABLE_RUNTIME_PROTOCOL
-mOcVariableRuntimeProtocol = {
-                                                      OC_VARIABLE_RUNTIME_PROTOCOL_REVISION,
-  (OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM)           LoadNvram,
-  (OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM)           SaveNvram,
-  (OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM)          ResetNvram,
-  (OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK)   SwitchToFallback
+  mOcVariableRuntimeProtocol = {
+  OC_VARIABLE_RUNTIME_PROTOCOL_REVISION,
+  (OC_VARIABLE_RUNTIME_PROTOCOL_LOAD_NVRAM)LoadNvram,
+  (OC_VARIABLE_RUNTIME_PROTOCOL_SAVE_NVRAM)SaveNvram,
+  (OC_VARIABLE_RUNTIME_PROTOCOL_RESET_NVRAM)ResetNvram,
+  (OC_VARIABLE_RUNTIME_PROTOCOL_SWITCH_TO_FALLBACK)SwitchToFallback
 };
 
 EFI_STATUS
@@ -591,9 +607,9 @@ OcVariableRuntimeLibConstructor (
   )
 {
   return gBS->InstallMultipleProtocolInterfaces (
-                  &ImageHandle,
-                  &gOcVariableRuntimeProtocolGuid,
-                  &mOcVariableRuntimeProtocol,
-                  NULL
-                  );
+                &ImageHandle,
+                &gOcVariableRuntimeProtocolGuid,
+                &mOcVariableRuntimeProtocol,
+                NULL
+                );
 }

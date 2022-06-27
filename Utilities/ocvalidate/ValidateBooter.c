@@ -164,20 +164,20 @@ CheckBooterQuirks (
   ResizeAppleGpuBars              = Config->Booter.Quirks.ResizeAppleGpuBars;
 
   for (Index = 0; Index < Config->Uefi.Drivers.Count; ++Index) {
-    DriverEntry     = Config->Uefi.Drivers.Values[Index];
-    Driver          = OC_BLOB_GET (&DriverEntry->Path);
-    Load            = OC_BLOB_GET (&DriverEntry->Load);
-    IsDriverLoaded  = (AsciiStrCmp (Load, "Early") == 0) || (AsciiStrCmp (Load, "Enabled") == 0);
+    DriverEntry    = Config->Uefi.Drivers.Values[Index];
+    Driver         = OC_BLOB_GET (&DriverEntry->Path);
+    Load           = OC_BLOB_GET (&DriverEntry->Load);
+    IsDriverLoaded = (AsciiStrCmp (Load, "Early") == 0) || (AsciiStrCmp (Load, "Enabled") == 0);
 
     //
     // Skip sanitising UEFI->Drivers as it will be performed when checking UEFI section.
     //
 
-    if (!IsDriverLoaded && !(AsciiStrCmp (Load, "Disabled") == 0))
-    {
+    if (!IsDriverLoaded && !(AsciiStrCmp (Load, "Disabled") == 0)) {
       DEBUG ((DEBUG_WARN, "UEFI->Drivers[%d]->Load is borked (Can only be Early, Enabled, or Disabled)!\n", Index));
       ++ErrorCount;
     }
+
     if (IsDriverLoaded && (AsciiStrCmp (Driver, "OpenRuntime.efi") == 0)) {
       HasOpenRuntimeEfiDriver = TRUE;
     }

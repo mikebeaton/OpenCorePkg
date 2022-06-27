@@ -126,14 +126,14 @@ OcLoadDrivers (
     DriverArguments = OC_BLOB_GET (&DriverEntry->Arguments);
 
     SkipDriver = (
-         (DriverFileName == NULL)
-      || (DriverFileName[0] == '\0')
-      || (
-        LoadEarly
-        ? (AsciiStrCmp (DriverLoad, "Early") != 0)
-        : (AsciiStrCmp (DriverLoad, "Enabled") != 0)
-        )
-      );
+                    (DriverFileName == NULL)
+                 || (DriverFileName[0] == '\0')
+                 || (
+                     LoadEarly
+                      ? (AsciiStrCmp (DriverLoad, "Early") != 0)
+                      : (AsciiStrCmp (DriverLoad, "Enabled") != 0)
+                     )
+                    );
 
     if (!LoadEarly || !SkipDriver) {
       DEBUG ((
@@ -255,10 +255,6 @@ OcLoadDrivers (
 
       FreePool ((CHAR8 *)UnescapedArguments);
     }
-
-#if defined(OC_TARGET_NOOPT)
-    if (Index == 0) WaitForKeyPress (L"Mike...");
-#endif
 
     Status = gBS->StartImage (
                     ImageHandle,

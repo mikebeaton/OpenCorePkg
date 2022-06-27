@@ -1,7 +1,7 @@
 /** @file
   Implement all four UEFI Runtime Variable services for the nonvolatile
   and volatile storage space and install variable architecture protocol.
-  
+
   Modified to work with UEFI1.1 for Apple firmware, and for immediate
   install.
 
@@ -519,21 +519,21 @@ STATIC
 EFI_STATUS
 EFIAPI
 MapCreateEventEx (
-  IN       UINT32                 Type,
-  IN       EFI_TPL                NotifyTpl,
-  IN       EFI_EVENT_NOTIFY       NotifyFunction OPTIONAL,
-  IN CONST VOID                   *NotifyContext OPTIONAL,
-  IN CONST EFI_GUID               *EventGroup    OPTIONAL,
-  OUT      EFI_EVENT              *Event
+  IN       UINT32            Type,
+  IN       EFI_TPL           NotifyTpl,
+  IN       EFI_EVENT_NOTIFY  NotifyFunction OPTIONAL,
+  IN CONST VOID              *NotifyContext OPTIONAL,
+  IN CONST EFI_GUID          *EventGroup    OPTIONAL,
+  OUT      EFI_EVENT         *Event
   )
 {
-  EFI_STATUS Status;
+  EFI_STATUS  Status;
 
   Status = EFI_UNSUPPORTED;
-  
+
   if (Type == EVT_NOTIFY_SIGNAL) {
     if (CompareGuid (EventGroup, &gEfiEventVirtualAddressChangeGuid)) {
-      Type = EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE;
+      Type   = EVT_SIGNAL_VIRTUAL_ADDRESS_CHANGE;
       Status = EFI_SUCCESS;
     }
   }
@@ -543,12 +543,12 @@ MapCreateEventEx (
   }
 
   return gBS->CreateEvent (
-    Type,
-    NotifyTpl,
-    NotifyFunction,
-    (VOID *)NotifyContext,
-    Event
-  );
+                Type,
+                NotifyTpl,
+                NotifyFunction,
+                (VOID *)NotifyContext,
+                Event
+                );
 }
 
 /**
@@ -634,7 +634,7 @@ VariableServiceInitialize (
   }
 
   OriginalCreateEventEx = gBS->CreateEventEx;
-  gBS->CreateEventEx = MapCreateEventEx;
+  gBS->CreateEventEx    = MapCreateEventEx;
 
   Status = gBS->CreateEventEx (
                   EVT_NOTIFY_SIGNAL,

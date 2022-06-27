@@ -2384,6 +2384,7 @@ OcLoadBootEntry (
     if (BootEntry->IsAppleInstaller) {
       OcSwitchToFallbackLegacyNvram ();
     }
+
     Status = Context->StartImage (BootEntry, EntryHandle, NULL, NULL, BootEntry->LaunchInText);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "OCB: StartImage failed - %r\n", Status));

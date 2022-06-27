@@ -22,9 +22,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 #if defined (MDEPKG_NDEBUG)
 
-#if defined (__GNUC__) || defined (__clang__)
-#define GetSchemaTypeName(expression) (NULL)
-#endif
+  #if defined (__GNUC__) || defined (__clang__)
+#define GetSchemaTypeName(expression)  (NULL)
+  #endif
 
 #else
 

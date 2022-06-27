@@ -447,9 +447,9 @@ OcParseLoadOptions (
 
 EFI_STATUS
 OcParseVars (
-  IN           VOID               *StrVars,
-  OUT       OC_FLEX_ARRAY         **ParsedVars,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN           VOID              *StrVars,
+  OUT       OC_FLEX_ARRAY        **ParsedVars,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   VOID              *Pos;
@@ -627,10 +627,10 @@ OcParseVars (
 
 BOOLEAN
 OcParsedVarsGetStr (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       VOID                  **Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       VOID                 **Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   UINTN          Index;
@@ -695,9 +695,9 @@ OcParsedVarsGetAsciiStr (
 
 BOOLEAN
 OcHasParsedVar (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   VOID  *Value;
@@ -707,10 +707,10 @@ OcHasParsedVar (
 
 EFI_STATUS
 OcParsedVarsGetInt (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       UINTN                 *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       UINTN                *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   EFI_STATUS  Status;
@@ -743,10 +743,10 @@ OcParsedVarsGetInt (
 
 EFI_STATUS
 OcParsedVarsGetGuid (
-  IN     CONST OC_FLEX_ARRAY      *ParsedVars,
-  IN     CONST VOID               *Name,
-  OUT       EFI_GUID              *Value,
-  IN     CONST OC_STRING_FORMAT   StringFormat
+  IN     CONST OC_FLEX_ARRAY     *ParsedVars,
+  IN     CONST VOID              *Name,
+  OUT       EFI_GUID             *Value,
+  IN     CONST OC_STRING_FORMAT  StringFormat
   )
 {
   EFI_STATUS  Status;

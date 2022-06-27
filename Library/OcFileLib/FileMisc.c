@@ -19,8 +19,8 @@
 
 BOOLEAN
 OcFileExists (
-  IN    CONST EFI_FILE_PROTOCOL   *Directory,
-  IN    CONST CHAR16              *FileName
+  IN    CONST EFI_FILE_PROTOCOL  *Directory,
+  IN    CONST CHAR16             *FileName
   )
 {
   EFI_STATUS         Status;
@@ -47,12 +47,12 @@ OcFileExists (
 
 EFI_STATUS
 OcDeleteFile (
-  IN EFI_FILE_PROTOCOL             *Directory,
-  IN CONST CHAR16                  *FileName
+  IN EFI_FILE_PROTOCOL  *Directory,
+  IN CONST CHAR16       *FileName
   )
 {
-  EFI_STATUS                    Status;
-  EFI_FILE_PROTOCOL             *File;
+  EFI_STATUS         Status;
+  EFI_FILE_PROTOCOL  *File;
 
   ASSERT (Directory != NULL);
   ASSERT (FileName != NULL);
