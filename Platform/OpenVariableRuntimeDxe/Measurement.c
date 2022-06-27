@@ -123,8 +123,8 @@ MeasureVariable (
       );
   }
 
-  DEBUG ((DEBUG_VERBOSE, "VariableDxe: MeasureVariable (Pcr - %x, EventType - %x, ", (UINTN)7, (UINTN)EV_EFI_VARIABLE_DRIVER_CONFIG));
-  DEBUG ((DEBUG_VERBOSE, "VariableName - %s, VendorGuid - %g)\n", VarName, VendorGuid));
+  DEBUG ((DEBUG_INFO, "VariableDxe: MeasureVariable (Pcr - %x, EventType - %x, ", (UINTN)7, (UINTN)EV_EFI_VARIABLE_DRIVER_CONFIG));
+  DEBUG ((DEBUG_INFO, "VariableName - %s, VendorGuid - %g)\n", VarName, VendorGuid));
 
   Status = TpmMeasureAndLogData (
              7,
@@ -246,7 +246,7 @@ SecureBootHook (
     if ((StrCmp (VariableName, EFI_IMAGE_SECURITY_DATABASE2) == 0) &&
         CompareGuid (VendorGuid, &gEfiImageSecurityDatabaseGuid))
     {
-      DEBUG ((DEBUG_VERBOSE, "Skip measuring variable %s since it's deleted\n", EFI_IMAGE_SECURITY_DATABASE2));
+      DEBUG ((DEBUG_INFO, "Skip measuring variable %s since it's deleted\n", EFI_IMAGE_SECURITY_DATABASE2));
       return;
     } else {
       VariableData     = NULL;
@@ -260,7 +260,7 @@ SecureBootHook (
              VariableData,
              VariableDataSize
              );
-  DEBUG ((DEBUG_VERBOSE, "MeasureBootPolicyVariable - %r\n", Status));
+  DEBUG ((DEBUG_INFO, "MeasureBootPolicyVariable - %r\n", Status));
 
   if (VariableData != NULL) {
     FreePool (VariableData);
@@ -292,14 +292,14 @@ SecureBootHook (
       mSecureBootVarData     = VariableData;
       mSecureBootVarDataSize = VariableDataSize;
 
-      DEBUG ((DEBUG_VERBOSE, "%s variable updated according to PK change. Remeasure the value!\n", EFI_SECURE_BOOT_MODE_NAME));
+      DEBUG ((DEBUG_INFO, "%s variable updated according to PK change. Remeasure the value!\n", EFI_SECURE_BOOT_MODE_NAME));
       Status = MeasureVariable (
                  EFI_SECURE_BOOT_MODE_NAME,
                  &gEfiGlobalVariableGuid,
                  mSecureBootVarData,
                  mSecureBootVarDataSize
                  );
-      DEBUG ((DEBUG_VERBOSE, "MeasureBootPolicyVariable - %r\n", Status));
+      DEBUG ((DEBUG_INFO, "MeasureBootPolicyVariable - %r\n", Status));
     } else {
       //
       // "SecureBoot" variable is not changed
@@ -338,6 +338,6 @@ RecordSecureBootPolicyVarData (
     //
     // Read could fail when Auth Variable solution is not supported
     //
-    DEBUG ((DEBUG_VERBOSE, "RecordSecureBootPolicyVarData GetVariable %s Status %x\n", EFI_SECURE_BOOT_MODE_NAME, Status));
+    DEBUG ((DEBUG_INFO, "RecordSecureBootPolicyVarData GetVariable %s Status %x\n", EFI_SECURE_BOOT_MODE_NAME, Status));
   }
 }
