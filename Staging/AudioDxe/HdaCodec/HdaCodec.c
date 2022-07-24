@@ -69,8 +69,8 @@ HdaCodecProbeWidget (
 
   HdaWidget->Type        = HDA_PARAMETER_WIDGET_CAPS_TYPE (HdaWidget->Capabilities);
   HdaWidget->AmpOverride = HdaWidget->Capabilities & HDA_PARAMETER_WIDGET_CAPS_AMP_OVERRIDE;
-  // DEBUG((DEBUG_INFO, "Widget @ 0x%X type: 0x%X\n", HdaWidget->NodeId, HdaWidget->Type));
-  // DEBUG((DEBUG_INFO, "Widget @ 0x%X capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->Capabilities));
+  DEBUG((DEBUG_INFO, "Widget @ 0x%X type: 0x%X\n", HdaWidget->NodeId, HdaWidget->Type));
+  DEBUG((DEBUG_INFO, "Widget @ 0x%X capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->Capabilities));
 
   //
   // Get default unsolicitation.
@@ -87,7 +87,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultUnSol = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X unsolicitation: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultUnSol));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X unsolicitation: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultUnSol));
   }
 
   //
@@ -105,7 +105,7 @@ HdaCodecProbeWidget (
     }
 
     ActualConnectionCount = HDA_PARAMETER_CONN_LIST_LENGTH_LEN (HdaWidget->ConnectionListLength);
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X connection list length: 0x%X\n", HdaWidget->NodeId, HdaWidget->ConnectionListLength));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X connection list length: 0x%X\n", HdaWidget->NodeId, HdaWidget->ConnectionListLength));
 
     HdaWidget->ConnectionCount = ActualConnectionCount;
 
@@ -218,10 +218,9 @@ HdaCodecProbeWidget (
   }
 
   // Print connections.
-  // DEBUG((DEBUG_INFO, "Widget @ 0x%X connections (%u):", HdaWidget->NodeId, HdaWidget->ConnectionCount));
-  // for (UINT8 c = 0; c < HdaWidget->ConnectionCount; c++)
-  // DEBUG((DEBUG_INFO, " 0x%X", HdaWidget->Connections[c]));
-  // DEBUG((DEBUG_INFO, "\n"));
+  DEBUG((DEBUG_INFO, "Widget @ 0x%X connections (%u):", HdaWidget->NodeId, HdaWidget->ConnectionCount));
+  for (UINT8 c = 0; c < HdaWidget->ConnectionCount; c++)
+  DEBUG((DEBUG_INFO, " 0x%X\n", HdaWidget->Connections[c]));
 
   // Does the widget support power management?
   if (HdaWidget->Capabilities & HDA_PARAMETER_WIDGET_CAPS_POWER_CNTRL) {
@@ -236,7 +235,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X supported power states: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedPowerStates));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X supported power states: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedPowerStates));
 
     // Get default power state.
     Status = HdaIo->SendCommand (
@@ -249,7 +248,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X power state: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultPowerState));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X power state: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultPowerState));
   }
 
   // Do we have input amps?
@@ -265,7 +264,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X input amp capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->AmpInCapabilities));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X input amp capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->AmpInCapabilities));
 
     // Determine number of input amps and allocate arrays.
     AmpInCount = HdaWidget->ConnectionCount;
@@ -317,8 +316,8 @@ HdaCodecProbeWidget (
       }
 
       HdaWidget->AmpInRightDefaultGainMute[i] = (UINT8)Response;
-      // DEBUG((DEBUG_INFO, "Widget @ 0x%X input amp %u defaults: 0x%X 0x%X\n", HdaWidget->NodeId, i,
-      //    HdaWidget->AmpInLeftDefaultGainMute[i], HdaWidget->AmpInRightDefaultGainMute[i]));
+      DEBUG((DEBUG_INFO, "Widget @ 0x%X input amp %u defaults: 0x%X 0x%X\n", HdaWidget->NodeId, i,
+         HdaWidget->AmpInLeftDefaultGainMute[i], HdaWidget->AmpInRightDefaultGainMute[i]));
     }
   }
 
@@ -368,8 +367,8 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->AmpOutRightDefaultGainMute = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X output amp defaults: 0x%X 0x%X\n", HdaWidget->NodeId,
-    //    HdaWidget->AmpOutLeftDefaultGainMute, HdaWidget->AmpOutRightDefaultGainMute));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X output amp defaults: 0x%X 0x%X\n", HdaWidget->NodeId,
+       HdaWidget->AmpOutLeftDefaultGainMute, HdaWidget->AmpOutRightDefaultGainMute));
   }
 
   // Is the widget an Input or Output?
@@ -386,7 +385,7 @@ HdaCodecProbeWidget (
         return Status;
       }
 
-      // DEBUG((DEBUG_INFO, "Widget @ 0x%X supported PCM sizes/rates: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedPcmRates));
+      DEBUG((DEBUG_INFO, "Widget @ 0x%X supported PCM sizes/rates: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedPcmRates));
 
       // Get supported stream formats.
       Status = HdaIo->SendCommand (
@@ -399,7 +398,7 @@ HdaCodecProbeWidget (
         return Status;
       }
 
-      // DEBUG((DEBUG_INFO, "Widget @ 0x%X supported formats: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedFormats));
+      DEBUG((DEBUG_INFO, "Widget @ 0x%X supported formats: 0x%X\n", HdaWidget->NodeId, HdaWidget->SupportedFormats));
     }
 
     // Get default converter format.
@@ -414,7 +413,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultConvFormat = (UINT16)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default format: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvFormat));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default format: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvFormat));
 
     // Get default converter stream/channel.
     Status = HdaIo->SendCommand (
@@ -428,7 +427,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultConvStreamChannel = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default stream/channel: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvStreamChannel));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default stream/channel: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvStreamChannel));
 
     // Get default converter channel count.
     Status = HdaIo->SendCommand (
@@ -442,7 +441,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultConvChannelCount = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default channel count: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvChannelCount));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default channel count: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConvChannelCount));
   } else if (HdaWidget->Type == HDA_WIDGET_TYPE_PIN_COMPLEX) {
     // Is the widget a Pin Complex?
     // Get pin capabilities.
@@ -456,7 +455,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X pin capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->PinCapabilities));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X pin capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->PinCapabilities));
 
     // Get default EAPD.
     if (HdaWidget->PinCapabilities & HDA_PARAMETER_PIN_CAPS_EAPD) {
@@ -473,7 +472,7 @@ HdaCodecProbeWidget (
       HdaWidget->DefaultEapd  = (UINT8)Response;
       HdaWidget->DefaultEapd &= 0x7;
       HdaWidget->DefaultEapd |= HDA_EAPD_BTL_ENABLE_EAPD;
-      // DEBUG((DEBUG_INFO, "Widget @ 0x%X EAPD: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultEapd));
+      DEBUG((DEBUG_INFO, "Widget @ 0x%X EAPD: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultEapd));
     }
 
     // Get default pin control.
@@ -488,7 +487,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultPinControl = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default pin control: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultPinControl));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default pin control: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultPinControl));
 
     // Get default pin configuration.
     Status = HdaIo->SendCommand (
@@ -501,7 +500,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default pin configuration: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConfiguration));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default pin configuration: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultConfiguration));
   } else if (HdaWidget->Type == HDA_WIDGET_TYPE_VOLUME_KNOB) {
     // Is the widget a Volume Knob?
     // Get volume knob capabilities.
@@ -515,7 +514,7 @@ HdaCodecProbeWidget (
       return Status;
     }
 
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X volume knob capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->VolumeCapabilities));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X volume knob capabilities: 0x%X\n", HdaWidget->NodeId, HdaWidget->VolumeCapabilities));
 
     // Get default volume.
     Status = HdaIo->SendCommand (
@@ -529,7 +528,7 @@ HdaCodecProbeWidget (
     }
 
     HdaWidget->DefaultVolume = (UINT8)Response;
-    // DEBUG((DEBUG_INFO, "Widget @ 0x%X default volume: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultVolume));
+    DEBUG((DEBUG_INFO, "Widget @ 0x%X default volume: 0x%X\n", HdaWidget->NodeId, HdaWidget->DefaultVolume));
   }
 
   return EFI_SUCCESS;
