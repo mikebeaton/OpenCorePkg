@@ -313,6 +313,7 @@
   }
   OpenCorePkg/Platform/ResetNvramEntry/ResetNvramEntry.inf
   OpenCorePkg/Platform/ToggleSipEntry/ToggleSipEntry.inf
+  OpenCorePkg/Platform/UefiDebugWrapper/UefiDebugWrapper.inf
   OpenCorePkg/Staging/AudioDxe/AudioDxe.inf
   OpenCorePkg/Staging/OpenHfsPlus/OpenHfsPlus.inf
   OpenCorePkg/Tests/AcpiTest/AcpiTest.inf

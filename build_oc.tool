@@ -190,6 +190,7 @@ package() {
       "ToggleSipEntry.efi"
       "Udp4Dxe.efi"
       "UsbMouseDxe.efi"
+      "UefiDebugWrapper.efi"
       "XhciDxe.efi"
       )
     for efiDriver in "${efiDrivers[@]}"; do

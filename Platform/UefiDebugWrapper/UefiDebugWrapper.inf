@@ -1,0 +1,34 @@
+## @file
+#  UEFI debug log wrapper.
+#
+#  Copyright (C) 2022, Mike Beaton. All rights reserved.<BR>
+#  SPDX-License-Identifier: BSD-3-Clause
+##
+
+
+[Defines]
+  INF_VERSION    = 0x00010005
+  BASE_NAME      = UefiDebugWrapper
+  ENTRY_POINT    = UefiMain
+  FILE_GUID      = 53879B3D-EBB0-4FF6-8E9E-712CC0263102
+  MODULE_TYPE    = UEFI_DRIVER
+  #UNLOAD_IMAGE   = UefiUnload
+  VERSION_STRING = 1.0
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  OpenCorePkg/OpenCorePkg.dec
+
+[LibraryClasses]
+  DebugLib
+  OcDirectResetLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Protocols]
+  gEdkiiVarCheckProtocolGuid           ## CONSUMES
+
+[Sources]
+  UefiDebugWrapper.c
