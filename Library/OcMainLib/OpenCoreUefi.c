@@ -254,6 +254,11 @@ OcLoadDrivers (
       FreePool ((CHAR8 *)UnescapedArguments);
     }
 
+#if defined(OC_TARGET_NOOPT)
+    if (Index == Config->Uefi.Drivers.Count - 1) {
+      WaitForKeyPress (L"Mike...");
+    }
+#endif
     Status = gBS->StartImage (
                     ImageHandle,
                     NULL,

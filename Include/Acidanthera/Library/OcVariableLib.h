@@ -157,15 +157,13 @@ OcGetBootOptionData (
   );
 
 /**
-  Resets selected NVRAM variables and reboots the system.
+  Resets selected NVRAM variables. Caller must reboot the system.
 
   @param[in]     PreserveBoot       Should reset preserve Boot### entries.
-
-  @retval EFI_SUCCESS, or error returned by called code.
 **/
-EFI_STATUS
+VOID
 OcResetNvram (
-  IN     BOOLEAN  PreserveBoot
+  IN     BOOLEAN     PreserveBoot
   );
 
 /**
@@ -327,9 +325,11 @@ OcSaveLegacyNvram (
 
 /**
   Reset emulated NVRAM using installed protocol when present.
-  If protocol is present, does not return and restarts system.
-**/
-VOID
+  If TRUE is returned, caller must reset system.
+
+  @retval TRUE if legacy NVRAM protocol was present, in which case reset was attempted.
+*/
+BOOLEAN
 EFIAPI
 OcResetLegacyNvram (
   VOID

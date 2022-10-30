@@ -25,7 +25,9 @@
   OcAppleKeyMapLib
   OcBootManagementLib
   OcDirectResetLib
+  OcMemoryLib
   OcVariableLib
+  TimerLib
   UefiBootServicesTableLib
   UefiRuntimeServicesTableLib
   UefiDriverEntryPoint

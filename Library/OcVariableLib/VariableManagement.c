@@ -535,12 +535,10 @@ OcDeleteVariables (
   OcRestoreNvramProtection (FwRuntime);
 }
 
-EFI_STATUS
+VOID
 OcResetNvram (
   IN     BOOLEAN  PreserveBoot
   )
 {
   OcDeleteVariables (PreserveBoot);
-  DirectResetCold ();
-  return EFI_DEVICE_ERROR;
 }

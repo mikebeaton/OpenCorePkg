@@ -139,7 +139,7 @@ OcSaveLegacyNvram (
   }
 }
 
-VOID
+BOOLEAN
 EFIAPI
 OcResetLegacyNvram (
   VOID
@@ -150,7 +150,7 @@ OcResetLegacyNvram (
 
   Status = InternalLocateVariableRuntimeProtocol (&OcVariableRuntimeProtocol);
   if (EFI_ERROR (Status)) {
-    return;
+    return FALSE;
   }
 
   DEBUG ((DEBUG_INFO, "OCVAR: Resetting NVRAM storage...\n"));
@@ -161,7 +161,7 @@ OcResetLegacyNvram (
     DEBUG ((DEBUG_WARN, "OCVAR: Emulated NVRAM reset failed - %r\n", Status));
   }
 
-  DirectResetCold ();
+  return TRUE;
 }
 
 VOID

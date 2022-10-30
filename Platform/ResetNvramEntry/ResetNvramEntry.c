@@ -10,7 +10,9 @@
 #include <Uefi.h>
 #include <Library/BaseLib.h>
 #include <Library/OcDirectResetLib.h>
+#include <Library/OcMemoryLib.h>
 #include <Library/OcVariableLib.h>
+#include <Library/TimerLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
@@ -19,8 +21,12 @@
 #define OC_MENU_RESET_NVRAM_ID     "reset_nvram"
 #define OC_MENU_RESET_NVRAM_ENTRY  "Reset NVRAM"
 
-STATIC BOOLEAN  mUseApple     = FALSE;
-STATIC BOOLEAN  mPreserveBoot = FALSE;
+STATIC BOOLEAN  mUseApple           = FALSE;
+STATIC BOOLEAN  mPreserveBoot       = FALSE;
+STATIC BOOLEAN  mDisableExternalGpu = FALSE;
+
+STATIC EFI_EXIT_BOOT_SERVICES mOriginalExitBootServices;
+STATIC EFI_GET_MEMORY_MAP     mOriginalGetMemoryMap;
 
 STATIC
 VOID
@@ -38,37 +44,132 @@ WaitForChime (
 
 STATIC
 EFI_STATUS
-SystemActionResetNvram (
-  IN OUT          OC_PICKER_CONTEXT  *PickerContext
+PerformReset (
+  VOID
+  )
+{
+  DirectResetCold ();
+  return EFI_DEVICE_ERROR;
+}
+
+STATIC
+EFI_STATUS
+AppleReset (
+  VOID
   )
 {
   UINT8  ResetNVRam = 1;
-
-  WaitForChime (PickerContext);
-
-  //
-  // Does not return if legacy NVRAM protocol is present.
-  //
-  OcResetLegacyNvram ();
-
-  if (!mUseApple) {
-    return OcResetNvram (mPreserveBoot);
-  }
 
   //
   // Any size, any value for this variable will cause a reset on supported firmware.
   //
   gRT->SetVariable (
-         APPLE_RESET_NVRAM_VARIABLE_NAME,
-         &gAppleBootVariableGuid,
-         EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
-         sizeof (ResetNVRam),
-         &ResetNVRam
-         );
+        APPLE_RESET_NVRAM_VARIABLE_NAME,
+        &gAppleBootVariableGuid,
+        EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+        sizeof (ResetNVRam),
+        &ResetNVRam
+        );
 
-  DirectResetCold ();
+  return PerformReset ();
+}
 
-  return EFI_DEVICE_ERROR;
+//
+// Set gpu-power-prefs after faking exit to non-macOS OS, so that we have permissions to do so.
+//
+STATIC
+EFI_STATUS
+DisableExternalGpu (
+  VOID
+  )
+{
+  EFI_STATUS             Status;
+  EFI_MEMORY_DESCRIPTOR  *MemoryMap;
+  UINTN                  MapKey;
+  UINTN                  MemoryMapSize;
+  UINTN                  DescriptorSize;
+  UINT32                 DescriptorVersion;
+  UINT32                 GpuPowerPrefs;
+  UINTN                  DataSize;
+
+  DataSize = sizeof (GpuPowerPrefs);
+  Status = gRT->GetVariable (
+    L"gpu-power-prefs",
+    &gApplePersonalizationVariableGuid,
+    NULL,
+    &DataSize,
+    &GpuPowerPrefs
+    );
+
+  if (!EFI_ERROR (Status) && GpuPowerPrefs == 1) {
+    return PerformReset ();
+  }
+
+  GpuPowerPrefs = 1;
+
+  Status = OcGetCurrentMemoryMapAlloc (
+              &MemoryMapSize,
+              &MemoryMap,
+              &MapKey,
+              &DescriptorSize,
+              &DescriptorVersion,
+              mOriginalGetMemoryMap,
+              NULL
+              );
+
+  if (EFI_ERROR (Status)) {
+    MicroSecondDelay (5000);
+    return PerformReset ();
+  }
+
+  Status = mOriginalExitBootServices (NULL, MapKey);
+
+  if (EFI_ERROR (Status)) {
+    MicroSecondDelay (10000);
+    return PerformReset ();
+  }
+
+  Status = gRT->SetVariable (
+    L"gpu-power-prefs",
+    &gApplePersonalizationVariableGuid,
+    EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    DataSize,
+    &GpuPowerPrefs
+    );
+
+  if (EFI_ERROR (Status)) {
+    MicroSecondDelay (15000);
+    return PerformReset ();
+  }
+
+  return PerformReset ();
+}
+
+STATIC
+EFI_STATUS
+SystemActionResetNvram (
+  IN OUT          OC_PICKER_CONTEXT  *PickerContext
+  )
+{
+  WaitForChime (PickerContext);
+
+  if (mUseApple) {
+    return AppleReset ();
+  }
+
+  if (!OcResetLegacyNvram ()) {
+    /////// OcResetNvram (mPreserveBoot);
+  }
+
+  if (mDisableExternalGpu) {
+    //
+    // Because of Apple NVRAM redirection, this can apply even when we are using
+    // emulated NVRAM.
+    //
+    return DisableExternalGpu ();
+  }
+
+  return PerformReset ();
 }
 
 STATIC OC_PICKER_ENTRY  mResetNvramBootEntries[1] = {
@@ -161,6 +262,9 @@ UefiMain (
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
   OC_FLEX_ARRAY              *ParsedLoadOptions;
 
+  mOriginalExitBootServices = gBS->ExitBootServices;
+  mOriginalGetMemoryMap     = gBS->GetMemoryMap;
+
   Status = gBS->HandleProtocol (
                   ImageHandle,
                   &gEfiLoadedImageProtocolGuid,
@@ -172,8 +276,9 @@ UefiMain (
 
   Status = OcParseLoadOptions (LoadedImage, &ParsedLoadOptions);
   if (!EFI_ERROR (Status)) {
-    mPreserveBoot = OcHasParsedVar (ParsedLoadOptions, L"--preserve-boot", OcStringFormatUnicode);
-    mUseApple     = OcHasParsedVar (ParsedLoadOptions, L"--apple", OcStringFormatUnicode);
+    mPreserveBoot       = OcHasParsedVar (ParsedLoadOptions, L"--preserve-boot", OcStringFormatUnicode);
+    mUseApple           = OcHasParsedVar (ParsedLoadOptions, L"--apple", OcStringFormatUnicode);
+    mDisableExternalGpu = OcHasParsedVar (ParsedLoadOptions, L"--disable-ext-gpu", OcStringFormatUnicode);
 
     OcFlexArrayFree (&ParsedLoadOptions);
   } else {
@@ -186,6 +291,10 @@ UefiMain (
 
   if (mUseApple && mPreserveBoot) {
     DEBUG ((DEBUG_WARN, "BEP: ResetNvram %s is ignored due to %s!\n", L"--preserve-boot", L"--apple"));
+  }
+
+  if (mUseApple && mDisableExternalGpu) {
+    DEBUG ((DEBUG_WARN, "BEP: ResetNvram %s is ignored due to %s!\n", L"--disable-ext-gpu", L"--apple"));
   }
 
   Status = gBS->InstallMultipleProtocolInterfaces (
