@@ -117,15 +117,24 @@ DisableExternalGpu (
               NULL
               );
 
+  ///////////
+  // OcSetFileData (
+  //   NULL,
+  //   L"status.bin",
+  //   &Status,
+  //   sizeof (Status)
+  //   );
+  ///////////
+
   if (EFI_ERROR (Status)) {
-    MicroSecondDelay (5000);
+    MicroSecondDelay (10000);
     return PerformReset ();
   }
 
   Status = mOriginalExitBootServices (NULL, MapKey);
 
   if (EFI_ERROR (Status)) {
-    MicroSecondDelay (10000);
+    MicroSecondDelay (20000);
     return PerformReset ();
   }
 
@@ -138,7 +147,7 @@ DisableExternalGpu (
     );
 
   if (EFI_ERROR (Status)) {
-    MicroSecondDelay (15000);
+    MicroSecondDelay (30000);
     return PerformReset ();
   }
 
@@ -158,7 +167,7 @@ SystemActionResetNvram (
   }
 
   if (!OcResetLegacyNvram ()) {
-    /////// OcResetNvram (mPreserveBoot);
+    OcResetNvram (mPreserveBoot);
   }
 
   if (mDisableExternalGpu) {
@@ -206,7 +215,7 @@ ResetNvramGetBootEntries (
     return EFI_NOT_FOUND;
   }
 
-  DEBUG ((DEBUG_INFO, "BEP: Reset NVRAM entry, preserve boot %u, apple %u\n", mPreserveBoot, mUseApple));
+  DEBUG ((DEBUG_INFO, "BEP: Reset NVRAM entry b/a/d=%u/%u/%u\n", mPreserveBoot, mUseApple, mDisableExternalGpu));
 
   *Entries    = mResetNvramBootEntries;
   *NumEntries = ARRAY_SIZE (mResetNvramBootEntries);
