@@ -27,10 +27,92 @@ STATIC EFI_GUID  mEfiTimeGuid = {
   0x9D0DA369, 0x540B, 0x46F8, { 0x85, 0xA0, 0x2B, 0x5F, 0x2C, 0x30, 0x1E, 0x15 }
 };
 
+EFI_LOCATE_HANDLE_BUFFER  mOriginalLocateHandleBuffer;
+EFI_LOCATE_PROTOCOL       mOriginalLocateProtocol;
+
 STATIC
 EFI_STATUS
 EFIAPI
-WrapGetVariable (
+WrappedLocateHandleBuffer (
+  IN     EFI_LOCATE_SEARCH_TYPE       SearchType,
+  IN     EFI_GUID                     *Protocol       OPTIONAL,
+  IN     VOID                         *SearchKey      OPTIONAL,
+  OUT    UINTN                        *NoHandles,
+  OUT    EFI_HANDLE                   **Buffer
+  )
+{
+  EFI_STATUS Status;
+  STATIC BOOLEAN Nested = FALSE;
+
+  if (Nested) {
+    return mOriginalLocateHandleBuffer (SearchType, Protocol, SearchKey, NoHandles, Buffer);
+  }
+
+  Nested = TRUE;
+
+  DEBUG ((DEBUG_INFO, "WRAP: > LocateHandleBuffer %u %g %p %u %p\n", SearchType, Protocol, SearchKey, *NoHandles, *Buffer));
+  Status = mOriginalLocateHandleBuffer (SearchType, Protocol, SearchKey, NoHandles, Buffer);
+  DEBUG ((DEBUG_INFO, "WRAP: < LocateHandleBuffer %u %g %p %u %p - %r\n", SearchType, Protocol, SearchKey, *NoHandles, *Buffer, Status));
+
+  Nested = FALSE;
+
+  return Status;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+WrappedLocateProtocol (
+  IN  EFI_GUID  *Protocol,
+  IN  VOID      *Registration  OPTIONAL,
+  OUT VOID      **Interface
+  )
+{
+  EFI_STATUS Status;
+  STATIC BOOLEAN Nested = FALSE;
+
+  if (Nested) {
+    return mOriginalLocateProtocol (Protocol, Registration, Interface);
+  }
+
+  Nested = TRUE;
+
+  DEBUG ((DEBUG_INFO, "WRAP: > LocateProtocol %g %p %p\n", Protocol, Registration, *Interface));
+  Status = mOriginalLocateProtocol (Protocol, Registration, Interface);
+  DEBUG ((DEBUG_INFO, "WRAP: < LocateProtocol %g %p %p - %r\n", Protocol, Registration, *Interface, Status));
+
+  Nested = FALSE;
+
+  return Status;
+}
+
+STATIC
+VOID
+WrapLocateProtocol (
+  VOID
+  )
+{
+  mOriginalLocateHandleBuffer = gBS->LocateHandleBuffer;
+  gBS->LocateHandleBuffer = WrappedLocateHandleBuffer;
+
+  mOriginalLocateProtocol = gBS->LocateProtocol;
+  gBS->LocateProtocol = WrappedLocateProtocol;
+}
+
+STATIC
+VOID
+UnwrapLocateProtocol (
+  VOID
+  )
+{
+  gBS->LocateHandleBuffer = mOriginalLocateHandleBuffer;
+  gBS->LocateProtocol = mOriginalLocateProtocol;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+WrappedGetVariable (
   IN     CHAR16                      *VariableName,
   IN     EFI_GUID                    *VendorGuid,
   OUT    UINT32                      *Attributes     OPTIONAL,
@@ -61,7 +143,7 @@ WrapGetVariable (
 STATIC
 EFI_STATUS
 EFIAPI
-WrapGetNextVariableName (
+WrappedGetNextVariableName (
   IN OUT UINTN                    *VariableNameSize,
   IN OUT CHAR16                   *VariableName,
   IN OUT EFI_GUID                 *VendorGuid
@@ -86,7 +168,7 @@ WrapGetNextVariableName (
 STATIC
 EFI_STATUS
 EFIAPI
-WrapSetVariable (
+WrappedSetVariable (
   IN  CHAR16                       *VariableName,
   IN  EFI_GUID                     *VendorGuid,
   IN  UINT32                       Attributes,
@@ -113,7 +195,7 @@ WrapSetVariable (
 STATIC
 EFI_STATUS
 EFIAPI
-WrapVarCheckVariablePropertyGet (
+WrappedVarCheckVariablePropertyGet (
   IN CHAR16                         *Name,
   IN EFI_GUID                       *Guid,
   OUT VAR_CHECK_VARIABLE_PROPERTY   *VariableProperty
@@ -138,7 +220,7 @@ WrapVarCheckVariablePropertyGet (
 STATIC
 EFI_STATUS
 EFIAPI
-WrapVarCheckVariablePropertySet (
+WrappedVarCheckVariablePropertySet (
   IN CHAR16                         *Name,
   IN EFI_GUID                       *Guid,
   IN VAR_CHECK_VARIABLE_PROPERTY    *VariableProperty
@@ -173,15 +255,15 @@ OnExitBootServices (
 #else
   gBS->CloseEvent (Event);
 
-  if (gRT->GetVariable == WrapGetVariable) {
+  if (gRT->GetVariable == WrappedGetVariable) {
     gRT->GetVariable = mGetVariable;
   }
 
-  if (gRT->GetNextVariableName == WrapGetNextVariableName) {
+  if (gRT->GetNextVariableName == WrappedGetNextVariableName) {
     gRT->GetNextVariableName = mGetNextVariableName;
   }
 
-  if (gRT->SetVariable == WrapSetVariable) {
+  if (gRT->SetVariable == WrappedSetVariable) {
     gRT->SetVariable = mSetVariable;
   }
 #endif
@@ -194,13 +276,13 @@ WrapNvramVariables (
   )
 {
   mGetVariable = gRT->GetVariable;
-  gRT->GetVariable = WrapGetVariable;
+  gRT->GetVariable = WrappedGetVariable;
 
   mGetNextVariableName = gRT->GetNextVariableName;
-  gRT->GetNextVariableName = WrapGetNextVariableName;
+  gRT->GetNextVariableName = WrappedGetNextVariableName;
 
   mSetVariable = gRT->SetVariable;
-  gRT->SetVariable = WrapSetVariable;
+  gRT->SetVariable = WrappedSetVariable;
 
   DEBUG ((DEBUG_INFO, "WRAP: NvramVariables wrapped\n"));
 }
@@ -247,8 +329,8 @@ WrapVarCheck (
         mVarCheckVariablePropertyGet = VarCheck.VariablePropertyGet;
         mVarCheckVariablePropertySet = VarCheck.VariablePropertySet;
       }
-      VarCheck.VariablePropertyGet = WrapVarCheckVariablePropertyGet;
-      VarCheck.VariablePropertySet = WrapVarCheckVariablePropertySet;
+      VarCheck.VariablePropertyGet = WrappedVarCheckVariablePropertyGet;
+      VarCheck.VariablePropertySet = WrappedVarCheckVariablePropertySet;
 
       DEBUG ((DEBUG_INFO, "WRAP: VarCheck %u/%u wrapped\n", Index, HandleCount));
     }
