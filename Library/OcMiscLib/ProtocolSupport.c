@@ -66,16 +66,25 @@ GetArguments (
   return EFI_SUCCESS;
 }
 
+STATIC
 EFI_STATUS
-OcUninstallAllProtocolInstances (
-  EFI_GUID  *Protocol
+InternalModifyAllProtocolInstances (
+  EFI_GUID  *Protocol,
+  VOID      *Interface,
+  BOOLEAN   Reinstall
   )
 {
+  EFI_STATUS  TempStatus;
   EFI_STATUS  Status;
   EFI_HANDLE  *Handles;
   UINTN       Index;
   UINTN       NoHandles;
   VOID        *OriginalProto;
+
+  //
+  // NULL is a valid interface for re-install.
+  //
+  ASSERT (Reinstall || Interface == NULL);
 
   Status = gBS->LocateHandleBuffer (
                   ByProtocol,
@@ -94,30 +103,63 @@ OcUninstallAllProtocolInstances (
   }
 
   for (Index = 0; Index < NoHandles; ++Index) {
-    Status = gBS->HandleProtocol (
+    TempStatus = gBS->HandleProtocol (
                     Handles[Index],
                     Protocol,
                     &OriginalProto
                     );
 
-    if (EFI_ERROR (Status)) {
-      break;
+    if (EFI_ERROR (TempStatus)) {
+      Status = TempStatus;
+      continue;
     }
 
-    Status = gBS->UninstallProtocolInterface (
+    TempStatus = gBS->UninstallProtocolInterface (
                     Handles[Index],
                     Protocol,
                     OriginalProto
                     );
+    DEBUG ((DEBUG_INFO, "OCM: Uninstalled %g[%u] - %r\n", Protocol, Index, TempStatus));
 
-    if (EFI_ERROR (Status)) {
-      break;
+    if (EFI_ERROR (TempStatus)) {
+      Status = TempStatus;
+      continue;
+    }
+
+    if (Reinstall) {
+      TempStatus = gBS->InstallMultipleProtocolInterfaces (
+                      Handles[Index],
+                      Protocol,
+                      Interface,
+                      NULL
+                      );
+
+      if (EFI_ERROR (TempStatus)) {
+        Status = TempStatus;
+      }
     }
   }
 
   FreePool (Handles);
 
   return Status;
+}
+
+EFI_STATUS
+OcReinstallAllProtocolInstances (
+  EFI_GUID  *Protocol,
+  VOID      *Interface
+  )
+{
+  return InternalModifyAllProtocolInstances (Protocol, Interface, TRUE);
+}
+
+EFI_STATUS
+OcUninstallAllProtocolInstances (
+  EFI_GUID  *Protocol
+  )
+{
+  return InternalModifyAllProtocolInstances (Protocol, NULL, FALSE);
 }
 
 EFI_STATUS

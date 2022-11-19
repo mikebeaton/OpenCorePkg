@@ -62,7 +62,7 @@ extern EFI_GUID     gEfiVirtualDiskGuid;
 extern EFI_GUID     gEfiFileInfoGuid;
 extern EFI_GUID     gEfiFileSystemVolumeLabelInfoIdGuid;
 extern EFI_GUID     gEfiSimpleFileSystemProtocolGuid;
-extern EFI_GUID     gEfiUserInterfaceThemeProtocolGuid;
+extern EFI_GUID     gAppleUserInterfaceThemeProtocolGuid;
 extern EFI_GUID     gEfiMpServiceProtocolGuid;
 extern EFI_GUID     gFrameworkEfiMpServiceProtocolGuid;
 extern EFI_GUID     gEfiGlobalVariableGuid;

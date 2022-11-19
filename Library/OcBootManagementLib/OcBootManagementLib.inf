@@ -83,6 +83,7 @@
   gOcAudioProtocolGuid               ## SOMETIMES_CONSUMES
   gAppleBeepGenProtocolGuid          ## SOMETIMES_CONSUMES
   gOcBootEntryProtocolGuid           ## CONSUMES
+  gAppleGraphicsPolicyProtocolGuid   ## SOMETIMES_CONSUMES
 
 [LibraryClasses]
   BaseLib
@@ -116,3 +117,4 @@
   TimerLib
   FileHandleLib
   ResetSystemLib
+  DxeServicesTableLib

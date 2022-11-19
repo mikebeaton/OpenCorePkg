@@ -7,6 +7,7 @@
 
 #include <Guid/AppleFile.h>
 #include <Guid/AppleVariable.h>
+#include <Guid/GlobalVariable.h>
 #include <Guid/OcVariable.h>
 
 #include <IndustryStandard/AppleCsrConfig.h>
@@ -170,6 +171,95 @@ InternalRunRequestPrivilege (
 }
 
 EFI_STATUS
+OcRunAppleBootPicker (
+  IN OC_PICKER_CONTEXT *Context
+  )
+{
+#if 0
+  EFI_STATUS  Status;
+  CHAR16      *BootOrderName;
+  CHAR16      *BootNextName;
+  EFI_GUID    *BootVariableGuid;
+  UINTN       VariableSize;
+  UINT32      VariableAttributes;
+  UINT16      BootNext;
+  UINT16      *BootOrder;
+
+  if (Context->CustomBootGuid) {
+    BootVariableGuid = &gOcVendorVariableGuid;
+  } else {
+    BootVariableGuid = &gEfiGlobalVariableGuid;
+  }
+
+  if (CompareGuid (BootVariableGuid, &gOcVendorVariableGuid)) {
+    BootOrderName = OC_VENDOR_BOOT_ORDER_VARIABLE_NAME;
+    BootNextName  = OC_VENDOR_BOOT_NEXT_VARIABLE_NAME;
+  } else {
+    BootOrderName = EFI_BOOT_ORDER_VARIABLE_NAME;
+    BootNextName  = EFI_BOOT_NEXT_VARIABLE_NAME;
+  }
+
+  VariableSize = 0;
+  Status       = gRT->GetVariable (
+                        BootOrderName,
+                        BootVariableGuid,
+                        &VariableAttributes,
+                        &VariableSize,
+                        NULL
+                        );
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+    BootOrder = AllocatePool (VariableSize);
+    if (BootOrder == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+
+    Status = gRT->GetVariable (
+                    BootOrderName,
+                    BootVariableGuid,
+                    &VariableAttributes,
+                    &VariableSize,
+                    BootOrder
+                    );
+    if (EFI_ERROR (Status)) {
+      FreePool (BootOrder);
+      Status = EFI_UNSUPPORTED;
+    }
+  } else {
+    if (!EFI_ERROR (Status)) {
+      return EFI_NOT_FOUND;
+    } else if (Status == EFI_NOT_FOUND) {
+      BootOrder = AllocateZeroPool (sizeof (BootNext)); ///< create fake entry of Boot0000
+    } else {
+      return Status;
+    }
+  }
+
+  Status = gRT->SetVariable (
+                    BootNextName,
+                    BootVariableGuid,
+                    EFI_VARIABLE_BOOTSERVICE_ACCESS
+                    | EFI_VARIABLE_RUNTIME_ACCESS
+                    | EFI_VARIABLE_NON_VOLATILE,
+                    sizeof (BootNext),
+                    BootOrder
+                    );
+
+  FreePool (BootOrder);
+#else
+  EFI_STATUS  Status;
+
+  OcForceReconnectAppleGop ();
+  
+  OcBlockDriverReconnection ();
+  Status = OcRunFirmwareApplication (&gAppleBootPickerFileGuid, TRUE);
+  OcUnblockDriverReconnection ();
+
+  return Status;
+#endif
+}
+
+EFI_STATUS
 OcRunBootPicker (
   IN OC_PICKER_CONTEXT  *Context
   )
@@ -180,6 +270,7 @@ OcRunBootPicker (
   OC_BOOT_ENTRY                      *Chosen;
   BOOLEAN                            SaidWelcome;
   OC_FIRMWARE_RUNTIME_PROTOCOL       *FwRuntime;
+  BOOLEAN                            IsApplePickerSelection;
 
   SaidWelcome = FALSE;
 
@@ -206,10 +297,19 @@ OcRunBootPicker (
     }
   }
 
+#if defined(OC_TARGET_NOOPT)
+  WaitForKeyPress (L"Mike...");
+#endif
+  IsApplePickerSelection = FALSE;
+
   if ((Context->PickerCommand == OcPickerShowPicker) && (Context->PickerMode == OcPickerModeApple)) {
-    Status = OcRunFirmwareApplication (&gAppleBootPickerFileGuid, TRUE);
-    DEBUG ((DEBUG_INFO, "OCB: Apple BootPicker failed - %r, fallback to builtin\n", Status));
-    Context->ApplePickerUnsupported = TRUE;
+    Status = OcRunAppleBootPicker (Context);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "OCB: Apple BootPicker failed - %r, fallback to builtin\n", Status));
+      Context->ApplePickerUnsupported = TRUE;
+    } else {
+      IsApplePickerSelection = TRUE;
+    }
   }
 
   if ((Context->PickerCommand != OcPickerShowPicker) && (Context->PickerCommand != OcPickerDefault)) {
@@ -221,10 +321,26 @@ OcRunBootPicker (
 
   while (TRUE) {
     //
+    // Never show Apple Picker twice, re-scan for entries if we previously successfully showed it.
+    //
+    if (IsApplePickerSelection) {
+      if (Context->PickerMode == OcPickerModeApple) {
+        Context->PickerMode = OcPickerModeBuiltin;
+      } else {
+        IsApplePickerSelection  = FALSE;
+        Context->BootOrder      = NULL;
+        Context->BootOrderCount = 0;
+      }
+    }
+
+    //
     // Turbo-boost scanning when bypassing picker.
     //
-    if ((Context->PickerCommand == OcPickerDefault) || (Context->PickerCommand == OcPickerProtocolHotKey)) {
-      BootContext = OcScanForDefaultBootEntry (Context);
+    if ((Context->PickerCommand == OcPickerDefault)
+      || (Context->PickerCommand == OcPickerProtocolHotKey)
+      || IsApplePickerSelection
+      ) {
+      BootContext = OcScanForDefaultBootEntry (Context, IsApplePickerSelection);
     } else {
       ASSERT (
         Context->PickerCommand == OcPickerShowPicker
@@ -241,13 +357,17 @@ OcRunBootPicker (
     //
     if (BootContext == NULL) {
       //
-      // TODO: Failed protocol hotkey can access OcPickerShowPicker mode even if
-      // this is denied by InternalRunRequestPrivilege above, is this OK?
+      // TODO: Because of this fallback code, failed protocol hotkey can access OcPickerShowPicker
+      // mode even if this is denied by InternalRunRequestPrivilege above; is this OK?
       //
-      if (Context->HideAuxiliary || (Context->PickerCommand == OcPickerProtocolHotKey)) {
-        DEBUG ((DEBUG_INFO, "OCB: System has no boot entries, showing picker with auxiliary\n"));
+      if (Context->HideAuxiliary || (Context->PickerCommand == OcPickerProtocolHotKey) || IsApplePickerSelection) {
         Context->PickerCommand = OcPickerShowPicker;
         Context->HideAuxiliary = FALSE;
+        if (IsApplePickerSelection) {
+          DEBUG ((DEBUG_WARN, "OCB: Apple Picker returned no entry valid under OC, falling back to builtin\n"));
+        } else {
+          DEBUG ((DEBUG_INFO, "OCB: System has no boot entries, showing picker with auxiliary\n"));
+        }
         continue;
       }
 
@@ -255,7 +375,7 @@ OcRunBootPicker (
       return EFI_NOT_FOUND;
     }
 
-    if (Context->PickerCommand == OcPickerShowPicker) {
+    if (Context->PickerCommand == OcPickerShowPicker && !IsApplePickerSelection) {
       DEBUG ((
         DEBUG_INFO,
         "OCB: Showing menu... %a\n",

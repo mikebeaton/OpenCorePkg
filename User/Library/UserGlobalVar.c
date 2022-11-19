@@ -130,7 +130,7 @@ EFI_GUID     gEfiFileSystemVolumeLabelInfoIdGuid = {
 EFI_GUID     gEfiSimpleFileSystemProtocolGuid = {
   0x964E5B22, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B }
 };
-EFI_GUID     gEfiUserInterfaceThemeProtocolGuid = {
+EFI_GUID     gAppleUserInterfaceThemeProtocolGuid = {
   0xD5B0AC65, 0x9A2D, 0x4D2A, { 0xBB, 0xD6, 0xE8, 0x71, 0xA9, 0x5E, 0x04, 0x35 }
 };
 EFI_GUID     gEfiMpServiceProtocolGuid = {

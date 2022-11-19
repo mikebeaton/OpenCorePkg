@@ -47,6 +47,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
+#include <Protocol/AppleUserInterface.h>
+
 STATIC
 VOID
 EFIAPI
@@ -365,4 +367,104 @@ OcLoadUefiOutputSupport (
       Status
       ));
   }
+
+  // Debug code from GopPassThrough.c
+
+  UINTN                            HandleCount;
+  APPLE_FRAMEBUFFER_INFO_PROTOCOL  *FramebufferInfo;
+  EFI_PHYSICAL_ADDRESS             FramebufferBase;
+  UINT32                           FramebufferSize;
+  UINT32                           ScreenRowBytes;
+  UINT32                           ScreenWidth;
+  UINT32                           ScreenHeight;
+  UINT32                           ScreenDepth;
+
+  Status = gBS->LocateProtocol (
+                  &gAppleFramebufferInfoProtocolGuid,
+                  NULL,
+                  (VOID *)&FramebufferInfo
+                  );
+
+  DEBUG_CODE_BEGIN ();
+  HandleCount = (UINT32)OcCountProtocolInstances (&gEfiGraphicsOutputProtocolGuid);
+  DEBUG ((DEBUG_INFO, "MCC: Found %u handles with GOP draw\n", HandleCount));
+
+  HandleCount = (UINT32)OcCountProtocolInstances (&gAppleFramebufferInfoProtocolGuid);
+  DEBUG ((DEBUG_INFO, "MCC: Found %u handles with Apple Framebuffer info\n", HandleCount));
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "MCC: Failed to locate AppleFramebufferInfo protocol - %r\n", Status));
+  } else {
+    Status = FramebufferInfo->GetInfo (
+                                FramebufferInfo,
+                                &FramebufferBase,
+                                &FramebufferSize,
+                                &ScreenRowBytes,
+                                &ScreenWidth,
+                                &ScreenHeight,
+                                &ScreenDepth
+                                );
+    if (!EFI_ERROR (Status)) {
+      DEBUG ((
+        DEBUG_INFO,
+        "MCC: AppleFramebufferInfo - Got Base %Lx, Size %u, RowBytes %u, Width %u, Height %u, Depth %u\n",
+        FramebufferBase,
+        FramebufferSize,
+        ScreenRowBytes,
+        ScreenWidth,
+        ScreenHeight,
+        ScreenDepth
+        ));
+    } else {
+      DEBUG ((DEBUG_INFO, "MCC: AppleFramebufferInfo failed to retrieve info - %r\n", Status));
+    }
+  }
+
+  DEBUG_CODE_END ();
+}
+
+EFI_STATUS
+OcForceReconnectAppleGop (
+  VOID
+  )
+{
+  EFI_STATUS                     Status;
+  APPLE_USER_INTERFACE_PROTOCOL  *AppleUserInterfaceProtocol;
+  UINT8                          *aGopAlreadyConnected;
+
+  Status = gBS->LocateProtocol (
+    &gAppleUserInterfaceProtocolGuid,
+    NULL,
+    (VOID **)&AppleUserInterfaceProtocol
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "OC: Cannot locate AppleUserInterfaceProtocol - %r\n", Status));
+    return Status;
+  }
+
+  if (AppleUserInterfaceProtocol->Revision != APPLE_USER_INTERFACE_PROTOCOL_REVISION) {
+    DEBUG ((
+      DEBUG_INFO,
+      "OC: Force reconnect Apple GOP incompatible UI protocol revision %u != %u\n",
+      AppleUserInterfaceProtocol->Revision,
+      APPLE_USER_INTERFACE_PROTOCOL_REVISION
+    ));
+    return EFI_UNSUPPORTED;
+  }
+
+  //
+  // Location of relevant byte variable within loaded driver.
+  //
+  aGopAlreadyConnected = (VOID *)((UINT8 *)AppleUserInterfaceProtocol + sizeof (APPLE_USER_INTERFACE_PROTOCOL));
+
+  if (*aGopAlreadyConnected != 1) {
+    DEBUG ((DEBUG_WARN, "OC: Cannot force reconnect Apple GOP %u\n", *aGopAlreadyConnected));
+    return EFI_ABORTED;
+  }
+
+  *aGopAlreadyConnected = 0;
+  DEBUG ((DEBUG_INFO, "OC: Force reconnect Apple GOP\n"));
+
+  return EFI_SUCCESS;
 }

@@ -15,8 +15,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcMainLib.h>
 
 #include <Guid/AppleVariable.h>
-#include <Guid/OcVariable.h>
+#include <Guid/DxeServices.h>
 #include <Guid/GlobalVariable.h>
+#include <Guid/OcVariable.h>
 
 #include <Library/BaseLib.h>
 #include <Library/DevicePathLib.h>
@@ -55,17 +56,26 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
+#include <Protocol/AppleUserInterface.h>
+#include <Protocol/AppleGraphicsPolicy.h>
 #include <Protocol/DevicePath.h>
 #include <Protocol/GraphicsOutput.h>
 #include <Protocol/Security.h>
 #include <Protocol/Security2.h>
 #include <Protocol/SimplePointer.h>
+#include <Library/OcStringLib.h>
+#include <Library/OcDirectResetLib.h>
 
 #define OC_EXIT_BOOT_SERVICES_HANDLER_MAX  5
 
 STATIC EFI_EVENT_NOTIFY  mOcExitBootServicesHandlers[OC_EXIT_BOOT_SERVICES_HANDLER_MAX+1];
 STATIC VOID              *mOcExitBootServicesContexts[OC_EXIT_BOOT_SERVICES_HANDLER_MAX];
 STATIC UINTN             mOcExitBootServicesIndex;
+
+STATIC EFI_DXE_SERVICES  *mDS = NULL;
+
+STATIC EFI_CONNECT_CONTROLLER  mOriginalConnectController;
+STATIC EFI_DISPATCH            mOriginalDispatch;
 
 VOID
 OcScheduleExitBootServices (
@@ -368,6 +378,376 @@ OcExitBootServicesHandler (
   }
 }
 
+EFI_STATUS
+DumpProtocolsForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *FriendlyName
+  )
+{
+  EFI_STATUS    Status;
+  EFI_STATUS    TempStatus;
+  UINTN         Index;
+  EFI_GUID      **ProtocolBuffer;
+  UINTN         ProtocolBufferCount;
+  VOID          *Interface;
+
+  DEBUG ((DEBUG_INFO, "DUMP: (%a) Handle %p\n", FriendlyName, Handle));
+
+  Status = gBS->ProtocolsPerHandle (
+    Handle,
+    &ProtocolBuffer,
+    &ProtocolBufferCount
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "DUMP: ProtocolsPerHandle - %r\n", Status));
+    return Status;
+  }
+
+  DEBUG ((DEBUG_INFO, "DUMP: %u Protocol%a\n", ProtocolBufferCount, ProtocolBufferCount == 1 ? "" : "s"));
+  for (Index = 0; Index < ProtocolBufferCount; Index++) {
+    TempStatus = gBS->HandleProtocol (
+      Handle,
+      ProtocolBuffer[Index],
+      &Interface
+    );
+    if (EFI_ERROR (TempStatus)) {
+      Interface = NULL;
+    }
+    DEBUG ((DEBUG_INFO, "DUMP: Protocol %g Interface %p - %r\n", ProtocolBuffer[Index], Interface, TempStatus));
+  }
+
+  FreePool (ProtocolBuffer);
+
+  return Status;
+}
+
+EFI_STATUS
+DumpHandlesForProtocol (
+  EFI_GUID      *Protocol,
+  CHAR8         *FriendlyName
+  )
+{
+  EFI_STATUS    Status;
+  UINTN         Index;
+  UINTN         NumberOfHandles;
+  EFI_HANDLE    *HandleBuffer;
+
+  DEBUG ((DEBUG_INFO, "DUMP: (%a) %g\n", FriendlyName, Protocol));
+
+  Status = gBS->LocateHandleBuffer (
+    ByProtocol,
+    Protocol,
+    NULL,
+    &NumberOfHandles,
+    &HandleBuffer
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "DUMP: LocateHandleBuffer - %r\n", Status));
+    return Status;
+  }
+
+  DEBUG ((DEBUG_INFO, "DUMP: %u Handle%a\n", NumberOfHandles, NumberOfHandles == 1 ? "" : "s"));
+  for (Index = 0; Index < NumberOfHandles; Index++) {
+    DumpProtocolsForHandle (HandleBuffer[Index], FriendlyName);
+  }
+
+  FreePool (HandleBuffer);
+
+  return Status;
+}
+
+extern
+VOID
+DumpAppleInterfaceProtocolBootServices (
+  VOID
+  );
+
+EFI_STATUS
+DumpGop (
+  EFI_GRAPHICS_OUTPUT_PROTOCOL    *Gop,
+  CHAR8                           *GopFriendlyName
+  )
+{
+  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION    *Info;
+
+  if (Gop == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a %p\n", GopFriendlyName, Gop->Mode));
+    return EFI_NOT_FOUND;
+  }
+  if (Gop->Mode == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a->Mode %p\n", GopFriendlyName, Gop->Mode));
+    return EFI_UNSUPPORTED;
+  }
+  if (Gop->Mode->Info == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a->Mode->Info %p\n", GopFriendlyName, Gop->Mode->Info));
+    return EFI_UNSUPPORTED;
+  }
+
+  Info = Gop->Mode->Info;
+
+  DEBUG ((DEBUG_INFO, "DUMP: %a is %u x %u\n", GopFriendlyName, Info->HorizontalResolution, Info->VerticalResolution));
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+DumpGopForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *HandleFriendlyName,
+  CHAR8         *GopFriendlyName
+  )
+{
+  EFI_STATUS                              Status;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL            *Gop;
+
+  Status = gBS->HandleProtocol (
+    Handle,
+    &gEfiGraphicsOutputProtocolGuid,
+    (VOID **)&Gop
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "DUMP: No GOP present on %a - %r\n", HandleFriendlyName, Status));
+    return Status;
+  }
+
+  Status = DumpGop (Gop, GopFriendlyName);
+
+  return Status;
+}
+
+VOID
+UsefulDump (
+  CHAR8   *FriendlyName
+  )
+{
+  DEBUG ((DEBUG_INFO, "DUMP: %a\n", FriendlyName));
+
+  DumpHandlesForProtocol (&gAppleFramebufferInfoProtocolGuid, "AppleFrameBuffer");
+  DumpHandlesForProtocol (&gEfiUgaDrawProtocolGuid, "UGA");
+  DumpHandlesForProtocol (&gEfiGraphicsOutputProtocolGuid, "GOP");
+  DumpHandlesForProtocol (&gEfiSimpleTextOutProtocolGuid, "SimpleTextOut");
+  DumpProtocolsForHandle (gST->ConsoleOutHandle, "gST->ConsoleOutHandle");
+  DumpGopForHandle (gST->ConsoleOutHandle, "gST->ConsoleOutHandle", "gST->ConsoleOutHandle GOP");
+  DumpAppleInterfaceProtocolBootServices ();
+}
+
+typedef struct {
+  EFI_GUID  *Protocol;
+  UINTN     Size;
+} DUMPINFO;
+
+STATIC
+DUMPINFO DumpInfo[] = {
+  { &gEfiGraphicsOutputProtocolGuid,  sizeof (EFI_GRAPHICS_OUTPUT_PROTOCOL) },
+  { &gAppleUserInterfaceProtocolGuid, sizeof (APPLE_USER_INTERFACE_PROTOCOL) }
+};
+
+//#define DUMP_FILE
+
+VOID
+DumpEm (
+  VOID
+  )
+{
+  EFI_STATUS    Status;
+  UINTN         Index;
+  EFI_GUID      *Protocol;
+  INTN          Size;
+  INTN          Position;
+  VOID          *Interface;
+  UINT8         *Pointer;
+  UINT8         *MinPointer;
+  UINT8         *MaxPointer;
+  UINTN         DumpSize;
+#ifdef DUMP_FILE
+  UINTN         Length;
+  CHAR16        FileName[GUID_STRING_LENGTH + L_STR_LEN(L".bin") + 1];
+#endif
+
+  for (Index = 0; Index < ARRAY_SIZE (DumpInfo); Index++) {
+    Protocol  = DumpInfo[Index].Protocol;
+    Size      = DumpInfo[Index].Size;
+    
+    Status = gBS->LocateProtocol (Protocol, NULL, &Interface);
+
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "DUMP: %g - %r\n", Protocol, Status));
+      continue;
+    }
+
+    DEBUG ((DEBUG_INFO, "DUMP: Dumping %g @ %p\n", Protocol, Interface));
+
+    if (Interface == NULL) {
+      continue;
+    }
+
+    MinPointer = NULL;
+    MaxPointer = NULL;
+    for (Position = -4; Position < (INTN)(Size >> 3); Position ++) {
+      Pointer = ((VOID **)Interface)[Position];
+      if (Position >= 0 && Pointer > (UINT8 *)0x1000) {
+        if (MinPointer == NULL || Pointer < MinPointer) {
+          MinPointer = Pointer;
+        }
+        if (Pointer > MaxPointer) {
+          MaxPointer = Pointer;
+        }
+      }
+      DEBUG ((DEBUG_INFO, "DUMP: %03X %p \n", Position << 3, Pointer));
+    }
+
+    DumpSize = 0;
+    if (MinPointer != NULL) {
+      if (MaxPointer != MinPointer) {
+        DumpSize = MaxPointer - MinPointer;
+        DumpSize += DumpSize >> 2;
+      } else {
+        DumpSize = 0x1000;
+      }
+#ifdef DUMP_FILE
+      Length = UnicodeSPrint (FileName, sizeof (FileName), L"%g%s", Protocol, L".bin");
+      ASSERT (Length == L_STR_LEN (FileName));
+      OcSetFileData (NULL, FileName, MinPointer, DumpSize);
+#endif
+    }
+
+    DEBUG ((DEBUG_INFO, "DUMP: Dumped %g %p <-> %p = %u (%u)\n", Protocol, MinPointer, MaxPointer, MaxPointer - MinPointer, DumpSize));
+  }
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+NukeGopBlt (
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL            *This,
+  IN  EFI_GRAPHICS_OUTPUT_BLT_PIXEL           *BltBuffer    OPTIONAL,
+  IN  EFI_GRAPHICS_OUTPUT_BLT_OPERATION       BltOperation,
+  IN  UINTN                                   SourceX,
+  IN  UINTN                                   SourceY,
+  IN  UINTN                                   DestinationX,
+  IN  UINTN                                   DestinationY,
+  IN  UINTN                                   Width,
+  IN  UINTN                                   Height,
+  IN  UINTN                                   Delta         OPTIONAL
+  )
+{
+  DirectResetCold ();
+  return EFI_NOT_STARTED;
+}
+
+EFI_STATUS
+EFIAPI
+NukeEventRegisterHandler (
+  IN  APPLE_EVENT_TYPE             Type,
+  IN  APPLE_EVENT_NOTIFY_FUNCTION  NotifyFunction,
+  OUT APPLE_EVENT_HANDLE           *Handle,
+  IN  VOID                         *NotifyContext
+  )
+{
+  DirectResetCold ();
+  return EFI_NOT_STARTED;
+}
+
+VOID
+Nuke3 (
+  VOID
+  )
+{
+  EFI_STATUS                    Status;
+  APPLE_EVENT_PROTOCOL          *AppleEvent;
+
+  Status = gBS->LocateProtocol (&gAppleEventProtocolGuid, NULL, (VOID **)&AppleEvent);
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "NUKE3: Cannot find AppleEventProtocol - %r\n", Status));
+    return;
+  }
+
+  AppleEvent->RegisterHandler = NukeEventRegisterHandler;
+  DEBUG ((DEBUG_INFO, "NUKE3: Nuked AppleEvent->RegisterHandler\n"));
+}
+
+VOID
+Nuke2 (
+  VOID
+  )
+{
+  EFI_STATUS                    Status;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL  *Gop;
+  UINTN                         NumberOfHandles;
+  EFI_HANDLE                    *HandleBuffer;
+
+  Status = gBS->LocateHandleBuffer (
+    ByProtocol,
+    &gAppleFramebufferInfoProtocolGuid,
+    NULL,
+    &NumberOfHandles,
+    &HandleBuffer
+  );
+
+  if (EFI_ERROR (Status) || NumberOfHandles != 1) {
+    DEBUG ((DEBUG_INFO, "NUKE2: Cannot find a single handle for Apple Frame Buffer %u - %r\n", NumberOfHandles, Status));
+    if (!EFI_ERROR (Status)) {
+      FreePool (HandleBuffer);
+    }
+    return;
+  }
+
+  Status = gBS->HandleProtocol (
+    HandleBuffer[0],
+    &gEfiGraphicsOutputProtocolGuid,
+    (VOID **)&Gop
+  );
+
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_INFO, "NUKE2: Cannot find GOP on Apple Frame Buffer handle - %r\n", Status));
+    FreePool (HandleBuffer);
+    return;
+  }
+
+  Gop->Blt = NukeGopBlt;
+  DEBUG ((DEBUG_INFO, "NUKE2: Nuked GOP Blt\n"));
+
+  FreePool (HandleBuffer);
+}
+
+STATIC
+EFI_GUID *mNukeGuids[] = {
+  // &gAppleEg2InfoProtocolGuid,
+  // &gAppleFramebufferInfoProtocolGuid,
+  // &gAppleGraphicsPolicyProtocolGuid,
+  // //&gAppleUserInterfaceProtocolGuid,
+  // &gEfiUgaDrawProtocolGuid,
+  // &gEfiGraphicsOutputProtocolGuid
+};
+
+VOID
+NukeEm (
+  VOID
+  )
+{
+  EFI_STATUS Status;
+  UINTN Index;
+  EFI_GUID *Protocol;
+  VOID *Interface;
+  UINTN HandleCount;
+
+  for (Index = 0; Index < ARRAY_SIZE (mNukeGuids); Index++) {
+    Protocol = mNukeGuids[Index];
+    Status = OcUninstallAllProtocolInstances (Protocol);
+    DEBUG ((DEBUG_INFO, "NUKE: Uninstall %g - %r\n", Protocol, Status));
+    Status = gBS->LocateProtocol (mNukeGuids[Index], NULL, &Interface);
+    if (Status == EFI_NOT_FOUND) {
+      DEBUG ((DEBUG_INFO, "NUKE: YES %g - %r\n", Protocol, Status));
+    }
+    HandleCount = (UINT32)OcCountProtocolInstances (Protocol);
+    DEBUG ((DEBUG_INFO, "NUKE: %g HandleCount = %u\n", Protocol, HandleCount));
+  }
+}
+
 STATIC
 VOID
 OcReinstallProtocols (
@@ -377,6 +757,8 @@ OcReinstallProtocols (
   CONST CHAR8  *AppleEventMode;
   BOOLEAN      InstallAppleEvent;
   BOOLEAN      OverrideAppleEvent;
+
+  // DumpEm ();
 
   if (OcAudioInstallProtocols (
         Config->Uefi.ProtocolOverrides.AppleAudio,
@@ -480,6 +862,9 @@ OcReinstallProtocols (
   if (OcAppleEg2InfoInstallProtocol (Config->Uefi.ProtocolOverrides.AppleEg2Info) == NULL) {
     DEBUG ((DEBUG_INFO, "OC: Failed to install eg2 info protocol\n"));
   }
+
+  // DumpEm ();
+  // NukeEm ();
 }
 
 STATIC
@@ -869,6 +1254,12 @@ OcReserveMemory (
   }
 }
 
+extern
+VOID
+UsefulDump (
+  CHAR8   *FriendlyName
+  );
+
 VOID
 OcLoadUefiSupport (
   IN OC_STORAGE_CONTEXT  *Storage,
@@ -884,6 +1275,7 @@ OcLoadUefiSupport (
   EFI_EVENT   Event;
   BOOLEAN     AccelEnabled;
 
+  UsefulDump ("PRE-DUMP");
   OcReinstallProtocols (Config);
 
   OcImageLoaderInit (Config->Booter.Quirks.ProtectUefiServices);
@@ -1031,4 +1423,88 @@ OcLoadUefiSupport (
          Config,
          &Event
          );
+
+  UsefulDump ("POST-DUMP");
+}
+
+STATIC
+VOID
+LocateDxeServicesTable (
+  VOID
+  )
+{
+  UINTN Index;
+
+  if (mDS != NULL) {
+    return;
+  }
+
+  for (Index = 0; Index < gST->NumberOfTableEntries; Index++) {
+    if (CompareGuid(&gEfiDxeServicesTableGuid, &gST->ConfigurationTable[Index].VendorGuid)) {
+      mDS = gST->ConfigurationTable[Index].VendorTable;
+      break;
+    }
+  }
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+WrappedDispatch (
+  VOID
+  )
+{
+  return EFI_NOT_FOUND;
+}
+
+STATIC
+EFI_STATUS
+EFIAPI
+WrappedConnectController (
+  IN  EFI_HANDLE                    ControllerHandle,
+  IN  EFI_HANDLE                    *DriverImageHandle    OPTIONAL,
+  IN  EFI_DEVICE_PATH_PROTOCOL      *RemainingDevicePath  OPTIONAL,
+  IN  BOOLEAN                       Recursive
+  )
+{
+  return EFI_NOT_FOUND;
+}
+
+EFI_STATUS
+OcBlockDriverReconnection (
+  VOID
+  )
+{
+  if (mDS != NULL && mOriginalDispatch != NULL) {
+    return EFI_ALREADY_STARTED;
+  }
+
+  LocateDxeServicesTable ();
+
+  if (mDS == NULL) {
+    DEBUG ((DEBUG_WARN, "OC: Cannot find DxeServices table\n"));
+    return EFI_NOT_FOUND;
+  }
+
+  mOriginalDispatch = mDS->Dispatch;
+  mDS->Dispatch = WrappedDispatch;
+
+  mOriginalConnectController = gBS->ConnectController;
+  gBS->ConnectController = WrappedConnectController;
+
+  return EFI_SUCCESS;
+}
+
+VOID
+OcUnblockDriverReconnection (
+  VOID
+  )
+{
+  if (mDS != NULL && mOriginalDispatch != NULL) {
+    mDS->Dispatch = mOriginalDispatch;
+    mOriginalDispatch = NULL;
+
+    gBS->ConnectController = mOriginalConnectController;
+    mOriginalConnectController = NULL;
+  }
 }

@@ -390,18 +390,18 @@ InternalContextConstruct (
   IN  OC_PICKER_CONTEXT        *Picker
   )
 {
-  EFI_STATUS                         Status;
-  EFI_USER_INTERFACE_THEME_PROTOCOL  *UiTheme;
-  VOID                               *FontImage;
-  VOID                               *FontData;
-  UINT32                             FontImageSize;
-  UINT32                             FontDataSize;
-  UINTN                              UiScaleSize;
-  UINT32                             Index;
-  UINT32                             ImageWidth;
-  UINT32                             ImageHeight;
-  BOOLEAN                            Result;
-  BOOLEAN                            AllowLessSize;
+  EFI_STATUS                           Status;
+  APPLE_USER_INTERFACE_THEME_PROTOCOL  *UiTheme;
+  VOID                                 *FontImage;
+  VOID                                 *FontData;
+  UINT32                               FontImageSize;
+  UINT32                               FontDataSize;
+  UINTN                                UiScaleSize;
+  UINT32                               Index;
+  UINT32                               ImageWidth;
+  UINT32                               ImageHeight;
+  BOOLEAN                              Result;
+  BOOLEAN                              AllowLessSize;
 
   ASSERT (Context != NULL);
 
@@ -421,7 +421,7 @@ InternalContextConstruct (
   }
 
   Status = gBS->LocateProtocol (
-                  &gEfiUserInterfaceThemeProtocolGuid,
+                  &gAppleUserInterfaceThemeProtocolGuid,
                   NULL,
                   (VOID **)&UiTheme
                   );

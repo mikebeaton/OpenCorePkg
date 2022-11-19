@@ -20,6 +20,8 @@
 
 #include <Library/OcMiscLib.h>
 
+#include <Guid/ConsoleOutDevice.h>
+
 STATIC
 EFI_STATUS
 EFIAPI
@@ -206,7 +208,7 @@ OcProvideUgaPassThrough (
                     &gEfiUgaDrawProtocolGuid,
                     (VOID **)&UgaDraw
                     );
-    if (!EFI_ERROR (Status)) {
+    if (!EFI_ERROR (Status) && gST->ConsoleOutHandle != HandleBuffer[Index]) {
       DEBUG ((DEBUG_INFO, "OCC: Skipping UGA proxying as it is already present on handle %u - %p\n", (UINT32)Index, HandleBuffer[Index]));
       continue;
     }
@@ -226,6 +228,8 @@ OcProvideUgaPassThrough (
                     &HandleBuffer[Index],
                     &gEfiUgaDrawProtocolGuid,
                     &OcUgaDraw->Uga,
+                    &gEfiConsoleOutDeviceGuid,
+                    NULL,
                     NULL
                     );
     if (EFI_ERROR (Status)) {

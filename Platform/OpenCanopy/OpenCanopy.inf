@@ -61,7 +61,7 @@
   gEfiGraphicsOutputProtocolGuid
   gEfiSimplePointerProtocolGuid
   gEfiAbsolutePointerProtocolGuid
-  gEfiUserInterfaceThemeProtocolGuid
+  gAppleUserInterfaceThemeProtocolGuid
   gAppleEventProtocolGuid
   gAppleKeyMapAggregatorProtocolGuid
   gOcInterfaceProtocolGuid

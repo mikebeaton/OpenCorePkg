@@ -87,6 +87,20 @@ OcUninstallAllProtocolInstances (
   );
 
 /**
+  Remove and reinstall each protocol with the specified GUID.
+
+  @param[in] Protocol    The published unique identifier of the protocol.
+  @param[in] Interface   The replacement protocol interface.
+
+  @retval EFI_SUCCESS on success.
+**/
+EFI_STATUS
+OcReinstallAllProtocolInstances (
+  EFI_GUID  *Protocol,
+  VOID      *Interface
+  );
+
+/**
   Handle protocol on handle and fallback to any protocol when missing.
 
   @param[in]  Handle        Handle to search for protocol.

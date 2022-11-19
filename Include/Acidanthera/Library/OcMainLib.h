@@ -426,4 +426,35 @@ OcPlatformIs64BitSupported (
   IN UINT32  KernelVersion
   );
 
+/**
+  Block driver connection using this algorith:
+  https://github.com/acidanthera/OpenCorePkg/blob/master/Library/DuetBdsLib/BdsConnect.c#L306-L334
+  Useful e.g. for launching Apple Boot Picker which implements the above, which is
+  slow and unecessary when launched from OC.
+
+  @retval EFI_SUCCESS on success, informational.
+**/
+EFI_STATUS
+OcBlockDriverReconnection (
+  VOID
+  );
+
+/**
+  Unblock driver connection blocked via previous call to OcBlockDriverReconnection.
+**/
+VOID
+OcUnblockDriverReconnection (
+  VOID
+  );
+
+/**
+  Force Apple User Interface protocol to rescan for console GOP.
+
+  @retval EFI_SUCCESS on success, informational.
+**/
+EFI_STATUS
+OcForceReconnectAppleGop (
+  VOID
+  );
+
 #endif // OC_MAIN_LIB

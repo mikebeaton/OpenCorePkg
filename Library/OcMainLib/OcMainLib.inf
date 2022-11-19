@@ -53,6 +53,7 @@
   gOcInterfaceProtocolGuid            ## SOMETIMES_CONSUMES
   gEfiSecurityArchProtocolGuid        ## SOMETIMES_CONSUMES
   gEfiSecurity2ArchProtocolGuid       ## SOMETIMES_CONSUMES
+  gAppleUserInterfaceProtocolGuid     ## SOMETIMES_CONSUMES
 
 [Pcd]
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterAccessWidth     ## SOMETIMES_CONSUMES
@@ -111,4 +112,3 @@
   SerialPortLib
   UefiBootServicesTableLib
   UefiLib
-  UefiRuntimeServicesTableLib

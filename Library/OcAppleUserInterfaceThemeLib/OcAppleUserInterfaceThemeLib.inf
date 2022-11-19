@@ -40,7 +40,7 @@
   gAppleVendorVariableGuid            ## SOMETIMES_CONSUMES
 
 [Protocols]
-  gEfiUserInterfaceThemeProtocolGuid  ## SOMETIMES_PRODUCES
+  gAppleUserInterfaceThemeProtocolGuid  ## SOMETIMES_PRODUCES
 
 [LibraryClasses]
   DebugLib

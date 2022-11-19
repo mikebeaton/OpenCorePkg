@@ -17,8 +17,19 @@
 #include <Protocol/DevicePath.h>
 #include <Protocol/LoadedImage.h>
 #include <Protocol/SimpleFileSystem.h>
+#include <Protocol/UserInterfaceTheme.h>
+#include <Protocol/UgaDraw.h>
+
+#include <Protocol/ConsoleControl.h>
+#include <Protocol/SimplePointer.h>
+#include <Library/OcDirectResetLib.h>
+#include <Protocol/AppleFramebufferInfo.h>
+#include <Protocol/AppleEg2Info.h>
+#include <Protocol/AppleGraphicsPolicy.h>
+#include <Protocol/AppleUserInterface.h>
 
 #include <Guid/AppleVariable.h>
+#include <Guid/DxeServices.h>
 #include <Guid/FileInfo.h>
 #include <Guid/GlobalVariable.h>
 #include <Guid/OcVariable.h>
@@ -41,6 +52,11 @@
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/PrintLib.h>
+
+#include <Library/OcTimerLib.h>
+
+#define __PE_IMAGE_H__
+#include <Pi/PiDxeCis.h>
 
 #if defined (MDE_CPU_IA32)
 #define OC_IMAGE_FILE_MACHINE  IMAGE_FILE_MACHINE_I386
@@ -85,6 +101,11 @@ STATIC EFI_IMAGE_LOAD          mPreservedLoadImage;
 STATIC EFI_IMAGE_START         mPreservedStartImage;
 STATIC EFI_EXIT_BOOT_SERVICES  mPreservedExitBootServices;
 STATIC EFI_EXIT                mPreservedExit;
+
+STATIC USER_INTERFACE_CONNECT_GOP mOriginalConnectGop;
+STATIC USER_INTERFACE_CREATE_DRAW_BUFFER mOriginalCreateDrawBuffer;
+STATIC USER_INTERFACE_FREE_DRAW_BUFFER mOriginalFreeDrawBuffer;
+STATIC APPLE_USER_INTERFACE_PROTOCOL *mAppleUserInterfaceProtocol;
 
 STATIC
 VOID
@@ -932,6 +953,757 @@ InternalEfiLoadImage (
 }
 
 STATIC
+EFI_GUID *mBlockGuids[] = {
+  // //&gAppleFramebufferInfoProtocolGuid,
+  // &gAppleUserInterfaceThemeProtocolGuid,
+  // &gEfiGraphicsOutputProtocolGuid,
+
+  // &gAppleEg2InfoProtocolGuid,
+  // &gEfiUgaDrawProtocolGuid,
+  // &gAppleFramebufferInfoProtocolGuid,
+  // &gAppleGraphicsPolicyProtocolGuid,
+  // &gEfiGraphicsOutputProtocolGuid
+};
+
+BOOLEAN
+BlockEm (
+  EFI_GUID *Protocol,
+  EFI_STATUS *Status,
+  BOOLEAN Nested
+  )
+{
+  UINTN Index;
+
+  if (Protocol == NULL) {
+    return FALSE;
+  }
+
+  for (Index = 0; Index < ARRAY_SIZE (mBlockGuids); Index++) {
+    if (CompareGuid (Protocol, mBlockGuids[Index])) {
+      if (Nested) {
+        DirectResetCold ();
+      }
+
+      *Status = EFI_NOT_FOUND;
+      DEBUG ((DEBUG_INFO, "BLOCK: %g - %r\n", Protocol, *Status));
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+STATIC BOOLEAN mLogAllocate;
+
+STATIC EFI_ALLOCATE_POOL mOriginalAllocatePool;
+STATIC EFI_FREE_POOL mOriginalFreePool;
+STATIC EFI_SET_MEM mOriginalSetMem;
+
+typedef enum {
+  TrapAllocatePool,
+  TrapFreePool,
+  TrapSetMem
+} ALLOC_TRAP_TYPE;
+
+typedef struct {
+  ALLOC_TRAP_TYPE              TrapType;
+  EFI_MEMORY_TYPE              PoolType;
+  UINTN                        Size;
+  VOID                         *Buffer;
+  CHAR8                        Value;
+  EFI_STATUS                   Status;
+} ALLOC_TRAP_INFO;
+
+VOID
+Sleep (
+  IN UINT64 Timeout
+  )
+{
+  UINT64           EndTime;
+  UINT64           CurrTime;
+
+  if (Timeout == 0) {
+    EndTime = 0ULL;
+  } else {
+    EndTime = GetPerformanceCounter ();
+    if (EndTime != 0) {
+      EndTime = GetTimeInNanoSecond (EndTime) + Timeout * 1000000ULL;
+    }
+  }
+
+  if (EndTime != 0) {
+    do {
+      CurrTime = GetTimeInNanoSecond (GetPerformanceCounter ());
+    }
+    while ((CurrTime != 0) && (CurrTime < EndTime));
+  }
+}
+
+VOID
+DumpTrapInfo (
+  ALLOC_TRAP_TYPE              TrapType,
+  EFI_MEMORY_TYPE              PoolType,
+  UINTN                        Size,
+  VOID                         *Buffer,
+  CHAR8                        Value,
+  EFI_STATUS                   Status
+  )
+{
+  ALLOC_TRAP_INFO TrapInfo;
+  CHAR16          DumpName[] = L"trapN";
+  CHAR16          DumpCh;
+  STATIC UINTN    DumpIndex = 0;
+
+  TrapInfo.TrapType = TrapType;
+  TrapInfo.PoolType = PoolType;
+  TrapInfo.Size = Size;
+  TrapInfo.Buffer = Buffer;
+  TrapInfo.Value = Value;
+  TrapInfo.Status = Status;
+
+  if (DumpIndex == 16) {
+    Sleep (10 * 1000);
+    DirectResetCold ();
+  }
+
+  if (DumpIndex < 10) {
+    DumpCh = '0' + DumpIndex;
+  } else {
+    DumpCh = 'A' - 10 + DumpIndex;
+  }
+  DumpIndex = (DumpIndex + 1) % 36;
+
+  DumpName[L_STR_LEN (DumpName) - 1] = DumpCh;
+
+  gRT->SetVariable (
+                  DumpName,
+                  &gAppleBootVariableGuid,
+                  EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+                  sizeof (TrapInfo),
+                  &TrapInfo
+                  );
+}
+
+EFI_STATUS
+EFIAPI WrappedAllocatePool (
+  IN  EFI_MEMORY_TYPE              PoolType,
+  IN  UINTN                        Size,
+  OUT VOID                         **Buffer
+  )
+{
+  EFI_STATUS      Status;
+  STATIC BOOLEAN  Nested = FALSE;
+
+  if (Nested) {
+    return mOriginalAllocatePool (PoolType, Size, Buffer);
+  }
+
+  if (mLogAllocate) {
+    DumpTrapInfo (TrapAllocatePool, PoolType, Size, NULL, 0, MAX_UINT64);
+    // DEBUG ((DEBUG_INFO, "WRAP: AllocatePool t=%u s=%u *b%a=%p - %r\n", PoolType, Size, Buffer == NULL ? "<null>" : "", Buffer == NULL ? NULL : *Buffer, Status));
+  }
+
+  Nested = TRUE;
+  Status = mOriginalAllocatePool (PoolType, Size, Buffer);
+  Nested = FALSE;
+
+  if (mLogAllocate) {
+    DumpTrapInfo (TrapAllocatePool, PoolType, Size, Buffer == NULL ? NULL : *Buffer, 0, Status);
+    // DEBUG ((DEBUG_INFO, "WRAP: AllocatePool t=%u s=%u *b%a=%p - %r\n", PoolType, Size, Buffer == NULL ? "<null>" : "", Buffer == NULL ? NULL : *Buffer, Status));
+  }
+
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI WrappedFreePool (
+  IN  VOID                         *Buffer
+  )
+{
+  EFI_STATUS      Status;
+  STATIC BOOLEAN  Nested = FALSE;
+
+  if (Nested) {
+    return mOriginalFreePool (Buffer);
+  }
+
+  Nested = TRUE;
+  Status = mOriginalFreePool (Buffer);
+  Nested = FALSE;
+
+  if (mLogAllocate) {
+    DumpTrapInfo (TrapFreePool, 0, 0, Buffer, 0, Status);
+    // DEBUG ((DEBUG_INFO, "WRAP: FreePool b=%p - %r\n", Buffer, Status));
+  }
+
+  return Status;
+}
+
+VOID
+EFIAPI WrappedSetMem (
+  IN VOID     *Buffer,
+  IN UINTN    Size,
+  IN UINT8    Value
+  )
+{
+  STATIC BOOLEAN  Nested = FALSE;
+
+  if (Nested) {
+    mOriginalSetMem (Buffer, Size, Value);
+    return;
+  }
+
+  Nested = TRUE;
+  mOriginalSetMem (Buffer, Size, Value);
+  Nested = FALSE;
+
+  if (mLogAllocate) {
+    DumpTrapInfo (TrapSetMem, 0, Size, Buffer, Value, 0);
+    // DEBUG ((DEBUG_INFO, "WRAP: SetMem b=%p s=%u v=0x%02x\n", Buffer, Size, Value));
+  }
+}
+
+//STATIC
+VOID
+WrapAllocate (
+  IN EFI_BOOT_SERVICES *lBS
+  )
+{
+  mOriginalAllocatePool = lBS->AllocatePool;
+  lBS->AllocatePool = WrappedAllocatePool;
+
+  mOriginalFreePool = lBS->FreePool;
+  lBS->FreePool = WrappedFreePool;
+
+  mOriginalSetMem = lBS->SetMem;
+  lBS->SetMem = WrappedSetMem;
+}
+
+//STATIC
+VOID
+UnwrapAllocate (
+  IN EFI_BOOT_SERVICES *lBS
+  )
+{
+  lBS->AllocatePool = mOriginalAllocatePool;
+  lBS->FreePool = mOriginalFreePool;
+  lBS->SetMem = mOriginalSetMem;
+}
+
+typedef
+VOID *
+(EFIAPI *ALLOCATE_ZERO_POOL)(
+  IN UINTN  AllocationSize
+  );
+
+EFI_SYSTEM_TABLE      *aST;
+EFI_BOOT_SERVICES     *aBS;
+EFI_RUNTIME_SERVICES  *aRT;
+
+//STATIC
+EFI_GUID gEfiUnusedGuid = { 0x00000000, 0x0000, 0x0000, { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }};
+
+extern
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedLocateProtocol (
+  IN  EFI_GUID  *Protocol,
+  IN  VOID      *Registration OPTIONAL,
+  OUT VOID      **Interface
+  );
+
+extern
+EFI_STATUS
+DumpProtocolsForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *FriendlyName
+  );
+
+extern
+EFI_STATUS
+DumpGop (
+  EFI_GRAPHICS_OUTPUT_PROTOCOL    *Gop,
+  CHAR8                           *GopFriendlyName
+  );
+
+extern
+EFI_STATUS
+DumpGopForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *HandleFriendlyName,
+  CHAR8         *GopFriendlyName
+  );
+
+STATIC
+BOOLEAN
+LocateAppleUserInterfaceProtocol (
+  VOID
+  )
+{
+  EFI_STATUS Status;
+
+  if (mAppleUserInterfaceProtocol) {
+    return TRUE;
+  }
+
+  Status = gBS->LocateProtocol (
+    &gAppleUserInterfaceProtocolGuid,
+    NULL,
+    (VOID **)&mAppleUserInterfaceProtocol
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "WRAP: Cannot locate AppleUserInterfaceProtocol - %r\n", Status));
+  }
+
+  return !EFI_ERROR (Status);
+}
+
+VOID
+ShowAppleGop (
+  VOID
+  )
+{
+  UINT8                         *aGopAlreadyConnected;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL  **aGop;
+
+  aGopAlreadyConnected = (VOID *)((UINT8 *)mAppleUserInterfaceProtocol + sizeof (APPLE_USER_INTERFACE_PROTOCOL));
+  aGop = (VOID *)((UINT8 *)mAppleUserInterfaceProtocol + sizeof (APPLE_USER_INTERFACE_PROTOCOL) +0x8);
+
+  DEBUG ((DEBUG_INFO, "DUMP: aGop %p, aGopAlreadyConnected %u\n", *aGop, *aGopAlreadyConnected));
+  DumpGop (*aGop, "aGop");
+}
+
+VOID
+DumpAppleInterfaceProtocolBootServices (
+  VOID
+  )
+{
+  register EFI_BOOT_SERVICES    *aBS_r9 asm ("r9");
+  VOID                          *Buffer;
+  // VOID                          *Interface;
+  VOID                          **Tables;
+
+  if (mOriginalCreateDrawBuffer) {
+    Buffer = ((ALLOCATE_ZERO_POOL)((UINT8 *)mOriginalCreateDrawBuffer + 0x5234 - 0x2514)) (0x20);
+    asm ("" : "=r" (aBS_r9) : "rm" (Buffer));
+    aBS = aBS_r9;
+    aBS->FreePool (Buffer);
+
+    DEBUG ((DEBUG_INFO, "DUMP: gBS %p, aBS %p\n", gBS, aBS));
+  }
+
+  if (!LocateAppleUserInterfaceProtocol ()) {
+    return;
+  }
+
+  ShowAppleGop ();
+
+  Tables = (VOID **)((UINT8 *)mAppleUserInterfaceProtocol + sizeof (APPLE_USER_INTERFACE_PROTOCOL) + 0x10);
+  aST = Tables[0];
+  aBS = Tables[1];
+  aRT = Tables[2];
+
+  DEBUG ((DEBUG_INFO, "DUMP: aST %p, aBS %p, aRT %p\n", aST, aBS, aRT));
+
+  DEBUG ((DEBUG_INFO, "DUMP: gBS->LP %p, aBS->LP %p, wrappedLocP %p\n", gBS->LocateProtocol, aBS->LocateProtocol, WrappedLocateProtocol));
+  DEBUG ((DEBUG_INFO, "DUMP: gBS->AP %p, aBS->AP %p, wrappedAllP %p\n", gBS->AllocatePool, aBS->AllocatePool, WrappedAllocatePool));
+  DEBUG ((DEBUG_INFO, "DUMP: gST->Con %p, aST->Con %p\n", gST->ConsoleOutHandle, aST->ConsoleOutHandle));
+
+  DumpProtocolsForHandle (aST->ConsoleOutHandle, "aST->ConsoleOutHandle");
+  DumpGopForHandle (aST->ConsoleOutHandle, "aST->ConsoleOutHandle", "aST->ConsoleOutHandle GOP");
+
+  // gBS->LocateProtocol (
+  //   &gEfiUnusedGuid,
+  //   NULL,
+  //   &Interface
+  // );
+  // aBS->LocateProtocol (
+  //   &gEfiUnusedGuid,
+  //   NULL,
+  //   &Interface
+  // );
+}
+
+EFI_STATUS
+EFIAPI
+WrappedConnectGop (
+  VOID
+  )
+{
+  EFI_STATUS Status;
+
+  DEBUG ((DEBUG_INFO, "WRAP: -> ConnectGop\n"));
+
+  ShowAppleGop ();
+
+  Status = mOriginalConnectGop ();
+
+  ShowAppleGop ();
+  
+  DEBUG ((DEBUG_INFO, "WRAP: <- ConnectGop - %r\n", Status));
+
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI WrappedCreateDrawBuffer (
+  OUT VOID    *DrawBufferInfo,
+  IN UINT32   BackgroundColor
+  )
+{
+  EFI_STATUS          Status;
+
+  DEBUG ((DEBUG_INFO, "WRAP: -> CreateDrawBuffer\n"));
+
+  // OcSetFileData (NULL, L"CreateDrawBuffer.bin", mOriginalCreateDrawBuffer, 0x180);
+
+  // DumpAppleInterfaceProtocolBootServices ();
+  // mLogAllocate = TRUE;
+  // WrapAllocate (aBS);
+
+  Status = mOriginalCreateDrawBuffer (DrawBufferInfo, BackgroundColor);
+
+  // UnwrapAllocate (aBS);
+  // mLogAllocate = FALSE;
+
+  DEBUG ((DEBUG_INFO, "WRAP: <- CreateDrawBuffer - %r\n", Status));
+  return Status;
+}
+
+VOID
+EFIAPI WrappedFreeDrawBuffer (
+  IN VOID     *DrawBufferInfo
+  )
+{
+#if 0
+  DirectResetCold ();
+#else
+  DEBUG ((DEBUG_INFO, "WRAP: -> FreeDrawBuffer\n"));
+  mOriginalFreeDrawBuffer (DrawBufferInfo);
+  DEBUG ((DEBUG_INFO, "WRAP: <- FreeDrawBuffer\n"));
+#endif
+}
+
+STATIC
+VOID
+WrapDrawBuffer (
+  VOID
+  )
+{
+  if (!LocateAppleUserInterfaceProtocol ()) {
+    return;
+  }
+
+  mLogAllocate = FALSE;
+
+  mOriginalConnectGop = mAppleUserInterfaceProtocol->ConnectGop;
+  mAppleUserInterfaceProtocol->ConnectGop = WrappedConnectGop;
+
+  mOriginalCreateDrawBuffer = mAppleUserInterfaceProtocol->CreateDrawBuffer;
+  mAppleUserInterfaceProtocol->CreateDrawBuffer = WrappedCreateDrawBuffer;
+
+  mOriginalFreeDrawBuffer = mAppleUserInterfaceProtocol->FreeDrawBuffer;
+  mAppleUserInterfaceProtocol->FreeDrawBuffer = WrappedFreeDrawBuffer;
+}
+
+STATIC
+VOID
+UnwrapDrawBuffer (
+  VOID
+  )
+{
+  if (mAppleUserInterfaceProtocol != NULL) {
+    mAppleUserInterfaceProtocol->CreateDrawBuffer = mOriginalCreateDrawBuffer;
+    mAppleUserInterfaceProtocol->FreeDrawBuffer = mOriginalFreeDrawBuffer;
+  }
+}
+
+STATIC UINTN ConnectControllerNesting = 0;
+
+typedef
+EFI_STATUS
+(EFIAPI *EFI_DISPATCH)(
+  VOID
+  );
+
+STATIC EFI_CONNECT_CONTROLLER mOriginalConnectController;
+STATIC EFI_LOCATE_PROTOCOL mOriginalLocateProtocol;
+STATIC EFI_LOCATE_HANDLE_BUFFER mOriginalLocateHandleBuffer;
+STATIC EFI_OPEN_PROTOCOL mOriginalOpenProtocol;
+STATIC EFI_DISPATCH mOriginalDispatch;
+
+STATIC EFI_DXE_SERVICES *mDS = NULL;
+
+STATIC
+VOID
+LocateDxeServicesTable (
+  VOID
+  )
+{
+  UINTN Index;
+
+  if (mDS != NULL) {
+    return;
+  }
+
+  for (Index = 0; Index < gST->NumberOfTableEntries; Index++) {
+    if (CompareGuid(&gEfiDxeServicesTableGuid, &gST->ConfigurationTable[Index].VendorGuid)) {
+      mDS = gST->ConfigurationTable[Index].VendorTable;
+      break;
+    }
+  }
+}
+
+STATIC BOOLEAN mStartLogging;
+
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedDispatch (
+  VOID
+  )
+{
+#if 1
+  mStartLogging = TRUE;
+  return EFI_NOT_FOUND;
+#else
+  EFI_STATUS        Status;
+  STATIC UINTN      Nesting = 0;
+
+  Nesting++;
+  Status = mOriginalDispatch ();
+  Nesting--;
+
+  DEBUG ((DEBUG_INFO, "WRAP: gDS->Dispatch n = %u - %r\n", Nesting, Status));
+
+  return Status;
+#endif
+}
+
+STATIC
+VOID
+WrapDispatch (
+  VOID
+  )
+{
+  LocateDxeServicesTable ();
+  if (mDS == NULL) {
+    DEBUG ((DEBUG_WARN, "WRAP: Cannot find DxeServices table\n"));
+    return;
+  }
+  mStartLogging = FALSE;
+  mOriginalDispatch = mDS->Dispatch;
+  mDS->Dispatch = WrappedDispatch;
+}
+
+STATIC
+VOID
+UnwrapDispatch (
+  VOID
+  )
+{
+  if (mDS != NULL && mOriginalDispatch != NULL) {
+    mDS->Dispatch = mOriginalDispatch;
+    mOriginalDispatch = NULL;
+  }
+}
+
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedConnectController (
+  IN  EFI_HANDLE                    ControllerHandle,
+  IN  EFI_HANDLE                    *DriverImageHandle    OPTIONAL,
+  IN  EFI_DEVICE_PATH_PROTOCOL      *RemainingDevicePath  OPTIONAL,
+  IN  BOOLEAN                       Recursive
+  )
+{
+#if 1
+  return EFI_NOT_FOUND;
+#else
+  EFI_STATUS        Status;
+  STATIC BOOLEAN    Nested = FALSE;
+
+  if (Nested) {
+    return mOriginalConnectController (
+      ControllerHandle,
+      DriverImageHandle,
+      RemainingDevicePath,
+      Recursive
+    );
+  }
+
+  Nested = TRUE;
+
+  DebugPrintDevicePathForHandle (DEBUG_INFO, "Wrap: Connecting controller", ControllerHandle);
+
+  DEBUG ((DEBUG_INFO, "WRAP: WrappedConnectController h = %p n = %u\n", ControllerHandle, ConnectControllerNesting));
+
+  ConnectControllerNesting++;
+  Status = mOriginalConnectController (
+    ControllerHandle,
+    DriverImageHandle,
+    RemainingDevicePath,
+    Recursive
+  );
+  ConnectControllerNesting--;
+
+  DEBUG ((DEBUG_INFO, "WRAP: WrappedConnectController h = %p n = %u - %r\n", ControllerHandle, ConnectControllerNesting, Status));
+
+  Nested = FALSE;
+
+  return Status;
+#endif
+}
+
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedOpenProtocol (
+  IN  EFI_HANDLE                Handle,
+  IN  EFI_GUID                  *Protocol,
+  OUT VOID                      **Interface  OPTIONAL,
+  IN  EFI_HANDLE                AgentHandle,
+  IN  EFI_HANDLE                ControllerHandle,
+  IN  UINT32                    Attributes
+  )
+{
+  EFI_STATUS Status;
+  STATIC BOOLEAN Nested = FALSE;
+
+  if (BlockEm (Protocol, &Status, Nested)) {
+    return Status;
+  }
+
+  if (!mStartLogging || Nested) {
+    return mOriginalOpenProtocol (
+      Handle,
+      Protocol,
+      Interface,
+      AgentHandle,
+      ControllerHandle,
+      Attributes
+    );
+  }
+
+  Nested = TRUE;
+
+  Status = mOriginalOpenProtocol (
+    Handle,
+    Protocol,
+    Interface,
+    AgentHandle,
+    ControllerHandle,
+    Attributes
+  );
+
+  if (ConnectControllerNesting == 0 || CompareGuid (&gAppleFramebufferInfoProtocolGuid, Protocol)) {
+    DEBUG ((DEBUG_INFO, "WRAP: [%u] OpenProtocol %g - %r\n", ConnectControllerNesting, Protocol, Status));
+  }
+
+  Nested = FALSE;
+
+  return Status;
+}
+
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedLocateHandleBuffer (
+  IN     EFI_LOCATE_SEARCH_TYPE       SearchType,
+  IN     EFI_GUID                     *Protocol       OPTIONAL,
+  IN     VOID                         *SearchKey      OPTIONAL,
+  OUT    UINTN                        *NoHandles,
+  OUT    EFI_HANDLE                   **Buffer
+  )
+{
+  EFI_STATUS Status;
+  STATIC BOOLEAN Nested = FALSE;
+
+  if (BlockEm (Protocol, &Status, Nested)) {
+    return Status;
+  }
+
+  if (!mStartLogging || Nested) {
+    return mOriginalLocateHandleBuffer (
+      SearchType,
+      Protocol,
+      SearchKey,
+      NoHandles,
+      Buffer
+    );
+  }
+
+  Nested = TRUE;
+
+  Status = mOriginalLocateHandleBuffer (
+    SearchType,
+    Protocol,
+    SearchKey,
+    NoHandles,
+    Buffer
+  );
+
+  if ((Protocol != NULL && CompareGuid (&gAppleFramebufferInfoProtocolGuid, Protocol))
+    || (ConnectControllerNesting == 0 && !(!EFI_ERROR (Status) && Protocol != NULL && CompareGuid (&gEfiSimplePointerProtocolGuid, Protocol)))) {
+    DEBUG ((DEBUG_INFO, "WRAP: [%u] LocateHandleBuffer %u %g %p %u - %r\n",
+      ConnectControllerNesting,
+      SearchType,
+      Protocol,
+      SearchKey,
+      *NoHandles,
+      Status
+    ));
+  }
+
+  Nested = FALSE;
+
+  return Status;
+}
+
+//STATIC
+EFI_STATUS
+EFIAPI
+WrappedLocateProtocol (
+  IN  EFI_GUID  *Protocol,
+  IN  VOID      *Registration OPTIONAL,
+  OUT VOID      **Interface
+  )
+{
+  EFI_STATUS Status;
+  STATIC BOOLEAN Nested = FALSE;
+
+  if (BlockEm (Protocol, &Status, Nested)) {
+    return Status;
+  }
+
+  if (!mStartLogging || Nested) {
+    return mOriginalLocateProtocol (Protocol, Registration, Interface);
+  }
+
+  Nested = TRUE;
+
+  // if (CompareGuid(&gAppleEventProtocolGuid, Protocol)) {
+  //   DirectResetCold ();
+  // }
+
+  Status = mOriginalLocateProtocol (Protocol, Registration, Interface);
+
+  if (CompareGuid (&gAppleFramebufferInfoProtocolGuid, Protocol)
+    || (ConnectControllerNesting == 0 && !(!EFI_ERROR (Status) && CompareGuid (&gEfiConsoleControlProtocolGuid, Protocol)))) {
+    DEBUG ((DEBUG_INFO, "WRAP: [%u] LocateProtocol %g - %r\n", ConnectControllerNesting, Protocol, Status));
+  }
+
+  Nested = FALSE;
+
+  return Status;
+}
+
+BOOLEAN gExternProtocolWrap = FALSE;
+
+STATIC
 EFI_STATUS
 EFIAPI
 InternalEfiStartImage (
@@ -943,6 +1715,8 @@ InternalEfiStartImage (
   EFI_STATUS                 Status;
   OC_LOADED_IMAGE_PROTOCOL   *OcLoadedImage;
   EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
+  EFI_TPL                    CurrentTpl;
+  STATIC UINTN               Nesting = 0;
 
   //
   // If we loaded the image, invoke the entry point manually.
@@ -989,7 +1763,45 @@ InternalEfiStartImage (
   }
 
   PreserveGrubShimHooks ();
+
+  CurrentTpl = gBS->RaiseTPL (TPL_NOTIFY);
+  Nesting++;
+  DEBUG ((DEBUG_INFO, "OCB: [%u] Lowering TPL %u->0\n", Nesting, CurrentTpl));
+  gBS->RestoreTPL (0);
+
+  if (gExternProtocolWrap) {
+    WrapDispatch ();
+
+    mOriginalConnectController = gBS->ConnectController;
+    gBS->ConnectController = WrappedConnectController;
+
+    mOriginalOpenProtocol = gBS->OpenProtocol;
+    gBS->OpenProtocol = WrappedOpenProtocol;
+
+    mOriginalLocateHandleBuffer = gBS->LocateHandleBuffer;
+    gBS->LocateHandleBuffer = WrappedLocateHandleBuffer;
+
+    mOriginalLocateProtocol = gBS->LocateProtocol;
+    gBS->LocateProtocol = WrappedLocateProtocol;
+
+    WrapDrawBuffer ();
+
+    OcForceReconnectAppleGop (); ////
+  }
   Status = mOriginalEfiStartImage (ImageHandle, ExitDataSize, ExitData);
+  if (gExternProtocolWrap) {
+    UnwrapDrawBuffer ();
+    gBS->LocateProtocol = mOriginalLocateProtocol;
+    gBS->LocateHandleBuffer = mOriginalLocateHandleBuffer;
+    gBS->OpenProtocol = mOriginalOpenProtocol;
+    gBS->ConnectController = mOriginalConnectController;
+    UnwrapDispatch ();
+  }
+
+  Nesting--;
+  DEBUG ((DEBUG_INFO, "OCB: [%u] Restoring TPL ->%u\n", Nesting, CurrentTpl));
+  gBS->RaiseTPL (CurrentTpl);
+
   RestoreGrubShimHooks ("StartImage");
 
   return Status;

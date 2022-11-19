@@ -38,36 +38,36 @@ UserInterfaceThemeGetColor (
   return EFI_SUCCESS;
 }
 
-STATIC EFI_USER_INTERFACE_THEME_PROTOCOL  mAppleUserInterfaceThemeProtocol = {
+STATIC APPLE_USER_INTERFACE_THEME_PROTOCOL  mAppleUserInterfaceThemeProtocol = {
   USER_THEME_INTERFACE_PROTOCOL_REVISION,
   UserInterfaceThemeGetColor
 };
 
-EFI_USER_INTERFACE_THEME_PROTOCOL *
+APPLE_USER_INTERFACE_THEME_PROTOCOL *
 OcAppleUserInterfaceThemeInstallProtocol (
   IN BOOLEAN  Reinstall
   )
 {
-  EFI_STATUS                         Status;
-  UINT32                             Color;
-  UINTN                              DataSize;
-  EFI_USER_INTERFACE_THEME_PROTOCOL  *EfiUiInterface;
-  EFI_HANDLE                         NewHandle;
+  EFI_STATUS                           Status;
+  UINT32                               Color;
+  UINTN                                DataSize;
+  APPLE_USER_INTERFACE_THEME_PROTOCOL  *UiTheme;
+  EFI_HANDLE                           NewHandle;
 
   if (Reinstall) {
-    Status = OcUninstallAllProtocolInstances (&gEfiUserInterfaceThemeProtocolGuid);
+    Status = OcUninstallAllProtocolInstances (&gAppleUserInterfaceThemeProtocolGuid);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_ERROR, "OCUT: Uninstall failed: %r\n", Status));
+      DEBUG ((DEBUG_ERROR, "OCUT: Uninstall failed - %r\n", Status));
       return NULL;
     }
   } else {
     Status = gBS->LocateProtocol (
-                    &gEfiUserInterfaceThemeProtocolGuid,
+                    &gAppleUserInterfaceThemeProtocolGuid,
                     NULL,
-                    (VOID **)&EfiUiInterface
+                    (VOID **)&UiTheme
                     );
     if (!EFI_ERROR (Status)) {
-      return EfiUiInterface;
+      return UiTheme;
     }
   }
 
@@ -87,11 +87,12 @@ OcAppleUserInterfaceThemeInstallProtocol (
   if (!EFI_ERROR (Status)) {
     mCurrentColor = Color;
   }
+  mCurrentColor = 0x00800000;  ///////////////
 
   NewHandle = NULL;
   Status    = gBS->InstallMultipleProtocolInterfaces (
                      &NewHandle,
-                     &gEfiUserInterfaceThemeProtocolGuid,
+                     &gAppleUserInterfaceThemeProtocolGuid,
                      &mAppleUserInterfaceThemeProtocol,
                      NULL
                      );

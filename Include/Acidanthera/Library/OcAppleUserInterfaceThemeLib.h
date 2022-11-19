@@ -24,7 +24,7 @@
   @returns Installed or located protocol.
   @retval NULL  There was an error locating or installing the protocol.
 **/
-EFI_USER_INTERFACE_THEME_PROTOCOL *
+APPLE_USER_INTERFACE_THEME_PROTOCOL *
 OcAppleUserInterfaceThemeInstallProtocol (
   IN BOOLEAN  Reinstall
   );

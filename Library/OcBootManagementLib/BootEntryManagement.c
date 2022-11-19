@@ -1969,7 +1969,8 @@ OcScanForBootEntries (
     Context->BootOrder = InternalGetBootOrderForBooting (
                            BootContext->BootVariableGuid,
                            Context->BlacklistAppleUpdate,
-                           &Context->BootOrderCount
+                           &Context->BootOrderCount,
+                           FALSE
                            );
   }
 
@@ -2117,7 +2118,8 @@ OcScanForBootEntries (
 
 OC_BOOT_CONTEXT *
 OcScanForDefaultBootEntry (
-  IN  OC_PICKER_CONTEXT  *Context
+  IN  OC_PICKER_CONTEXT  *Context,
+  IN  BOOLEAN            UseBootNextOnly
   )
 {
   OC_BOOT_CONTEXT     *BootContext;
@@ -2163,7 +2165,8 @@ OcScanForDefaultBootEntry (
       Context->BootOrder = InternalGetBootOrderForBooting (
                              BootContext->BootVariableGuid,
                              Context->BlacklistAppleUpdate,
-                             &Context->BootOrderCount
+                             &Context->BootOrderCount,
+                             UseBootNextOnly
                              );
     }
 
@@ -2193,6 +2196,12 @@ OcScanForDefaultBootEntry (
           return BootContext;
         }
       }
+    }
+
+    if (UseBootNextOnly) {
+      OcFreeBootEntryProtocolHandles (&EntryProtocolHandles);
+      OcFreeBootContext (BootContext);
+      return NULL;
     }
 
     //
@@ -2363,6 +2372,10 @@ OcEnumerateEntries (
   return Entries;
 }
 
+extern BOOLEAN gExternProtocolWrap;
+
+extern VOID Nuke3 (VOID);
+
 EFI_STATUS
 OcLoadBootEntry (
   IN  OC_PICKER_CONTEXT  *Context,
@@ -2399,6 +2412,10 @@ OcLoadBootEntry (
       OcSwitchToFallbackLegacyNvram ();
     }
 
+    gExternProtocolWrap = TRUE;
+    //SaveEm ();
+    //Nuke3 ();
+    //KillEm ();
     Status = Context->StartImage (BootEntry, EntryHandle, NULL, NULL, BootEntry->LaunchInText);
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "OCB: StartImage failed - %r\n", Status));

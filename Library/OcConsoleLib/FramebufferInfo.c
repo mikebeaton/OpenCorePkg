@@ -85,13 +85,25 @@ AppleFramebufferGetInfo (
 
   //
   // This is a bit inaccurate as it assumes 32-bit BPP, but will do for most cases.
+  // >> 1 IS TEMP DEBUG!!!!
   //
   *FramebufferBase = Mode->FrameBufferBase;
-  *FramebufferSize = (UINT32)Mode->FrameBufferSize;
+  *FramebufferSize = (UINT32)Mode->FrameBufferSize >> 1;
   *ScreenRowBytes  = (UINT32)(Info->PixelsPerScanLine * sizeof (EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
-  *ScreenWidth     = Info->HorizontalResolution;
-  *ScreenHeight    = Info->VerticalResolution;
+  *ScreenWidth     = Info->HorizontalResolution >> 1;
+  *ScreenHeight    = Info->VerticalResolution >> 1;
   *ScreenDepth     = DEFAULT_COLOUR_DEPTH;
+
+  DEBUG ((
+    DEBUG_INFO,
+    "OCFB: AppleFramebufferInfo - Returning Base %Lx, Size %u, RowBytes %u, Width %u, Height %u, Depth %u\n",
+    *FramebufferBase,
+    *FramebufferSize,
+    *ScreenRowBytes,
+    *ScreenWidth,
+    *ScreenHeight,
+    *ScreenDepth
+    ));
 
   return EFI_SUCCESS;
 }
@@ -110,7 +122,6 @@ OcAppleFbInfoInstallProtocol (
   EFI_STATUS                       Status;
   APPLE_FRAMEBUFFER_INFO_PROTOCOL  *Protocol;
   EFI_GRAPHICS_OUTPUT_PROTOCOL     *GraphicsOutput;
-  EFI_HANDLE                       NewHandle;
 
   DEBUG ((DEBUG_VERBOSE, "OcAppleFbInfoInstallProtocol\n"));
 
@@ -121,14 +132,14 @@ OcAppleFbInfoInstallProtocol (
                   );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "OCOS: No GOP protocols for FB info, ignoring\n"));
+    DEBUG ((DEBUG_INFO, "OCFB: No GOP protocols for FB info, ignoring\n"));
     return NULL;
   }
 
   if (Reinstall) {
     Status = OcUninstallAllProtocolInstances (&gAppleFramebufferInfoProtocolGuid);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_ERROR, "OCOS: Uninstall failed: %r\n", Status));
+      DEBUG ((DEBUG_ERROR, "OCFB: Uninstall failed: %r\n", Status));
       return NULL;
     }
   } else {
@@ -143,9 +154,8 @@ OcAppleFbInfoInstallProtocol (
     }
   }
 
-  NewHandle = NULL;
   Status    = gBS->InstallMultipleProtocolInterfaces (
-                     &NewHandle,
+                     &gST->ConsoleOutHandle,
                      &gAppleFramebufferInfoProtocolGuid,
                      (VOID *)&mAppleFramebufferInfo,
                      NULL
