@@ -166,6 +166,7 @@ package() {
       "Dhcp4Dxe.efi"
       "DnsDxe.efi"
       "DpcDxe.efi"
+      "EnrollGopDxe.efi"
       "Ext4Dxe.efi"
       "HiiDatabase.efi"
       "HttpBootDxe.efi"

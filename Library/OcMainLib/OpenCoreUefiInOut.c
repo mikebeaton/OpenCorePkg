@@ -34,6 +34,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/OcConsoleLib.h>
 #include <Library/OcCpuLib.h>
 #include <Library/OcDataHubLib.h>
+#include <Library/OcDebugLogLib.h>
 #include <Library/OcDevicePropertyLib.h>
 #include <Library/OcDriverConnectionLib.h>
 #include <Library/OcFirmwareVolumeLib.h>
@@ -188,6 +189,7 @@ OcLoadUefiOutputSupport (
   EFI_STATUS                    Status;
   CONST CHAR8                   *AsciiRenderer;
   CONST CHAR8                   *GopPassThrough;
+  CONST CHAR8                   *ProvideConsoleGop;
   EFI_GRAPHICS_OUTPUT_PROTOCOL  *Gop;
   OC_CONSOLE_RENDERER           Renderer;
   UINT32                        Width;
@@ -214,8 +216,14 @@ OcLoadUefiOutputSupport (
       ));
   }
 
-  if (Config->Uefi.Output.ProvideConsoleGop) {
+#if defined(OC_TARGET_NOOPT)
+  WaitForKeyPress (L"Mike...");
+#endif
+  ProvideConsoleGop = OC_BLOB_GET (&Config->Uefi.Output.ProvideConsoleGop);
+  if (AsciiStrCmp (ProvideConsoleGop, "Enabled") == 0) {
     OcProvideConsoleGop (TRUE);
+  } else if (AsciiStrCmp (ProvideConsoleGop, "Enroll") == 0) {
+    OcEnrollConsoleGop ();
   }
 
   OcParseScreenResolution (
@@ -268,7 +276,7 @@ OcLoadUefiOutputSupport (
   }
 
   if (Config->Uefi.Output.UgaPassThrough) {
-    Status = OcProvideUgaPassThrough ();
+    Status = OcProvideUgaPassThrough (FALSE);
     if (EFI_ERROR (Status)) {
       DEBUG ((
         DEBUG_INFO,

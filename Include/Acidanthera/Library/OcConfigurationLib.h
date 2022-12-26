@@ -690,7 +690,7 @@ OC_DECLARE (OC_UEFI_INPUT)
   _(OC_STRING                   , GopPassThrough              ,     , OC_STRING_CONSTR ("Disabled", _, __), OC_DESTR (OC_STRING)) \
   _(BOOLEAN                     , IgnoreTextInGraphics        ,     , FALSE  , ()) \
   _(BOOLEAN                     , ClearScreenOnModeSwitch     ,     , FALSE  , ()) \
-  _(BOOLEAN                     , ProvideConsoleGop           ,     , FALSE  , ()) \
+  _(OC_STRING                   , ProvideConsoleGop           ,     , FALSE  , ()) \
   _(BOOLEAN                     , ReplaceTabWithSpace         ,     , FALSE  , ()) \
   _(BOOLEAN                     , ReconnectOnResChange        ,     , FALSE  , ()) \
   _(BOOLEAN                     , SanitiseClearScreen         ,     , FALSE  , ()) \

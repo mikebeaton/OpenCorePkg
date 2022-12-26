@@ -36,6 +36,7 @@
   gAppleEg2InfoProtocolGuid
   gEfiConsoleControlProtocolGuid
   gEfiGraphicsOutputProtocolGuid
+  gEfiHotPlugDeviceGuid
   gEfiSimpleTextOutProtocolGuid
   gEfiUgaDrawProtocolGuid
   gOcForceResolutionProtocolGuid

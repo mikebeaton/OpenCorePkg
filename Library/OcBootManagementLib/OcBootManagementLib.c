@@ -18,6 +18,7 @@
 #include <Protocol/LoadedImage.h>
 #include <Protocol/OcAudio.h>
 #include <Protocol/SimpleTextOut.h>
+#include <Protocol/UgaDraw.h>
 
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
@@ -424,6 +425,9 @@ OcRunBootPicker (
         }
       }
 
+      OcUninstallAllProtocolInstances (&gEfiUgaDrawProtocolGuid);
+      UsefulDump ("POST-UNUGA");
+
       FwRuntime = Chosen->FullNvramAccess ? OcDisableNvramProtection () : NULL;
 
       Status = OcLoadBootEntry (
@@ -460,6 +464,26 @@ OcRunBootPicker (
 }
 
 EFI_STATUS
+OcSetPickerEntryReason (
+  VOID
+  )
+{
+  EFI_STATUS                 Status;
+  APPLE_PICKER_ENTRY_REASON  PickerEntryReason;
+
+  PickerEntryReason = ApplePickerEntryReasonUnknown;
+  Status            = gRT->SetVariable (
+                              APPLE_PICKER_ENTRY_REASON_VARIABLE_NAME,
+                              &gAppleVendorVariableGuid,
+                              EFI_VARIABLE_BOOTSERVICE_ACCESS,
+                              sizeof (PickerEntryReason),
+                              &PickerEntryReason
+                              );
+
+  return Status;  
+}
+
+EFI_STATUS
 OcRunFirmwareApplication (
   IN EFI_GUID  *ApplicationGuid,
   IN BOOLEAN   SetReason
@@ -468,7 +492,6 @@ OcRunFirmwareApplication (
   EFI_STATUS                 Status;
   EFI_HANDLE                 NewHandle;
   EFI_DEVICE_PATH_PROTOCOL   *Dp;
-  APPLE_PICKER_ENTRY_REASON  PickerEntryReason;
 
   DEBUG ((DEBUG_INFO, "OCB: run fw app attempting to find %g...\n", ApplicationGuid));
 
@@ -493,14 +516,7 @@ OcRunFirmwareApplication (
 
   if (!EFI_ERROR (Status)) {
     if (SetReason) {
-      PickerEntryReason = ApplePickerEntryReasonUnknown;
-      Status            = gRT->SetVariable (
-                                 APPLE_PICKER_ENTRY_REASON_VARIABLE_NAME,
-                                 &gAppleVendorVariableGuid,
-                                 EFI_VARIABLE_BOOTSERVICE_ACCESS,
-                                 sizeof (PickerEntryReason),
-                                 &PickerEntryReason
-                                 );
+      Status = OcSetPickerEntryReason ();
     }
 
     DEBUG ((
@@ -510,6 +526,8 @@ OcRunFirmwareApplication (
       SetReason,
       Status
       ));
+    DEBUG ((DEBUG_INFO, "WRAP: -A\n"));
+    gExternProtocolWrap = TRUE; /////
     Status = gBS->StartImage (
                     NewHandle,
                     NULL,
@@ -525,45 +543,54 @@ OcRunFirmwareApplication (
 }
 
 EFI_STATUS
-OcLaunchAppleBootPicker (
+OcUnlockAppleBootPicker (
   VOID
   )
 {
   EFI_STATUS                              Status;
   APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL  *FirmwareUI;
-  UINT8                                   *aGopAlreadyConnected;
+  APPLE_FIRMWARE_UI_VARS                  *UIVars;
 
-  Status = gBS->LocateProtocol (
-                  &gAppleFirmwareUserInterfaceProtocolGuid,
-                  NULL,
-                  (VOID **)&FirmwareUI
-                  );
+  Status = OcGetAppleFirmwareUI (&FirmwareUI, &UIVars);
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "OC: Cannot locate FirmwareUI protocol - %r\n", Status));
   } else if (FirmwareUI->Revision != APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION) {
     DEBUG ((
       DEBUG_INFO,
-      "OC: Launch Apple picker incompatible FirmwareUI protocol revision %u != %u\n",
+      "OC: Unlock Apple picker incompatible FirmwareUI protocol revision %u != %u\n",
       FirmwareUI->Revision,
       APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION
       ));
     Status = EFI_UNSUPPORTED;
   }
 
+/// REENABLE THIS!
+#if 1
   if (!EFI_ERROR (Status)) {
     //
-    // Location of relevant byte variable within loaded driver.
+    // Also acts as partial check that the memory is not something else entirely.
     //
-    aGopAlreadyConnected = (VOID *)((UINT8 *)FirmwareUI + sizeof (APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL));
-
-    if (*aGopAlreadyConnected != 1) {
-      DEBUG ((DEBUG_WARN, "OC: Cannot force reconnect Apple GOP %u\n", *aGopAlreadyConnected));
+    if ((UINTN)(UIVars->mGopAlreadyConnected) != 1) {
+      DEBUG ((DEBUG_WARN, "OC: Cannot force reconnect Apple GOP %u\n", UIVars->mGopAlreadyConnected));
     } else {
-      *aGopAlreadyConnected = 0;
+      UIVars->mGopAlreadyConnected = FALSE;
       DEBUG ((DEBUG_INFO, "OC: Force reconnect Apple GOP\n"));
     }
   }
+#endif
+
+  return Status;
+}
+
+EFI_STATUS
+OcLaunchAppleBootPicker (
+  VOID
+  )
+{
+  EFI_STATUS                              Status;
+
+  OcUnlockAppleBootPicker ();
 
   Status = OcRunFirmwareApplication (&gAppleBootPickerFileGuid, TRUE);
 

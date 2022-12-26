@@ -20,6 +20,9 @@
   VERSION_STRING                      = 1.0
   LIBRARY_CLASS                       = OcMainLib|PEIM DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_DRIVER UEFI_APPLICATION DXE_SMM_DRIVER
 
+[Sources.X64]
+  X64/GopConnect.nasm
+
 [Sources]
   OpenCoreAcpi.c
   OpenCoreDevProps.c
@@ -42,6 +45,7 @@
 [Guids]
   gEfiMdeModulePkgTokenSpaceGuid
   gOcVendorVariableGuid
+  gEfiConsoleOutDeviceGuid            ## SOMETIMES_CONSUMES
 
 [Protocols]
   gEfiAudioDecodeProtocolGuid         ## SOMETIMES_CONSUMES

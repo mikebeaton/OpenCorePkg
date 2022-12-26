@@ -17,9 +17,11 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Guid/AppleVariable.h>
 #include <Guid/OcVariable.h>
 #include <Guid/GlobalVariable.h>
+#include <Guid/ConsoleOutDevice.h>
 
 #include <Library/BaseLib.h>
 #include <Library/DevicePathLib.h>
+#include <Library/DxeServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/OcAfterBootCompatLib.h>
 #include <Library/OcAppleBootPolicyLib.h>
@@ -55,6 +57,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/UefiLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 
+#include <Protocol/AppleUserInterface.h>
 #include <Protocol/DevicePath.h>
 #include <Protocol/GraphicsOutput.h>
 #include <Protocol/Security.h>
@@ -869,6 +872,351 @@ OcReserveMemory (
   }
 }
 
+EFI_STATUS
+GopDump (
+  EFI_GRAPHICS_OUTPUT_PROTOCOL    *Gop,
+  CHAR8                           *GopFriendlyName
+  )
+{
+  if (Gop == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a %p\n", GopFriendlyName, Gop));
+    return EFI_NOT_FOUND;
+  }
+
+  if (Gop->Mode == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a->Mode %p\n", GopFriendlyName, Gop->Mode));
+    return EFI_UNSUPPORTED;
+  }
+
+  DEBUG ((
+    DEBUG_INFO,
+    "DUMP: %a mode %u of % u\n",
+    GopFriendlyName,
+    Gop->Mode->Mode,
+    Gop->Mode->MaxMode
+  ));
+
+  if (Gop->Mode->Info == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a->Mode->Info %p\n", GopFriendlyName, Gop->Mode->Info));
+    return EFI_UNSUPPORTED;
+  }
+
+  DEBUG ((
+    DEBUG_INFO,
+    "DUMP: %a mode is %u x %u\n",
+    GopFriendlyName,
+    Gop->Mode->Info->HorizontalResolution,
+    Gop->Mode->Info->VerticalResolution
+  ));
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+UgaDump (
+  EFI_UGA_DRAW_PROTOCOL           *Uga,
+  CHAR8                           *UgaFriendlyName
+  )
+{
+  EFI_STATUS            Status;
+  UINT32                HorizontalResolution;
+  UINT32                VerticalResolution;
+  UINT32                ColorDepth;
+  UINT32                RefreshRate;
+
+  if (Uga == NULL) {
+    DEBUG ((DEBUG_INFO, "DUMP: %a %p\n", UgaFriendlyName, Uga));
+    return EFI_NOT_FOUND;
+  }
+
+  Status = Uga->GetMode (
+    Uga,
+    &HorizontalResolution,
+    &VerticalResolution,
+    &ColorDepth,
+    &RefreshRate
+  );
+
+  DEBUG ((
+    DEBUG_INFO,
+    "DUMP: %a mode is %u x %u x %u x %u\n",
+    UgaFriendlyName,
+    HorizontalResolution,
+    VerticalResolution,
+    ColorDepth,
+    RefreshRate
+  ));
+
+  return Status;
+}
+
+EFI_STATUS
+DumpGopForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *HandleFriendlyName,
+  CHAR8         *GopFriendlyName
+  )
+{
+  EFI_STATUS                              Status;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL            *Gop;
+
+  Status = gBS->HandleProtocol (
+    Handle,
+    &gEfiGraphicsOutputProtocolGuid,
+    (VOID **)&Gop
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "DUMP: No GOP present on %a - %r\n", HandleFriendlyName, Status));
+    return Status;
+  }
+
+  Status = GopDump (Gop, GopFriendlyName);
+
+  return Status;
+}
+
+EFI_STATUS
+DumpUgaForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *HandleFriendlyName,
+  CHAR8         *UgaFriendlyName
+  )
+{
+  EFI_STATUS                              Status;
+  EFI_UGA_DRAW_PROTOCOL                   *Uga;
+
+  Status = gBS->HandleProtocol (
+    Handle,
+    &gEfiUgaDrawProtocolGuid,
+    (VOID **)&Uga
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "DUMP: No UGA present on %a - %r\n", HandleFriendlyName, Status));
+    return Status;
+  }
+
+  Status = UgaDump (Uga, UgaFriendlyName);
+
+  return Status;
+}
+
+EFI_STATUS
+DumpProtocolsForHandle (
+  EFI_HANDLE    Handle,
+  CHAR8         *FriendlyName,
+  BOOLEAN       DumpGop,
+  BOOLEAN       DumpUga
+  )
+{
+  EFI_STATUS    Status;
+  EFI_STATUS    TempStatus;
+  UINTN         Index;
+  EFI_GUID      **ProtocolBuffer;
+  UINTN         ProtocolBufferCount;
+  VOID          *Interface;
+
+  DEBUG ((DEBUG_INFO, "DUMP: (%a) Handle %p\n", FriendlyName, Handle));
+
+  Status = gBS->ProtocolsPerHandle (
+    Handle,
+    &ProtocolBuffer,
+    &ProtocolBufferCount
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "DUMP: ProtocolsPerHandle - %r\n", Status));
+  } else {
+    DEBUG ((DEBUG_INFO, "DUMP: %u Protocol%a\n", ProtocolBufferCount, ProtocolBufferCount == 1 ? "" : "s"));
+    for (Index = 0; Index < ProtocolBufferCount; Index++) {
+      TempStatus = gBS->HandleProtocol (
+        Handle,
+        ProtocolBuffer[Index],
+        &Interface
+      );
+      if (EFI_ERROR (TempStatus)) {
+        Interface = NULL;
+      }
+      DEBUG ((DEBUG_INFO, "DUMP: Protocol %g Interface %p - %r\n", ProtocolBuffer[Index], Interface, TempStatus));
+    }
+
+    FreePool (ProtocolBuffer);
+  }
+
+  if (DumpGop) {
+    DumpGopForHandle (Handle, FriendlyName, "GOP");
+  }
+
+  if (DumpUga) {
+    DumpUgaForHandle (Handle, FriendlyName, "UGA");
+  }
+
+  return Status;
+}
+
+EFI_STATUS
+DumpHandlesForProtocol (
+  EFI_GUID      *Protocol,
+  CHAR8         *FriendlyName,
+  BOOLEAN       DumpGop,
+  BOOLEAN       DumpUga
+  )
+{
+  EFI_STATUS    Status;
+  UINTN         Index;
+  UINTN         NumberOfHandles;
+  EFI_HANDLE    *HandleBuffer;
+
+  DEBUG ((DEBUG_INFO, "DUMP: (%a) %g\n", FriendlyName, Protocol));
+
+  Status = gBS->LocateHandleBuffer (
+    ByProtocol,
+    Protocol,
+    NULL,
+    &NumberOfHandles,
+    &HandleBuffer
+  );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_WARN, "DUMP: LocateHandleBuffer - %r\n", Status));
+    return Status;
+  }
+
+  DEBUG ((DEBUG_INFO, "DUMP: %u Handle%a\n", NumberOfHandles, NumberOfHandles == 1 ? "" : "s"));
+  for (Index = 0; Index < NumberOfHandles; Index++) {
+    DumpProtocolsForHandle (HandleBuffer[Index], FriendlyName, DumpGop, DumpUga);
+  }
+
+  FreePool (HandleBuffer);
+
+  return Status;
+}
+
+EFI_GRAPHICS_OUTPUT_PROTOCOL  *aGop;
+BOOLEAN                       aGopAlreadyConnected;
+
+EFI_STATUS
+EFIAPI
+GopConnect3 (
+  VOID
+  )
+{
+  EFI_STATUS                    Status;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL  *Gop;
+  UINTN                         Index;
+  UINTN                         HandleCount;
+  EFI_HANDLE                    *HandleBuffer;
+
+  Status      = gBS->LocateHandleBuffer (
+                       ByProtocol,
+                       &gEfiGraphicsOutputProtocolGuid,
+                       NULL,
+                       &HandleCount,
+                       &HandleBuffer
+                       );
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  Status = EFI_NOT_FOUND;
+  for (Index = 0; Index < HandleCount; ++Index) {
+    if (HandleBuffer[Index] == gST->ConsoleOutHandle) {
+      continue;
+    }
+    Status = gBS->HandleProtocol (HandleBuffer[Index], &gEfiGraphicsOutputProtocolGuid, (VOID **)&Gop);
+    if (!EFI_ERROR (Status)) {
+      break;
+    }
+  }
+
+  aGopAlreadyConnected = !EFI_ERROR (Status);
+
+  FreePool (HandleBuffer);
+
+  return Status;
+}
+
+extern
+EFI_STATUS
+EFIAPI
+GopConnect (
+  VOID
+  );
+
+VOID
+DumpFirmwareUI (
+  VOID
+  )
+{
+  EFI_STATUS                              Status;
+  APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL  *UIProtocol;
+  APPLE_FIRMWARE_UI_VARS                  *UIVars;
+  // UINTN       mGop                            Index;
+
+  DEBUG ((DEBUG_INFO, "DUMP: Test UI method locked %u GOP %p\n", aGopAlreadyConnected, aGop));
+  //OcSetFileData (NULL, L"GopConnect5.bin", GopConnect, 0x400);
+  // // GopConnect ();
+  // // DEBUG ((DEBUG_INFO, "DUMP: Test UI method locked %u GOP %p\n", aGopAlreadyConnected, aGop));
+
+  Status = OcGetAppleFirmwareUI (&UIProtocol, &UIVars);
+
+  if (EFI_ERROR (Status)) {
+    return;
+  }
+
+  DEBUG ((DEBUG_INFO, "DUMP: Firmware UI interface %p locked %u GOP %p\n", UIProtocol, UIVars->mGopAlreadyConnected, UIVars->mGop));
+
+  // for (Index = 0; Index < 0x80; Index++) {
+  //   if (Index % 0x10 == 0) {
+  //     if (Index != 0) {
+  //       Print (L"\n");
+  //     }
+  //   } else {
+  //     if (Index % 8 == 0) Print (L"  ");
+  //     else Print (L" ");
+  //   }
+
+  //   Print (L"%02X", ((UINT8 *)(&GopConnect))[Index]);
+  // }
+  // Print (L"\n");
+
+  // // UIProtocol->ConnectGop ();
+  // // DEBUG ((DEBUG_INFO, "DUMP: Firmware UI interface %p locked %u GOP %p\n", UIProtocol, UIVars->mGopAlreadyConnected, UIVars->mGop));
+}
+
+extern
+EFI_CONSOLE_CONTROL_PROTOCOL *
+GetAndDebugConsoleControl (
+  VOID
+  );
+
+VOID
+UsefulDump (
+  CHAR8   *FriendlyName
+  )
+{
+  DEBUG ((DEBUG_INFO, "DUMP: %a\n", FriendlyName));
+
+  GetAndDebugConsoleControl ();
+
+  // DumpHandlesForProtocol (&gAppleFramebufferInfoProtocolGuid, "AppleFrameBuffer", FALSE);
+  // DumpHandlesForProtocol (&gEfiUgaDrawProtocolGuid, "UGA", FALSE);
+  // // DumpHandlesForProtocol (&gEfiGraphicsOutputProtocolGuid, "GOP", TRUE);
+  //DumpHandlesForProtocol (&gAppleFirmwareUserInterfaceProtocolGuid, "FirmwareUI", FALSE);
+  // // DumpProtocolsForHandle (gST->ConsoleOutHandle, "gST->ConsoleOutHandle", FALSE);
+  DumpFirmwareUI ();
+  DumpProtocolsForHandle (gST->ConsoleOutHandle, "gST->ConsoleOutHandle", FALSE, FALSE);
+  DumpHandlesForProtocol (&gEfiGraphicsOutputProtocolGuid, "GOP", TRUE, FALSE);
+  DumpHandlesForProtocol (&gEfiUgaDrawProtocolGuid, "UGA", FALSE, TRUE);
+  DumpHandlesForProtocol (&gEfiConsoleOutDeviceGuid, "ConsoleOutDevice", FALSE, FALSE);
+  
+  // DumpHandlesForProtocol (&gEfiSimpleTextOutProtocolGuid, "SimpleTextOut", FALSE);
+}
+
+EFI_GRAPHICS_OUTPUT_PROTOCOL *mGop;
+UINT8                        *mGopAlreadyConnected;
+
 VOID
 OcLoadUefiSupport (
   IN OC_STORAGE_CONTEXT  *Storage,
@@ -884,6 +1232,7 @@ OcLoadUefiSupport (
   EFI_EVENT   Event;
   BOOLEAN     AccelEnabled;
 
+  UsefulDump ("PRE-UEFI");
   OcReinstallProtocols (Config);
 
   OcImageLoaderInit (Config->Booter.Quirks.ProtectUefiServices);
@@ -939,9 +1288,7 @@ OcLoadUefiSupport (
     OcInstallPermissiveSecurityPolicy ();
   }
 
-  if (Config->Uefi.Quirks.ForgeUefiSupport) {
-    OcForgeUefiSupport ();
-  }
+  OcForgeUefiSupport (Config->Uefi.Quirks.ForgeUefiSupport, TRUE); ///////////////// FALSE);
 
   if (Config->Uefi.Quirks.ReloadOptionRoms) {
     OcReloadOptionRoms ();
@@ -966,6 +1313,8 @@ OcLoadUefiSupport (
   //
   OcReserveMemory (Config);
 
+  /////OcUninstallAllProtocolInstances (&gAppleFirmwareUserInterfaceProtocolGuid);
+  UsefulDump ("PRE-LOAD-DRIVERS");
   if (Config->Uefi.ConnectDrivers) {
     OcLoadDrivers (Storage, Config, &DriversToConnect, FALSE);
     DEBUG ((DEBUG_INFO, "OC: Connecting drivers...\n"));
@@ -987,6 +1336,7 @@ OcLoadUefiSupport (
   } else {
     OcLoadDrivers (Storage, Config, NULL, FALSE);
   }
+  UsefulDump ("POST-LOAD-DRIVERS");
 
   DEBUG_CODE_BEGIN ();
   HandleCount  = 0;
@@ -1031,4 +1381,5 @@ OcLoadUefiSupport (
          Config,
          &Event
          );
+  UsefulDump ("POST-UEFI");
 }

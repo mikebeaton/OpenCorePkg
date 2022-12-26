@@ -2202,7 +2202,7 @@
 			<key>IgnoreTextInGraphics</key>
 			<false/>
 			<key>ProvideConsoleGop</key>
-			<true/>
+			<string>Enabled</string>
 			<key>ReconnectGraphicsOnConnect</key>
 			<false/>
 			<key>ReconnectOnResChange</key>

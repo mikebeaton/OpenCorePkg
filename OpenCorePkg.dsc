@@ -290,6 +290,10 @@
   OpenCorePkg/Library/OcXmlLib/OcXmlLib.inf
   OpenCorePkg/Legacy/BootPlatform/BiosVideo/BiosVideo.inf
   OpenCorePkg/Platform/CrScreenshotDxe/CrScreenshotDxe.inf
+  OpenCorePkg/Platform/EnrollGopDxe/EnrollGopDxe.inf {
+    <LibraryClasses>
+      DuetBdsLib|OpenCorePkg/Library/DuetBdsLib/DuetBdsLib.inf
+  }
   OpenCorePkg/Platform/OpenCanopy/OpenCanopy.inf
   OpenCorePkg/Platform/OpenLinuxBoot/OpenLinuxBoot.inf
   OpenCorePkg/Platform/OpenNtfsDxe/OpenNtfsDxe.inf

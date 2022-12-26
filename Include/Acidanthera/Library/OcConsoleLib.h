@@ -142,6 +142,14 @@ OcProvideConsoleGop (
   );
 
 /**
+  Enroll available GOP protocols into ConSplitter.
+**/
+EFI_STATUS
+OcEnrollConsoleGop (
+  VOID
+  );
+
+/**
   Perform console reconnection.
 **/
 VOID
@@ -177,11 +185,13 @@ AllocateNullTextOutSystemTable (
 /**
   Provide UGA protocol instances on top of existing GOP instances.
 
+  @param[in]  ExcludeConOut   When TRUE exclude gST->ConsoleOutHandle.
+
   @retval EFI_SUCCESS on success.
 **/
 EFI_STATUS
 OcProvideUgaPassThrough (
-  VOID
+  BOOLEAN       ExcludeConOut
   );
 
 /**

@@ -15,9 +15,13 @@
 #include "OcConsoleLibInternal.h"
 #include "ConsoleGopInternal.h"
 
+#include <Guid/AppleVariable.h>
+#include <Library/OcDirectResetLib.h>
+
 #include <Protocol/AppleEg2Info.h>
 #include <Protocol/ConsoleControl.h>
 #include <Protocol/GraphicsOutput.h>
+#include <Protocol/HotPlugDevice.h>
 #include <Protocol/SimpleTextOut.h>
 
 #include <Library/BaseMemoryLib.h>
@@ -216,6 +220,157 @@ OcProvideConsoleGop (
     mGop.ConsoleGop = Gop;
   } else {
     DEBUG ((DEBUG_WARN, "OCC: Missing compatible GOP - %r\n", Status));
+  }
+
+  return Status;
+}
+
+EFI_STATUS
+OcEnrollConsoleGop (
+  VOID
+  )
+{
+  EFI_STATUS                    Status;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL  *OriginalGop;
+  UINTN                         HandleCount;
+  EFI_HANDLE                    *HandleBuffer;
+  UINTN                         Index;
+  VOID                          *TextOut;
+
+  //
+  // Could be debug only except when OriginalGop below.
+  //
+  // DEBUG_CODE_BEGIN ();
+  Status      = gBS->HandleProtocol (
+                       gST->ConsoleOutHandle,
+                       &gEfiGraphicsOutputProtocolGuid,
+                       (VOID **)&OriginalGop
+                       );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OCC: No ConSplitter(?) GOP on ConsoleOutHandle during enrollment! - %r\n",
+      Status
+      ));
+  }
+  // DEBUG_CODE_END ();
+
+  Status      = gBS->LocateHandleBuffer (
+                       ByProtocol,
+                       &gEfiGraphicsOutputProtocolGuid,
+                       NULL,
+                       &HandleCount,
+                       &HandleBuffer
+                       );
+
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OCC: No GOP handles during ConSplitter enrollment! - %r\n",
+      HandleCount,
+      Status
+      ));
+
+    return Status;
+  }
+
+  DEBUG_CODE_BEGIN ();
+  if (HandleCount < 2) {
+    DEBUG ((
+      DEBUG_WARN,
+      "OCC: No additional GOP handles (%u) during ConSplitter enrollment! - %r\n",
+      HandleCount,
+      Status
+      ));
+
+    ////////////
+    //////////// REMOVE!!!
+    ////////////
+    //
+    // Any size, any value for this variable will cause a reset on supported firmware.
+    //
+    // // UINT8  ResetNVRam = 1;
+    // // gRT->SetVariable (
+    // //       APPLE_RESET_NVRAM_VARIABLE_NAME,
+    // //       &gAppleBootVariableGuid,
+    // //       EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
+    // //       sizeof (ResetNVRam),
+    // //       &ResetNVRam
+    // //       );
+
+    // // DirectResetCold ();
+    ////////////
+    ////////////
+    ////////////
+  }
+  DEBUG_CODE_END ();
+
+  Status = EFI_NOT_FOUND;
+
+  for (Index = 0; Index < HandleCount; ++Index) {
+    if (HandleBuffer[Index] == gST->ConsoleOutHandle) {
+      continue;
+    }
+
+    DEBUG_CODE_BEGIN ();
+    Status = gBS->HandleProtocol (
+      HandleBuffer[Index],
+      &gEfiSimpleTextOutProtocolGuid,
+      &TextOut
+    );
+
+    if (EFI_ERROR (Status)) {
+      DEBUG ((
+        DEBUG_INFO,
+        "OCC: GOP %p without SimpleTextOut will not enroll into ConSplitter - %r\n",
+        HandleBuffer[Index],
+        Status
+      ));
+    }
+    DEBUG_CODE_END ();
+
+    Status = gBS->InstallProtocolInterface (
+      &HandleBuffer[Index],
+      &gEfiHotPlugDeviceGuid,
+      EFI_NATIVE_INTERFACE,
+      NULL
+    );
+    if (EFI_ERROR (Status)) {
+      DEBUG ((
+        DEBUG_INFO,
+        "OCC: Cannot make GOP handle %p hot plug - %r\n",
+        HandleBuffer[Index],
+        Status
+      ));
+      continue;
+    }
+
+    Status = gBS->ConnectController (
+      HandleBuffer[Index],
+      NULL,
+      NULL,
+      FALSE
+    );
+    DEBUG ((
+      EFI_ERROR (Status) ? DEBUG_WARN : DEBUG_INFO,
+      "OCC: Hot plugging GOP handle %p into ConSplitter - %r\n",
+      HandleBuffer[Index],
+      Status
+    ));
+  }
+
+  if (!EFI_ERROR (Status) && OriginalGop != 0) {
+    //
+    // Required for subsequent set resolution by OC, even if we were not setting resolution immediately below.
+    //
+    OcConsoleControlSetMode (EfiConsoleControlScreenGraphics);
+
+    //
+    // For whatever reason, we seem to default to a very low-res mode after enrolling late to
+    // ConSplitter, so here we attempt to avoid this by setting maximum available resolution.
+    //
+    OcSetConsoleResolutionForProtocol (OriginalGop, 0, 0, 0);
   }
 
   return Status;

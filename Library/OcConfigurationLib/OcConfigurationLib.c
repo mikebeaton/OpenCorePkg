@@ -818,7 +818,7 @@ OC_SCHEMA
   OC_SCHEMA_BOOLEAN_IN ("ForceResolution",            OC_GLOBAL_CONFIG, Uefi.Output.ForceResolution),
   OC_SCHEMA_STRING_IN ("GopPassThrough",              OC_GLOBAL_CONFIG, Uefi.Output.GopPassThrough),
   OC_SCHEMA_BOOLEAN_IN ("IgnoreTextInGraphics",       OC_GLOBAL_CONFIG, Uefi.Output.IgnoreTextInGraphics),
-  OC_SCHEMA_BOOLEAN_IN ("ProvideConsoleGop",          OC_GLOBAL_CONFIG, Uefi.Output.ProvideConsoleGop),
+  OC_SCHEMA_STRING_IN ("ProvideConsoleGop",           OC_GLOBAL_CONFIG, Uefi.Output.ProvideConsoleGop),
   OC_SCHEMA_BOOLEAN_IN ("ReconnectGraphicsOnConnect", OC_GLOBAL_CONFIG, Uefi.Output.ReconnectGraphicsOnConnect),
   OC_SCHEMA_BOOLEAN_IN ("ReconnectOnResChange",       OC_GLOBAL_CONFIG, Uefi.Output.ReconnectOnResChange),
   OC_SCHEMA_BOOLEAN_IN ("ReplaceTabWithSpace",        OC_GLOBAL_CONFIG, Uefi.Output.ReplaceTabWithSpace),

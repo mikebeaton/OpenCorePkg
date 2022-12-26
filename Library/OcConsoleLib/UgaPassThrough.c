@@ -152,7 +152,7 @@ OcUgaDrawBlt (
 
 EFI_STATUS
 OcProvideUgaPassThrough (
-  VOID
+  BOOLEAN       ExcludeConOut
   )
 {
   EFI_STATUS                    Status;
@@ -198,6 +198,11 @@ OcProvideUgaPassThrough (
                     );
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_INFO, "OCC: No GOP protocol - %r\n", Status));
+      continue;
+    }
+
+    if (ExcludeConOut && HandleBuffer[Index] == gST->ConsoleOutHandle) {
+      DEBUG ((DEBUG_INFO, "OCC: Skipping UGA proxying on ConOut\n"));
       continue;
     }
 
