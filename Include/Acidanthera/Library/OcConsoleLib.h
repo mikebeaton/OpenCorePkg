@@ -142,6 +142,14 @@ OcProvideConsoleGop (
   );
 
 /**
+  Enroll available GOP protocols into ConSplitter.
+**/
+EFI_STATUS
+OcEnrollConsoleGop (
+  VOID
+  );
+
+/**
   Perform console reconnection.
 **/
 VOID

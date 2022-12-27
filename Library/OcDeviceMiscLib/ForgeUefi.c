@@ -25,6 +25,10 @@
 #include <Library/OcDeviceMiscLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 
+#define __UEFI_MULTIPHASE_H__
+#define __PI_MULTIPHASE_H__
+#include <Pi/PiDxeCis.h>
+
 STATIC
 EFI_STATUS
 EFIAPI
@@ -69,23 +73,44 @@ OcCreateEventEx (
 
 EFI_STATUS
 OcForgeUefiSupport (
-  VOID
+  IN BOOLEAN                        Forge,
+  IN BOOLEAN                        Trash
   )
 {
   EFI_BOOT_SERVICES  *NewBS;
+  UINT64             Signature;
 
   DEBUG ((
     DEBUG_INFO,
-    "OCDM: Found 0x%X UEFI version (%u bytes, rebuilding to %u)\n",
+    "OCDM: Found 0x%X/0x%X UEFI version (%u bytes, %u %a to %u) gST %p gBS %p gBS->CreateEventEx %p &gBS %p\n",
     gST->Hdr.Revision,
+    gBS->Hdr.Revision,
     gBS->Hdr.HeaderSize,
-    (UINT32)sizeof (EFI_BOOT_SERVICES)
+    Forge,
+    Trash ? "trashing" : "rebuilding",
+    (UINT32)sizeof (EFI_BOOT_SERVICES),
+    gST,
+    gBS,
+    gBS->CreateEventEx,
+    &gBS
     ));
+
+  if (!Forge) {
+    return EFI_SUCCESS;
+  }
 
   //
   // Already too new.
   //
   if (gST->Hdr.Revision >= EFI_2_30_SYSTEM_TABLE_REVISION) {
+    // // /////
+    // // gBS->CreateEventEx  = OcCreateEventEx;
+    // // DEBUG ((
+    // //   DEBUG_INFO,
+    // //   "OCDM: Retrash to gBS->CreateEventEx %p\n",
+    // //   gBS->CreateEventEx
+    // //   ));
+    // // /////
     return EFI_ALREADY_STARTED;
   }
 
@@ -93,13 +118,31 @@ OcForgeUefiSupport (
     return EFI_INVALID_PARAMETER;
   }
 
-  NewBS = AllocateZeroPool (sizeof (EFI_BOOT_SERVICES));
-  if (NewBS == NULL) {
-    DEBUG ((DEBUG_INFO, "OCDM: Failed to allocate BS copy\n"));
-    return EFI_OUT_OF_RESOURCES;
+  if (Trash) {
+    Signature = *(UINT64 *)(&gBS->CreateEventEx);
+    if (Signature != DXE_SERVICES_SIGNATURE) {
+      DEBUG ((
+        DEBUG_INFO,
+        "OCDM: Aborting trash strategy 0x%016lX !=  0x%016lX\n",
+        Signature,
+        DXE_SERVICES_SIGNATURE
+      ));
+      return EFI_UNSUPPORTED;
+    }
+    DEBUG ((
+      DEBUG_INFO,
+      "OCDM: DXE signature 0x%016lX found, trashing for CreateEventEx\n",
+      Signature
+    ));
+    NewBS = gBS;
+  } else {
+    NewBS = AllocateZeroPool (sizeof (EFI_BOOT_SERVICES));
+    if (NewBS == NULL) {
+      DEBUG ((DEBUG_INFO, "OCDM: Failed to allocate BS copy\n"));
+      return EFI_OUT_OF_RESOURCES;
+    }
+    CopyMem (NewBS, gBS, gBS->Hdr.HeaderSize);
   }
-
-  CopyMem (NewBS, gBS, gBS->Hdr.HeaderSize);
 
   NewBS->CreateEventEx  = OcCreateEventEx;
   NewBS->Hdr.HeaderSize = sizeof (EFI_BOOT_SERVICES);

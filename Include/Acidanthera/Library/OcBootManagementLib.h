@@ -7,6 +7,7 @@
 #define OC_BOOT_MANAGEMENT_LIB_H
 
 #include <Uefi.h>
+#include <Guid/AppleVariable.h>
 #include <IndustryStandard/AppleBootArgs.h>
 #include <IndustryStandard/AppleHid.h>
 #include <Library/OcAppleBootPolicyLib.h>
@@ -19,6 +20,12 @@
 #include <Protocol/LoadedImage.h>
 #include <Protocol/AppleBeepGen.h>
 #include <Protocol/OcAudio.h>
+#include <Protocol/GraphicsOutput.h>
+#include <Protocol/AppleUserInterface.h>
+
+#define __UEFI_MULTIPHASE_H__
+#define __PI_MULTIPHASE_H__
+#include <Pi/PiDxeCis.h>
 
 #if defined (OC_TARGET_DEBUG) || defined (OC_TARGET_NOOPT)
 // #define BUILTIN_DEMONSTRATE_TYPING
@@ -1603,6 +1610,19 @@ OcAppendArgumentsToLoadedImage (
   );
 
 /**
+  Set Apple BootPicker entry reason. Depending on other variables present, picker
+  may return immediately if this is not set.
+
+  @param[in] PickerEntryReason  Picker entry reason.
+
+  @retval EFI_SUCCESS  Successfully set.
+**/
+EFI_STATUS
+OcSetPickerEntryReason (
+  IN APPLE_PICKER_ENTRY_REASON  PickerEntryReason
+  );
+
+/**
   Launch firmware application.
 
   @param[in] ApplicationGuid  Application GUID identifier in the firmware.
@@ -2076,6 +2096,17 @@ OcAddEntriesFromBootEntryProtocol (
   );
 
 /**
+  Unlock but don't launch Apple boot picker firmware application.
+
+  @retval EFI_SUCCESS   Picker was successfully unlocked.
+  @retval other         Compatible firmware UI protocol for unlock could not be found.
+**/
+EFI_STATUS
+OcUnlockAppleBootPicker (
+  VOID
+  );
+
+/**
   Launch Apple boot picker firmware application.
 
   @retval EFI_SUCCESS   Picker was successfully executed, implies boot selection was returned in BootNext.
@@ -2084,6 +2115,37 @@ OcAddEntriesFromBootEntryProtocol (
 EFI_STATUS
 OcLaunchAppleBootPicker (
   VOID
+  );
+
+#pragma pack (push, 1)
+
+/**
+  Useful internal vars from firmware UI protocol (cMP 144.0.0.0.0 ROM).
+**/
+typedef PACKED struct {
+  BOOLEAN                       mGopAlreadyConnected;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL  *mGop;
+  EFI_SYSTEM_TABLE              *gST;
+  EFI_BOOT_SERVICES             *gBS;
+  EFI_RUNTIME_SERVICES          *gRT;
+  EFI_DXE_SERVICES              *gDS;
+} APPLE_FIRMWARE_UI_VARS;
+
+#pragma pack (pop)
+
+/**
+  Get some useful internal vars from current version of firmware UI.
+
+  @param[in]         UIProtocol   Protocol.
+  @param[in]         UIVars       Variables.
+
+  @retval EFI_SUCCESS   Success.
+  @retval other         Failure.
+**/
+EFI_STATUS
+OcGetAppleFirmwareUI (
+  IN APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL  **UIProtocol,
+  IN APPLE_FIRMWARE_UI_VARS                  **UIVars OPTIONAL
   );
 
 #endif // OC_BOOT_MANAGEMENT_LIB_H
