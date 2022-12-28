@@ -6354,6 +6354,11 @@ even cause permanent firmware damage. Some of the known drivers are listed below
   any available writeable filesystem upon pressing \texttt{F10}.
   This is a modified version of \href{https://github.com/LongSoft/CrScreenshotDxe}{\texttt{CrScreenshotDxe}}
   driver by \href{https://github.com/NikolajSchlej}{Nikolaj Schlej}. \\
+\href{https://github.com/acidanthera/OpenCorePkg}{\texttt{EnableGop\{Direct\}}}\textbf{*}
+& Early beta release firmware-embeddable driver providing pre-OpenCore non-native GPU support
+  on MacPro5,1. Installation instructions can be found in the
+  \href{https://github.com/acidanthera/OpenCorePkg/blob/master/Staging/EnableGop/README.md}{\texttt{Utilities/EnableGop}}
+  directory of the OpenCore release zip file - proceed with caution. \\
 \href{https://github.com/acidanthera/OcBinaryData}{\texttt{ExFatDxe}}
 & Proprietary ExFAT file system driver for Bootcamp support commonly found in Apple
   firmware. For Sandy Bridge and earlier CPUs, the \texttt{ExFatDxeLegacy} driver should be
