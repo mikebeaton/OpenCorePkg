@@ -330,6 +330,10 @@
       DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
       DuetBdsLib|OpenCorePkg/Library/DuetBdsLib/DuetBdsLib.inf
   }
+  OpenCorePkg/Staging/FirmwareUnlock/FirmwareUnlock.inf {
+    <LibraryClasses>
+      DebugLib|OpenCorePkg/Library/OcDebugLibNull/OcDebugLibNull.inf
+  }
   OpenCorePkg/Staging/OpenHfsPlus/OpenHfsPlus.inf
   OpenCorePkg/Tests/AcpiTest/AcpiTest.inf
   OpenCorePkg/Tests/AcpiTest/AcpiTestApp.inf

@@ -531,14 +531,87 @@ OcRunFirmwareApplication (
   return Status;
 }
 
+//
+// Patching shared prolog of this function works on more similar era firmware
+// than assuming that mGopAlreadyConnected is located immediately after
+// protocol interface (which applies on MacPro5,1 v144.0.0.0.0 but not others).
+//
+// MacPro5,1 + some iMacs:
+//
+// sub     rsp, 28h
+// cmp     cs:mGopAlreadyConnected, 0   ///< Ignore offset of this var
+// jz      short loc_10004431
+// xor     eax, eax
+// jmp     short loc_1000446F           ///< Change this to no jump
+//
+STATIC CONST UINT8 ConnectGopPrologue[] = {
+  0x48, 0x83, 0xEC, 0x28, 0x80, 0x3D, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x74, 0x04, 0x33, 0xC0, 0xEB,
+  0x3E
+};
+
+STATIC CONST UINT8 ConnectGopPrologueMask[] = {
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
+  0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF
+};
+
+STATIC CONST UINT8 ConnectGopReplace[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00
+};
+
+STATIC CONST UINT8 ConnectGopReplaceMask[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0xFF
+};
+
+
+//
+// iMac11,1:
+//
+// push    rbx
+// sub     rsp, 30h
+// cmp     cs:byte_100065C8, 0
+// jz      short loc_10004077
+// xor     ebx, ebx
+// jmp     short loc_100040D1
+//
+
+STATIC CONST UINT8 AltConnectGopPrologue[] = {
+  0x48, 0x53, 0x48, 0x83, 0xEC, 0x30,
+  0x80, 0x3D, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x74, 0x04, 0x33, 0xDB, 0xEB, 0x5A
+};
+
+STATIC CONST UINT8 AltConnectGopPrologueMask[] = {
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+};
+
+STATIC CONST UINT8 AltConnectGopReplace[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+STATIC CONST UINT8 AltConnectGopReplaceMask[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0xFF
+};
+
 EFI_STATUS
-OcResetAppleFirmwareUIConnectGop (
+OcUnlockAppleFirmwareUI (
   VOID
   )
 {
   EFI_STATUS                              Status;
   APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL  *FirmwareUI;
-  APPLE_FIRMWARE_UI_VARS                  *UIVars;
+  UINT32                                  ReplaceCount;
 
   Status = gBS->LocateProtocol (
                   &gAppleFirmwareUserInterfaceProtocolGuid,
@@ -547,11 +620,11 @@ OcResetAppleFirmwareUIConnectGop (
                   );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "OC: Cannot locate FirmwareUI protocol - %r\n", Status));
+    DEBUG ((DEBUG_INFO, "OCB: Cannot locate FirmwareUI protocol - %r\n", Status));
   } else if (FirmwareUI->Revision != APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION) {
     DEBUG ((
       DEBUG_INFO,
-      "OC: Unlock Apple picker incompatible FirmwareUI protocol revision %u != %u\n",
+      "OCB: Unlock FirmwareUI incompatible protocol revision %u != %u\n",
       FirmwareUI->Revision,
       APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION
       ));
@@ -559,17 +632,51 @@ OcResetAppleFirmwareUIConnectGop (
   }
 
   if (!EFI_ERROR (Status)) {
-    UIVars = &BASE_CR (FirmwareUI, APPLE_FIRMWARE_UI_LAYOUT, UIProtocol)->UIVars;
+    ReplaceCount = ApplyPatch (
+      ConnectGopPrologue,
+      ConnectGopPrologueMask,
+      sizeof (ConnectGopPrologue),
+      ConnectGopReplace,
+      ConnectGopReplaceMask,
+      (VOID *)FirmwareUI->ConnectGop,
+      sizeof (ConnectGopPrologue),
+      1,
+      0
+    );
 
-    //
-    // Also acts as partial check that the memory is not something else entirely.
-    //
-    if (*((UINTN *)(&UIVars->mGopAlreadyConnected)) != 1) {
-      DEBUG ((DEBUG_WARN, "OC: Cannot force reconnect Apple GOP %u\n", *((UINTN *)(&UIVars->mGopAlreadyConnected))));
-    } else {
-      UIVars->mGopAlreadyConnected = FALSE;
-      DEBUG ((DEBUG_INFO, "OC: Force reconnect Apple GOP\n"));
+    if (ReplaceCount == 0) {
+      ReplaceCount = ApplyPatch (
+        AltConnectGopPrologue,
+        AltConnectGopPrologueMask,
+        sizeof (AltConnectGopPrologue),
+        AltConnectGopReplace,
+        AltConnectGopReplaceMask,
+        (VOID *)FirmwareUI->ConnectGop,
+        sizeof (AltConnectGopPrologue),
+        1,
+        0
+      );
     }
+
+    Status = EFI_SUCCESS;
+    if (ReplaceCount == 0) {
+      //
+      // Note to self: Don't debug patch failing when it is already patched by firmware driver.
+      //
+      Status = EFI_NOT_FOUND;
+      DEBUG ((
+        DEBUG_INFO, "OCB: 0x%016LX 0x%016LX 0x%016LX\n",
+        *((UINT64 *)((UINT8 *)FirmwareUI->ConnectGop)),
+        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 8)),
+        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 16))
+      ));
+    }
+
+    DEBUG ((
+      EFI_ERROR (Status) ? DEBUG_WARN : DEBUG_INFO,
+      "OCB: FirmwareUI ConnectGop patch - %r\n",
+      Status
+    ));
   }
 
   return Status;
@@ -582,7 +689,7 @@ OcLaunchAppleBootPicker (
 {
   EFI_STATUS  Status;
 
-  OcResetAppleFirmwareUIConnectGop ();
+  OcUnlockAppleFirmwareUI ();
 
   Status = OcRunFirmwareApplication (&gAppleBootPickerFileGuid, TRUE);
 

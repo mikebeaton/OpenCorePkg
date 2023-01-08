@@ -1,16 +1,17 @@
 ## @file
 #
-#  Provide GOP on unsupported graphics cards on classic MacPro.
+#  Override firmware lock on EFI era iMac and MacPro.
 #
-#  Copyright (c) 2022-2023, Mike Beaton. All rights reserved.
+#  Copyright (c) 2023, Bmju. All rights reserved.
 #  SPDX-License-Identifier: BSD-3-Clause
 #
 ##
 
 [Defines]
   INF_VERSION                    = 0x00010005
-  BASE_NAME                      = EnableGop
-  FILE_GUID                      = 3FBA58B1-F8C0-41BC-ACD8-253043A3A17F
+  BASE_NAME                      = FirmwareUnlock
+
+  FILE_GUID                      = CBD45769-2980-4447-8E73-1B94BBFD254C
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
   ENTRY_POINT                    = UefiMain
@@ -22,33 +23,22 @@
 #
 
 [Sources]
-  EnableGop.c
+  FirmwareUnlock.c
 
 [Packages]
   MdePkg/MdePkg.dec
   OpenCorePkg/OpenCorePkg.dec
-  OpenCorePkg/OpenDuetPkg.dec
-  UefiCpuPkg/UefiCpuPkg.dec
 
 [LibraryClasses]
-  BaseLib
-  DuetBdsLib
   DxeServicesTableLib
-  OcBootManagementLib
-  OcConsoleLib
-  OcDeviceMiscLib
-  OcDirectResetLib
+  HobLib
   OcVariableLib
-  PcdLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
-  UefiRuntimeServicesTableLib
 
-[Protocols]
-  gEfiBdsArchProtocolGuid
-
-[FeaturePcd]
-  gOpenCorePkgTokenSpaceGuid.PcdEnableGopDirect|FALSE
+[Pcd]
+  # Used for FDF build too. Disable DEBUG_ASSERT_ENABLED in particular.
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x0
 
 [Depex]
   TRUE

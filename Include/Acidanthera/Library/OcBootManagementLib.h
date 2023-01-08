@@ -2079,33 +2079,13 @@ OcAddEntriesFromBootEntryProtocol (
   );
 
 /**
-  Useful internal vars from firmware UI protocol (cMP 144.0.0.0.0 ROM).
-**/
-typedef struct {
-  BOOLEAN                         mGopAlreadyConnected;
-  EFI_GRAPHICS_OUTPUT_PROTOCOL    *mGop;
-  EFI_SYSTEM_TABLE                *gST;
-  EFI_BOOT_SERVICES               *gBS;
-  EFI_RUNTIME_SERVICES            *gRT;
-  EFI_DXE_SERVICES                *gDS;
-} APPLE_FIRMWARE_UI_VARS;
-
-/**
-  Represents the actual memory layout of the targeted firmware.
-**/
-typedef struct {
-  APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL    UIProtocol;
-  APPLE_FIRMWARE_UI_VARS                    UIVars;
-} APPLE_FIRMWARE_UI_LAYOUT;
-
-/**
   Force Apple Firmware UI to reconnect to current console GOP when next used.
 
   @retval EFI_SUCCESS   Firmware UI ConnectGop method was successfully reset.
   @retval other         Compatible firmware UI protocol for reset could not be found.
 **/
 EFI_STATUS
-OcResetAppleFirmwareUIConnectGop (
+OcUnlockAppleFirmwareUI (
   VOID
   );
 

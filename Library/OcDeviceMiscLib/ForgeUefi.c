@@ -20,6 +20,7 @@
 #include <Library/BaseLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
+#include <Library/DxeServicesTableLib.h>
 #include <Library/IoLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/OcDeviceMiscLib.h>
@@ -68,11 +69,11 @@ OcCreateEventEx (
 }
 
 //
-// The Trash strategy relies on old Apple EFI allocating gBS and gDS consecutively.
+// The Trash strategy relies on old Apple firmware allocating gBS and gDS consecutively.
 // This layout is directly inherited from standard edk EFI code.
-// What is being checked for in the Trash strategy is that the QWORD about to be trashed
-// contains DXE_SERVICES_SIGNATURE, a value which happily is only used when the memory is
-// being loaded (when we check for references to this value throughout the edk code).
+// The strategy trashes the DXE_SERVICES_SIGNATURE value in gDS->Hdr.Signature, which
+// happily is only used when the memory is being loaded (when we check for references
+// to DXE_SERVICES_SIGNATURE throughout the edk code).
 // For the Trash strategy to work, we are required to trash exactly that QWORD of memory,
 // but in the targeted firmware we can confirm that it is harmless to do so before proceeding.
 //
@@ -83,7 +84,6 @@ OcForgeUefiSupport (
   )
 {
   EFI_BOOT_SERVICES  *NewBS;
-  UINT64             Signature;
 
   DEBUG ((
     DEBUG_INFO,
@@ -107,7 +107,7 @@ OcForgeUefiSupport (
   //
   // Already too new.
   //
-  if (gST->Hdr.Revision >= EFI_2_30_SYSTEM_TABLE_REVISION) {
+  if (gST->Hdr.Revision >= EFI_2_00_SYSTEM_TABLE_REVISION) {
     return EFI_ALREADY_STARTED;
   }
 
@@ -116,21 +116,17 @@ OcForgeUefiSupport (
   }
 
   if (Trash) {
-    Signature = *(UINT64 *)(&gBS->CreateEventEx);
-    if (Signature != DXE_SERVICES_SIGNATURE) {
+    if ((VOID *)&gBS->CreateEventEx != (VOID *)gDS) {
       DEBUG ((
-        DEBUG_INFO,
-        "OCDM: Aborting trash strategy 0x%016lX !=  0x%016lX\n",
-        Signature,
-        DXE_SERVICES_SIGNATURE
+        DEBUG_WARN,
+        "OCDM: Aborting trash strategy, gDS does not follow gBS\n"
         ));
       return EFI_UNSUPPORTED;
     }
 
     DEBUG ((
       DEBUG_INFO,
-      "OCDM: DXE signature 0x%016lX found, trashing for CreateEventEx\n",
-      Signature
+      "OCDM: Trashing gDS->Hdr.Signature with gBS->CreateEventEx\n"
       ));
     NewBS = gBS;
   } else {
@@ -154,6 +150,11 @@ OcForgeUefiSupport (
   gST->Hdr.Revision = EFI_2_30_SYSTEM_TABLE_REVISION;
   gST->Hdr.CRC32    = 0;
   gST->Hdr.CRC32    = CalculateCrc32 (gST, gST->Hdr.HeaderSize);
+
+  if (Trash) {
+    gDS->Hdr.CRC32    = 0;
+    gDS->Hdr.CRC32    = CalculateCrc32 (gDS, gDS->Hdr.HeaderSize);
+  }
 
   return EFI_SUCCESS;
 }

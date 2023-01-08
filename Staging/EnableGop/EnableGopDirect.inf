@@ -37,12 +37,15 @@
   OcBootManagementLib
   OcConsoleLib
   OcDeviceMiscLib
+  OcDirectResetLib
+  OcVariableLib
   PcdLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
   UefiRuntimeServicesTableLib
 
-  OcVariableLib
+[Protocols]
+  gEfiBdsArchProtocolGuid
 
 [FeaturePcd]
   gOpenCorePkgTokenSpaceGuid.PcdEnableGopDirect|TRUE

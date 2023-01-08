@@ -16,9 +16,9 @@
 !if ($(ARCH) == X64)
 
 !if ($(ARCH) == X64)
-  [FV.EnableGopX64]
+  [FV.FfsFilesX64]
 !else
-  [FV.EnableGopIA32]
+  [FV.FfsFilesIA32]
 !endif
 
   BlockSize          = 0x10000
@@ -44,6 +44,7 @@
   # DXE Drivers
   #
   INF  OpenCorePkg/Staging/EnableGop/EnableGop.inf
+  INF  OpenCorePkg/Staging/FirmwareUnlock/FirmwareUnlock.inf
 
 !if ($(ARCH) == X64)
   [FV.EnableGopDirectX64]
@@ -72,6 +73,11 @@
 
   #
   # DXE Drivers
+  #
+
+  #
+  # This intentionally has the same GUID as EnableGop, so it must go in a different FV.
+  # (We don't care about the FV, rather the intermediate FFS files which are generated during build.)
   #
   INF  OpenCorePkg/Staging/EnableGop/EnableGopDirect.inf
 

@@ -157,6 +157,10 @@ package() {
       "Dhcp4Dxe.efi"
       "DnsDxe.efi"
       "DpcDxe.efi"
+      # TODO: Remove these three from drivers, thay are all firmware only.
+      "EnableGop.efi"
+      "EnableGopDirect.efi"
+      "FirmwareUnlock.efi"
       "Ext4Dxe.efi"
       "HiiDatabase.efi"
       "HttpBootDxe.efi"
@@ -249,29 +253,38 @@ package() {
     fi
   done
 
-  # Copy Mac Pro GOP firmware driver.
-  mkdir -p "${dstdir}/Utilities/EnableGop" || exit 1
+  # Copy EFI era Mac firmware drivers.
+  mkdir -p "${dstdir}/Utilities/EfiMac" || exit 1
   ENABLE_GOP_GUID="3FBA58B1-F8C0-41BC-ACD8-253043A3A17F"
   ffsNames=(
     "EnableGop"
     "EnableGopDirect"
     )
   for ffsName in "${ffsNames[@]}"; do
-    cp "FV/Ffs/${ENABLE_GOP_GUID}${ffsName}/${ENABLE_GOP_GUID}.ffs" "${dstdir}/Utilities/EnableGop/${ffsName}.ffs" || exit 1
+    cp "FV/Ffs/${ENABLE_GOP_GUID}${ffsName}/${ENABLE_GOP_GUID}.ffs" "${dstdir}/Utilities/EfiMac/${ffsName}.ffs" || exit 1
+  done
+  FIRMWARE_UNLOCK_GUID="CBD45769-2980-4447-8E73-1B94BBFD254C"
+  ffsNames=(
+    "FirmwareUnlock"
+    )
+  for ffsName in "${ffsNames[@]}"; do
+    cp "FV/Ffs/${FIRMWARE_UNLOCK_GUID}${ffsName}/${FIRMWARE_UNLOCK_GUID}.ffs" "${dstdir}/Utilities/EfiMac/${ffsName}.ffs" || exit 1
   done
   gopDrivers=(
     "EnableGop.efi"
     "EnableGopDirect.efi"
+    "FirmwareUnlock.efi"
     )
   for file in "${gopDrivers[@]}"; do
-    cp "X64/${file}" "${dstdir}/Utilities/EnableGop"/ || exit 1
+    cp "X64/${file}" "${dstdir}/Utilities/EfiMac"/ || exit 1
   done
   helpFiles=(
     "README.md"
     "UEFITool_Inserted_Screenshot.png"
+    "NvInsertEfi.sh"
   )
   for file in "${helpFiles[@]}"; do
-    cp "${selfdir}/Staging/EnableGop/${file}" "${dstdir}/Utilities/EnableGop"/ || exit 1
+    cp "${selfdir}/Staging/EnableGop/${file}" "${dstdir}/Utilities/EfiMac"/ || exit 1
   done
 
   utils=(
