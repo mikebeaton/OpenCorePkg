@@ -534,7 +534,7 @@ OcRunFirmwareApplication (
 //
 // Patching prolog of this function works on more similar era firmware
 // than assuming that mGopAlreadyConnected is located immediately after
-// protocol interface (which applies on MacPro5,1 v144.0.0.0.0 but not others).
+// protocol interface (applies on MacPro5,1 v144.0.0.0.0 but not others).
 //
 // MacPro5,1 + some iMacs:
 //
@@ -578,7 +578,6 @@ STATIC CONST UINT8  ConnectGopReplaceMask[] = {
 // xor     ebx, ebx
 // jmp     short loc_100040D1
 //
-
 STATIC CONST UINT8  AltConnectGopPrologue[] = {
   0x48, 0x53, 0x48, 0x83, 0xEC, 0x30,
   0x80, 0x3D, 0x00, 0x00, 0x00, 0x00,0x00,
@@ -603,6 +602,45 @@ STATIC CONST UINT8  AltConnectGopReplaceMask[] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0xFF
 };
 
+//
+// MacPro3,1:
+//
+// push    rbx
+// sub     rsp, 50h
+// cmp     cs:mGopAlreadyConnected, 0
+// mov     [rsp+58h+var_28], 0
+// jz      short loc_10003E93
+// xor     ebx, ebx
+// jmp     loc_10003FF9
+//
+STATIC CONST UINT8  Mp31ConnectGopPrologue[] = {
+  0x48, 0x53, 0x48, 0x83, 0xEC, 0x50, 0x80, 0x3D,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x48, 0xC7, 0x44,
+  0x24, 0x30, 0x00, 0x00, 0x00, 0x00, 0x74, 0x07,
+  0x33, 0xDB, 0xE9, 0x00, 0x00, 0x00, 0x00
+};
+
+STATIC CONST UINT8  Mp31ConnectGopPrologueMask[] = {
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF
+};
+
+STATIC CONST UINT8  Mp31ConnectGopReplace[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+STATIC CONST UINT8  Mp31ConnectGopReplaceMask[] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00
+};
+
 EFI_STATUS
 OcUnlockAppleFirmwareUI (
   VOID
@@ -620,14 +658,6 @@ OcUnlockAppleFirmwareUI (
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "OCB: Cannot locate FirmwareUI protocol - %r\n", Status));
-  } else if (FirmwareUI->Revision != APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION) {
-    DEBUG ((
-      DEBUG_INFO,
-      "OCB: Unlock FirmwareUI incompatible protocol revision %u != %u\n",
-      FirmwareUI->Revision,
-      APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION
-      ));
-    Status = EFI_UNSUPPORTED;
   }
 
   if (!EFI_ERROR (Status)) {
@@ -657,15 +687,31 @@ OcUnlockAppleFirmwareUI (
                        );
     }
 
+    if (ReplaceCount == 0) {
+      ReplaceCount = ApplyPatch (
+                       Mp31ConnectGopPrologue,
+                       Mp31ConnectGopPrologueMask,
+                       sizeof (Mp31ConnectGopPrologue),
+                       Mp31ConnectGopReplace,
+                       Mp31ConnectGopReplaceMask,
+                       (VOID *)FirmwareUI->ConnectGop,
+                       sizeof (Mp31ConnectGopPrologue),
+                       1,
+                       0
+                       );
+    }
+
     Status = EFI_SUCCESS;
     if (ReplaceCount == 0) {
       Status = EFI_NOT_FOUND;
       DEBUG ((
         DEBUG_INFO,
-        "OCB: 0x%016LX 0x%016LX 0x%016LX\n",
+        "OCB: %u 0x%016LX 0x%016LX 0x%016LX 0x%016LX\n",
+        FirmwareUI->Revision,
         *((UINT64 *)((UINT8 *)FirmwareUI->ConnectGop)),
-        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 8)),
-        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 16))
+        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 0x08)),
+        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 0x10)),
+        *((UINT64 *)(((UINT8 *)FirmwareUI->ConnectGop) + 0x18))
         ));
     }
 

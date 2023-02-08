@@ -17,7 +17,15 @@
   { 0x691E1AF0, 0x8673, 0x4C98,           \
     { 0xA9, 0xB3, 0x04, 0x26, 0x20, 0xE9, 0x14, 0x98 }}
 
-// Version in MacPro5,1 144.0.0.0.0 firmware
+//
+// Version in MacPro3,1 firmware.
+//
+#define APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION_MP31  0x00000003
+
+//
+// Version in MacPro4,1/5,1 & MacPro5,1 144.0.0.0.0 firmware, and in latest firmware 2009-2012 iMac10,x-iMac12,x.
+// Version corresponding to APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL struct below.
+//
 #define APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_REVISION  0x00000004
 
 typedef struct APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL_ APPLE_FIRMWARE_USER_INTERFACE_PROTOCOL;
