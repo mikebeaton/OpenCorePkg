@@ -121,8 +121,7 @@ OcAppleFbInfoInstallProtocol (
                   );
 
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "OCFB: No GOP protocols for FB info, ignoring\n"));
-    return NULL;
+    DEBUG ((DEBUG_INFO, "OCFB: No GOP protocols for FB info, proceeding anyway\n"));
   }
 
   if (Reinstall) {
