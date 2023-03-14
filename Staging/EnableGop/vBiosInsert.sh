@@ -13,7 +13,8 @@ usage() {
   echo "Args:"
   echo "  -a              : AMD"
   echo "  -n              : Nvidia"
-  echo "  -o {GOP offset} : GOP offset (auto-detected if Homebrew grep is installed)"
+  echo "  -p              : Nvidia Pascal (experimental - try -n first)"
+  echo "  -o {GOP offset} : GOP offset (normally auto-detected, so not required)"
   echo "                    Can specify 0x{hex} or {decimal}"
   echo "  -t {temp dir}   : Specify temporary directory, and keep temp files"
   echo "Examples:"
@@ -48,16 +49,19 @@ AMD=0
 AMD_SAFE_SIZE="0x20000"
 GOP_OFFSET="-"
 NVIDIA=0
+PASCAL=0
 POS=0
 
 while true; do
   if [ "$1" = "-a" ] ; then
     AMD=1
-    NVIDIA=0
     shift
   elif [ "$1" = "-n" ] ; then
-    AMD=0
     NVIDIA=1
+    shift
+  elif [ "$1" = "-p" ] ; then
+    NVIDIA=1
+    PASCAL=1
     shift
   elif [ "$1" = "-o" ] ; then
     shift
@@ -114,8 +118,13 @@ if [ "$ROM_FILE" = "" ] ||
   exit 0
 fi
 
-if [ "$AMD" -eq 0 ] && [ "$NVIDIA" -eq 0 ] ; then
+if ([ "$AMD" -eq 0 ] && [ "$NVIDIA" -eq 0 ]) || ([ "$AMD" -eq 1 ] && [ "$NVIDIA" -eq 1 ]); then
   echo "Must specify -a or -n" && exit 1
+fi
+
+# Do not apply AMD size limit and do not insert Nvidia header
+if [ "$PASCAL" = "1" ] ; then
+  NVIDIA=0
 fi
 
 if [ "$TEMP_DIR" != "" ] ; then
