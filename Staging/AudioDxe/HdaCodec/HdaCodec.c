@@ -1332,6 +1332,7 @@ HdaCodecEnableWidgetPath (
 {
   EFI_STATUS           Status;
   EFI_HDA_IO_PROTOCOL  *HdaIo;
+  HDA_WIDGET_DEV       *DownstreamWidget;
   UINT32               Response;
   UINT8                VrefCaps;
   UINT8                VrefCtrl;
@@ -1349,73 +1350,21 @@ HdaCodecEnableWidgetPath (
 
   HdaIo = HdaWidget->FuncGroup->HdaCodecDev->HdaIo;
 
+  // Use reverse setup order to avoid pops and whistles.
+  DownstreamWidget = NULL;
+  for (;;) {
+    HdaWidget->DownstreamWidget = DownstreamWidget;
+    if (HdaWidget->UpstreamWidget == NULL) {
+      break;
+    }
+    DownstreamWidget = HdaWidget;
+    HdaWidget = HdaWidget->UpstreamWidget;
+  }
+
+
   // Crawl through widget path.
   while (HdaWidget != NULL) {
     DEBUG ((DEBUG_INFO, "HDA: Widget @ 0x%X setting up\n", HdaWidget->NodeId));
-
-    // If pin complex, set as output.
-    if (HdaWidget->Type == HDA_WIDGET_TYPE_PIN_COMPLEX) {
-      VrefCaps = HDA_PARAMETER_PIN_CAPS_VREF (HdaWidget->PinCapabilities);
-
-      // If voltage reference control is available, choose the lowest supported voltage.
-      // This is similar to how Linux drivers enable audio e.g. on Realtek devices on Mac,
-      // but this is an attempt to make a more general purpose system.
-      // REF: https://github.com/torvalds/linux/blob/6f513529296fd4f696afb4354c46508abe646541/sound/pci/hda/patch_realtek.c#L1999-L2012
-      VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_HIZ;
-      if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_50) {
-        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_50;
-      } else if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_80) {
-        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_80;
-      } else if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_100) {
-        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_100;
-      }
-
-      Status = HdaIo->SendCommand (
-                        HdaIo,
-                        HdaWidget->NodeId,
-                        HDA_CODEC_VERB (
-                          HDA_VERB_SET_PIN_WIDGET_CONTROL,
-                          HDA_VERB_SET_PIN_WIDGET_CONTROL_PAYLOAD (VrefCtrl, FALSE, TRUE, FALSE)
-                          ),
-                        &Response
-                        );
-      DEBUG ((
-        EFI_ERROR (Status) ? DEBUG_WARN : DEBUG_INFO,
-        "HDA: Widget @ 0x%X enable output amp vref %u - %r\n",
-        HdaWidget->NodeId,
-        VrefCtrl,
-        Status
-        ));
-      if (EFI_ERROR (Status)) {
-        return Status;
-      }
-
-      // If EAPD, enable.
-      if (HdaWidget->PinCapabilities & HDA_PARAMETER_PIN_CAPS_EAPD) {
-        // Get current EAPD setting.
-        Status = HdaIo->SendCommand (HdaIo, HdaWidget->NodeId, HDA_CODEC_VERB (HDA_VERB_GET_EAPD_BTL_ENABLE, 0), &Response);
-        if (EFI_ERROR (Status)) {
-          return Status;
-        }
-
-        // If the EAPD is not set, set it.
-        if (!(Response & HDA_EAPD_BTL_ENABLE_EAPD)) {
-          Response |= HDA_EAPD_BTL_ENABLE_EAPD;
-          Status    = HdaIo->SendCommand (
-                               HdaIo,
-                               HdaWidget->NodeId,
-                               HDA_CODEC_VERB (
-                                 HDA_VERB_SET_EAPD_BTL_ENABLE,
-                                 (UINT8)Response
-                                 ),
-                               &Response
-                               );
-          if (EFI_ERROR (Status)) {
-            return Status;
-          }
-        }
-      }
-    }
 
     // If this is a digital widget, enable digital output.
     if (HdaWidget->Capabilities & HDA_PARAMETER_WIDGET_CAPS_DIGITAL) {
@@ -1494,6 +1443,8 @@ HdaCodecEnableWidgetPath (
       if (EFI_ERROR (Status)) {
         return Status;
       }
+
+      gBS->Stall (MS_TO_MICROSECONDS (2000));
     }
 
     // If there are input amps, mute all but the upstream.
@@ -1529,6 +1480,80 @@ HdaCodecEnableWidgetPath (
                               ),
                             &Response
                             );
+          if (EFI_ERROR (Status)) {
+            return Status;
+          }
+        }
+      }
+
+      gBS->Stall (MS_TO_MICROSECONDS (2000));
+    }
+
+    // If pin complex, set as output.
+    if (HdaWidget->Type == HDA_WIDGET_TYPE_PIN_COMPLEX) {
+      VrefCaps = HDA_PARAMETER_PIN_CAPS_VREF (HdaWidget->PinCapabilities);
+
+      // If voltage reference control is available, choose the lowest supported voltage.
+      // This is similar to how Linux drivers enable audio e.g. on Realtek devices on Mac,
+      // but this is an attempt to make a more general purpose system.
+      // REF: https://github.com/torvalds/linux/blob/6f513529296fd4f696afb4354c46508abe646541/sound/pci/hda/patch_realtek.c#L1999-L2012
+      VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_HIZ;
+      if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_50) {
+        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_50;
+      } else if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_80) {
+        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_80;
+      } else if (VrefCaps & HDA_PARAMETER_PIN_CAPS_VREF_100) {
+        VrefCtrl = HDA_PIN_WIDGET_CONTROL_VREF_100;
+      }
+
+      Status = HdaIo->SendCommand (
+                        HdaIo,
+                        HdaWidget->NodeId,
+                        HDA_CODEC_VERB (
+                          HDA_VERB_SET_PIN_WIDGET_CONTROL,
+                          HDA_VERB_SET_PIN_WIDGET_CONTROL_PAYLOAD (VrefCtrl, FALSE, TRUE, FALSE)
+                          ),
+                        &Response
+                        );
+      DEBUG ((
+        EFI_ERROR (Status) ? DEBUG_WARN : DEBUG_INFO,
+        "HDA: Widget @ 0x%X enable output amp vref %u - %r\n",
+        HdaWidget->NodeId,
+        VrefCtrl,
+        Status
+        ));
+      if (EFI_ERROR (Status)) {
+        return Status;
+      }
+
+      gBS->Stall (MS_TO_MICROSECONDS (2000));
+
+      // If EAPD, enable.
+      if (HdaWidget->PinCapabilities & HDA_PARAMETER_PIN_CAPS_EAPD) {
+        // Get current EAPD setting.
+        Status = HdaIo->SendCommand (HdaIo, HdaWidget->NodeId, HDA_CODEC_VERB (HDA_VERB_GET_EAPD_BTL_ENABLE, 0), &Response);
+        if (EFI_ERROR (Status)) {
+          return Status;
+        }
+
+        // If the EAPD is not set, set it.
+        if (!(Response & HDA_EAPD_BTL_ENABLE_EAPD)) {
+          Response |= HDA_EAPD_BTL_ENABLE_EAPD;
+          Status    = HdaIo->SendCommand (
+                               HdaIo,
+                               HdaWidget->NodeId,
+                               HDA_CODEC_VERB (
+                                 HDA_VERB_SET_EAPD_BTL_ENABLE,
+                                 (UINT8)Response
+                                 ),
+                               &Response
+                               );
+          DEBUG ((
+            EFI_ERROR (Status) ? DEBUG_WARN : DEBUG_INFO,
+            "HDA: Widget @ 0x%X set EAPD - %r\n",
+            HdaWidget->NodeId,
+            Status
+            ));
           if (EFI_ERROR (Status)) {
             return Status;
           }
@@ -1580,10 +1605,12 @@ HdaCodecEnableWidgetPath (
       if (EFI_ERROR (Status)) {
         return Status;
       }
+
+     gBS->Stall (MS_TO_MICROSECONDS (2000));
     }
 
-    // Move to upstream widget.
-    HdaWidget = HdaWidget->UpstreamWidget;
+    // Move to downstream widget.
+    HdaWidget = HdaWidget->DownstreamWidget;
   }
 
   return EFI_SUCCESS;
