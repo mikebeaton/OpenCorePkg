@@ -1,3 +1,13 @@
+rebuild_all.tool
+rebuild_duet.tool
+rebuild_oc.tool
+kill_build.tool
+inject.sh
+gop_inject.sh
+revert.sh
+add_it.sh
+gop_it.sh
+
 .DS_Store
 UDK
 Binaries
