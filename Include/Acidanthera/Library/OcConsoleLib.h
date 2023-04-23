@@ -15,9 +15,12 @@
 #ifndef OC_CONSOLE_LIB_H
 #define OC_CONSOLE_LIB_H
 
-#include <Protocol/ConsoleControl.h>
 #include <Protocol/AppleFramebufferInfo.h>
 #include <Protocol/AppleEg2Info.h>
+#include <Protocol/ConsoleControl.h>
+#include <Protocol/GraphicsOutput.h>
+
+#include <Library/OcFileLib.h>
 
 /**
   Console renderer to use.
@@ -98,6 +101,58 @@ OcParseConsoleMode (
   OUT UINT32       *Width,
   OUT UINT32       *Height,
   OUT BOOLEAN      *Max
+  );
+
+/**
+  Use PAT to enable write-combining caching (burst mode) on GOP memory,
+  when it is suppported but firmware has not set it up.
+
+  @retval EFI_SUCCESS on success.
+**/
+EFI_STATUS
+OcSetGopBurstMode (
+  VOID
+  );
+
+/**
+  Return the bytes per pixel for the current GOP mode.
+
+  GOP mode information does not include anything directly containing the bytes
+  per pixel, but there is a defined algorithm for working out this size, even for
+  non-standard pixel masks, and also a defined situation (PixelBltOnly pixel
+  format) where there is no such size.
+
+  @param[in]  Mode                GOP mode.
+  @param[in]  BytesPerPixel       Bytes per pixel for the mode in use.
+
+  @retval EFI_SUCCESS             Success.
+  @retval EFI_UNSUPPORTED         There is no frame buffer.
+  @retval EFI_INVALID_PARAMETER   Mode info parameters are outside valid ranges.
+**/
+EFI_STATUS
+OcGopModeBytesPerPixel (
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE  *Mode,
+  OUT UINTN                              *BytesPerPixel
+  );
+
+/**
+  Return the frame buffer size in use for the current GOP mode, even where
+  Gop->Mode->FrameBufferSize misreports this.
+
+  Occasional GOP implementations report a frame buffer size far larger (e.g. ~100x)
+  than required for the actual mode in use.
+
+  @param[in]  Mode                GOP mode.
+  @param[in]  FrameBufferSize     Frame buffer size in use.
+
+  @retval EFI_SUCCESS             Success.
+  @retval EFI_UNSUPPORTED         There is no frame buffer.
+  @retval EFI_INVALID_PARAMETER   Size parameters are outside valid ranges.
+**/
+EFI_STATUS
+OcGopModeSafeFrameBufferSize (
+  IN  EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE  *Mode,
+  OUT UINTN                              *FrameBufferSize
   );
 
 /**
@@ -223,6 +278,18 @@ OcAppleFbInfoInstallProtocol (
 APPLE_EG2_INFO_PROTOCOL *
 OcAppleEg2InfoInstallProtocol (
   IN BOOLEAN  Reinstall
+  );
+
+/**
+  Dump GOP info to the specified directory.
+
+  @param[in]  Root     Directory to write CPU data.
+
+  @retval EFI_SUCCESS on success.
+**/
+EFI_STATUS
+OcGopInfoDump (
+  IN EFI_FILE_PROTOCOL  *Root
   );
 
 #endif // OC_CONSOLE_LIB_H
