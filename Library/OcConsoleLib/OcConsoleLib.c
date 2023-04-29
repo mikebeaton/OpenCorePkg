@@ -386,19 +386,30 @@ OcSetConsoleMode (
 
 VOID
 OcSetupConsole (
-  IN OC_CONSOLE_RENDERER  Renderer,
-  IN BOOLEAN              IgnoreTextOutput,
-  IN BOOLEAN              SanitiseClearScreen,
-  IN BOOLEAN              ClearScreenOnModeSwitch,
-  IN BOOLEAN              ReplaceTabWithSpace
+  IN EFI_CONSOLE_CONTROL_SCREEN_MODE  InitialMode,
+  IN OC_CONSOLE_RENDERER              Renderer,
+  IN BOOLEAN                          IgnoreTextOutput,
+  IN BOOLEAN                          SanitiseClearScreen,
+  IN BOOLEAN                          ClearScreenOnModeSwitch,
+  IN BOOLEAN                          ReplaceTabWithSpace
   )
 {
+  //
+  // Typically no need to actually set the initial mode as it will be overridden
+  // straight afterwards, so we make it the renderers' responsibility to set the
+  // initial mode if they are not going to override it.
+  //
+  if (InitialMode == EfiConsoleControlScreenMaxValue) {
+    InitialMode = OcConsoleControlGetMode ();
+  }
+
   if (Renderer == OcConsoleRendererBuiltinGraphics) {
-    OcUseBuiltinTextOutput (EfiConsoleControlScreenGraphics);
+    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenGraphics);
   } else if (Renderer == OcConsoleRendererBuiltinText) {
-    OcUseBuiltinTextOutput (EfiConsoleControlScreenText);
+    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenText);
   } else {
     OcUseSystemTextOutput (
+      InitialMode,
       Renderer,
       IgnoreTextOutput,
       SanitiseClearScreen,
