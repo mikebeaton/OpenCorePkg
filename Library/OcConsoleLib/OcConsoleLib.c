@@ -391,7 +391,9 @@ OcSetupConsole (
   IN BOOLEAN                          IgnoreTextOutput,
   IN BOOLEAN                          SanitiseClearScreen,
   IN BOOLEAN                          ClearScreenOnModeSwitch,
-  IN BOOLEAN                          ReplaceTabWithSpace
+  IN BOOLEAN                          ReplaceTabWithSpace,
+  IN UINT32                           Width,
+  IN UINT32                           Height
   )
 {
   //
@@ -404,9 +406,9 @@ OcSetupConsole (
   }
 
   if (Renderer == OcConsoleRendererBuiltinGraphics) {
-    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenGraphics);
+    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenGraphics, Width, Height);
   } else if (Renderer == OcConsoleRendererBuiltinText) {
-    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenText);
+    OcUseBuiltinTextOutput (InitialMode, EfiConsoleControlScreenText, Width, Height);
   } else {
     OcUseSystemTextOutput (
       InitialMode,
