@@ -25,6 +25,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/MemoryAllocationLib.h>
 #include <Library/OcAcpiLib.h>
 #include <Library/OcAppleBootPolicyLib.h>
+#include <Library/OcAppleDiskImageLib.h>
 #include <Library/OcAudioLib.h>
 #include <Library/OcBootManagementLib.h>
 #include <Library/OcConsoleLib.h>
@@ -242,13 +243,16 @@ STATIC
 EFI_STATUS
 EFIAPI
 OcToolLoadEntry (
-  IN  OC_STORAGE_CONTEXT        *Storage,
-  IN  OC_BOOT_ENTRY             *ChosenEntry,
-  OUT VOID                      **Data,
-  OUT UINT32                    *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL  **DevicePath,
-  OUT EFI_HANDLE                *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL  **StoragePath
+  IN  OC_STORAGE_CONTEXT                  *Storage,
+  IN  OC_BOOT_ENTRY                       *ChosenEntry,
+  OUT VOID                                **Data,
+  OUT UINT32                              *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
+  OUT EFI_HANDLE                          *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
+  OUT VOID                                **CustomFreeContext
   )
 {
   EFI_STATUS  Status;

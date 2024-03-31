@@ -11,6 +11,7 @@
 #include <IndustryStandard/AppleBootArgs.h>
 #include <IndustryStandard/AppleHid.h>
 #include <Library/OcAppleBootPolicyLib.h>
+#include <Library/OcAppleDiskImageLib.h>
 #include <Library/OcAppleKeyMapLib.h>
 #include <Library/OcFlexArrayLib.h>
 #include <Library/OcStringLib.h>
@@ -78,6 +79,8 @@ typedef struct OC_HOTKEY_CONTEXT_ OC_HOTKEY_CONTEXT;
 #define OC_FLAVOUR_TOGGLE_SIP_ENABLED   "ToggleSIP_Enabled:ToggleSIP:NVRAMTool"
 #define OC_FLAVOUR_TOGGLE_SIP_DISABLED  "ToggleSIP_Disabled:ToggleSIP:NVRAMTool"
 #define OC_FLAVOUR_FIRMWARE_SETTINGS    "FirmwareSettings"
+#define OC_FLAVOUR_HTTP_BOOT            "HttpBoot:NetworkBoot"
+#define OC_FLAVOUR_PXE_BOOT             "PxeBoot:NetworkBoot"
 #define OC_FLAVOUR_APPLE_OS             "Apple"
 #define OC_FLAVOUR_APPLE_RECOVERY       "AppleRecv:Apple"
 #define OC_FLAVOUR_APPLE_FW             "AppleRecv:Apple"
@@ -157,7 +160,7 @@ typedef UINT32 OC_BOOT_ENTRY_TYPE;
 #define OC_BOOT_EXTERNAL_OS         BIT6
 #define OC_BOOT_EXTERNAL_TOOL       BIT7
 #define OC_BOOT_SYSTEM              BIT8
-#define OC_BOOT_EXTERNAL_SYSTEM     BIT9
+#define OC_BOOT_EXTERNAL_BOOT       BIT9
 
 /**
   Picker mode.
@@ -189,233 +192,6 @@ typedef enum OC_PICKER_MODE_ {
 #define OC_KERN_CAPABILITY_K32_K64_U64  (OC_KERN_CAPABILITY_K32_U64 | OC_KERN_CAPABILITY_K64_U64)
 #define OC_KERN_CAPABILITY_K32_U32_U64  (OC_KERN_CAPABILITY_K32_U32 | OC_KERN_CAPABILITY_K32_U64)
 #define OC_KERN_CAPABILITY_ALL          (OC_KERN_CAPABILITY_K32_U32 | OC_KERN_CAPABILITY_K32_K64_U64)
-
-/**
-  Action to perform as part of executing a system boot entry.
-**/
-typedef
-EFI_STATUS
-(*OC_BOOT_SYSTEM_ACTION) (
-  IN OUT          OC_PICKER_CONTEXT  *PickerContext
-  );
-
-/**
-  Action to perform as part of executing an external boot system boot entry.
-**/
-typedef
-EFI_STATUS
-(*OC_BOOT_EXTERNAL_SYSTEM_ACTION) (
-  IN OUT  OC_PICKER_CONTEXT         *PickerContext,
-  IN      EFI_DEVICE_PATH_PROTOCOL  *DevicePath
-  );
-
-/**
-  Gets Device Path for external boot system boot entry.
-**/
-typedef
-EFI_STATUS
-(*OC_BOOT_EXTERNAL_SYSTEM_GET_DP) (
-  IN OUT  OC_PICKER_CONTEXT         *PickerContext,
-  IN OUT  EFI_DEVICE_PATH_PROTOCOL  **DevicePath
-  );
-
-/**
-  Discovered boot entry.
-  Note, inner resources must be freed with FreeBootEntry.
-**/
-typedef struct OC_BOOT_ENTRY_ {
-  //
-  // Link in entry list in OC_BOOT_FILESYSTEM.
-  //
-  LIST_ENTRY                        Link;
-  //
-  // Device path to booter or its directory.
-  // Can be NULL, for example, for custom or system entries.
-  //
-  EFI_DEVICE_PATH_PROTOCOL          *DevicePath;
-  //
-  // Action to perform on execution. Only valid for system entries.
-  //
-  OC_BOOT_SYSTEM_ACTION             SystemAction;
-  //
-  // Action to perform on execution. Only valid for external boot system entries.
-  //
-  OC_BOOT_EXTERNAL_SYSTEM_ACTION    ExternalSystemAction;
-  //
-  // Gets Device Path for external boot system boot entry. Only valid for external boot system entries.
-  //
-  OC_BOOT_EXTERNAL_SYSTEM_GET_DP    ExternalSystemGetDevicePath;
-  //
-  // Id under which to save entry as default.
-  //
-  CHAR16                            *Id;
-  //
-  // Obtained human visible name.
-  //
-  CHAR16                            *Name;
-  //
-  // Obtained boot path directory.
-  // For custom entries this contains tool path.
-  //
-  CHAR16                            *PathName;
-  //
-  // Content flavour.
-  //
-  CHAR8                             *Flavour;
-  //
-  // Heuristical value signaling inferred type of booted os.
-  // WARNING: Non-definitive, do not rely on for any security purposes.
-  //
-  OC_BOOT_ENTRY_TYPE                Type;
-  //
-  // Entry index number, assigned by picker.
-  //
-  UINT32                            EntryIndex;
-  //
-  // Set when this entry is an externally available entry (e.g. USB).
-  //
-  BOOLEAN                           IsExternal;
-  //
-  // Should try booting from first dmg found in DevicePath.
-  //
-  BOOLEAN                           IsFolder;
-  //
-  // Set when this entry refers to a generic booter (e.g. BOOTx64.EFI).
-  //
-  BOOLEAN                           IsGeneric;
-  //
-  // Set when this entry refers to a custom boot entry.
-  //
-  BOOLEAN                           IsCustom;
-  //
-  // Set when entry was created by OC_BOOT_ENTRY_PROTOCOL.
-  //
-  BOOLEAN                           IsBootEntryProtocol;
-  //
-  // Set when entry is identified as macOS installer.
-  //
-  BOOLEAN                           IsAppleInstaller;
-  //
-  // Should make this option default boot option.
-  //
-  BOOLEAN                           SetDefault;
-  //
-  // Should launch this entry in text mode.
-  //
-  BOOLEAN                           LaunchInText;
-  //
-  // Should expose real device path when dealing with custom entries.
-  //
-  BOOLEAN                           ExposeDevicePath;
-  //
-  // Should disable OpenRuntime NVRAM protection around invocation of tool.
-  //
-  BOOLEAN                           FullNvramAccess;
-  //
-  // Partition UUID of entry device.
-  // Set for non-system action boot entry protocol boot entries only.
-  //
-  EFI_GUID                          UniquePartitionGUID;
-  //
-  // Load option data (usually "boot args") size.
-  //
-  UINT32                            LoadOptionsSize;
-  //
-  // Load option data (usually "boot args").
-  //
-  VOID                              *LoadOptions;
-  //
-  // Audio base path for system action. Boot Entry Protocol only.
-  //
-  CHAR8                             *AudioBasePath;
-  //
-  // Audio base type for system action. Boot Entry Protocol only.
-  //
-  CHAR8                             *AudioBaseType;
-} OC_BOOT_ENTRY;
-
-/**
-  Parsed load option or shell variable.
-**/
-typedef struct OC_PARSED_VAR_ASCII_ {
-  CHAR8    *Name;
-  CHAR8    *Value;
-} OC_PARSED_VAR_ASCII;
-
-typedef struct OC_PARSED_VAR_UNICODE_ {
-  CHAR16    *Name;
-  CHAR16    *Value;
-} OC_PARSED_VAR_UNICODE;
-
-typedef union OC_PARSED_VAR_ {
-  OC_PARSED_VAR_ASCII      Ascii;
-  OC_PARSED_VAR_UNICODE    Unicode;
-} OC_PARSED_VAR;
-
-/**
-  Boot filesystem containing boot entries.
-**/
-typedef struct OC_BOOT_FILESYSTEM_ OC_BOOT_FILESYSTEM;
-struct OC_BOOT_FILESYSTEM_ {
-  //
-  // Link in filesystem list in OC_BOOT_CONTEXT.
-  //
-  LIST_ENTRY            Link;
-  //
-  // Filesystem handle.
-  //
-  EFI_HANDLE            Handle;
-  //
-  // List of boot entries (OC_BOOT_ENTRY).
-  //
-  LIST_ENTRY            BootEntries;
-  //
-  // Pointer to APFS Recovery partition (if any).
-  //
-  OC_BOOT_FILESYSTEM    *RecoveryFs;
-  //
-  // External filesystem.
-  //
-  BOOLEAN               External;
-  //
-  // Loader filesystem.
-  //
-  BOOLEAN               LoaderFs;
-  //
-  // Contains recovery on the filesystem.
-  //
-  BOOLEAN               HasSelfRecovery;
-};
-
-/**
-  Boot context containing boot filesystems.
-**/
-typedef struct OC_BOOT_CONTEXT_ {
-  //
-  // Total boot entry count.
-  //
-  UINTN                BootEntryCount;
-  //
-  // Total filesystem count.
-  //
-  UINTN                FileSystemCount;
-  //
-  // List of filesystems containing boot entries (OC_BOOT_FILESYSTEM).
-  //
-  LIST_ENTRY           FileSystems;
-  //
-  // GUID namespace for boot entries.
-  //
-  EFI_GUID             *BootVariableGuid;
-  //
-  // Default entry to be booted.
-  //
-  OC_BOOT_ENTRY        *DefaultEntry;
-  //
-  // Picker context for externally configured parameters.
-  //
-  OC_PICKER_CONTEXT    *PickerContext;
-} OC_BOOT_CONTEXT;
 
 /**
   Perform filtering based on file system basis.
@@ -551,6 +327,274 @@ typedef enum {
 } OC_DMG_LOADING_SUPPORT;
 
 /**
+  Action to perform as part of executing a system boot entry.
+**/
+typedef
+EFI_STATUS
+(*OC_BOOT_SYSTEM_ACTION) (
+  IN OUT          OC_PICKER_CONTEXT  *PickerContext
+  );
+
+/**
+  Action to perform as part of executing an external boot entry.
+**/
+typedef
+EFI_STATUS
+(*OC_BOOT_EXTERNAL_BOOT_ACTION) (
+  IN OUT  OC_PICKER_CONTEXT         *PickerContext,
+  IN      EFI_DEVICE_PATH_PROTOCOL  *DevicePath
+  );
+
+/**
+  Gets Device Path for external boot entry.
+**/
+typedef
+EFI_STATUS
+(*OC_BOOT_EXTERNAL_BOOT_GET_DP) (
+  IN OUT  OC_PICKER_CONTEXT         *PickerContext,
+  IN OUT  EFI_DEVICE_PATH_PROTOCOL  **DevicePath
+  );
+
+/**
+  Forward declaration of OC_BOOT_ENTRY structure.
+**/
+typedef struct OC_BOOT_ENTRY_ OC_BOOT_ENTRY;
+
+/**
+  Exposed custom entry load interface.
+  Returns allocated file buffer from pool on success.
+**/
+typedef
+EFI_STATUS
+(EFIAPI *OC_CUSTOM_READ)(
+  IN  OC_STORAGE_CONTEXT                  *Storage,
+  IN  OC_BOOT_ENTRY                       *ChosenEntry,
+  OUT VOID                                **Data,
+  OUT UINT32                              *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
+  OUT EFI_HANDLE                          *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
+  OUT VOID                                **CustomFreeContext
+  );
+
+/**
+  Exposed custom entry interface to free any custom items after load.
+**/
+typedef
+EFI_STATUS
+(EFIAPI *OC_CUSTOM_FREE)(
+  IN  VOID                        *CustomFreeContext
+  );
+
+/**
+  Discovered boot entry.
+  Note, inner resources must be freed with FreeBootEntry.
+**/
+struct OC_BOOT_ENTRY_ {
+  //
+  // Link in entry list in OC_BOOT_FILESYSTEM.
+  //
+  LIST_ENTRY                        Link;
+  //
+  // Device path to booter or its directory.
+  // Can be NULL, for example, for custom or system entries.
+  //
+  EFI_DEVICE_PATH_PROTOCOL          *DevicePath;
+  //
+  // Action to perform on execution. Only valid for system entries.
+  //
+  OC_BOOT_SYSTEM_ACTION             SystemAction;
+  //
+  // Action to perform on execution. Only valid for external boot entries.
+  //
+  OC_BOOT_EXTERNAL_BOOT_ACTION      ExternalBootAction;
+  //
+  // Gets Device Path for external boot entry. Only valid for unamanaged boot entries.
+  //
+  OC_BOOT_EXTERNAL_BOOT_GET_DP      ExternalBootGetDevicePath;
+  //
+  // Custom entry image read routine, optional for non-custom entries.
+  //
+  OC_CUSTOM_READ                    CustomRead;
+  //
+  // Custom entry routine to free custom items. Optional.
+  //
+  OC_CUSTOM_FREE                    CustomFree;
+  //
+  // Id under which to save entry as default.
+  //
+  CHAR16                            *Id;
+  //
+  // Obtained human visible name.
+  //
+  CHAR16                            *Name;
+  //
+  // Obtained boot path directory.
+  // For custom entries this contains tool path.
+  //
+  CHAR16                            *PathName;
+  //
+  // Content flavour.
+  //
+  CHAR8                             *Flavour;
+  //
+  // Heuristical value signaling inferred type of booted os.
+  // WARNING: Non-definitive, do not rely on for any security purposes.
+  //
+  OC_BOOT_ENTRY_TYPE                Type;
+  //
+  // Entry index number, assigned by picker.
+  //
+  UINT32                            EntryIndex;
+  //
+  // Set when this entry is an externally available entry (e.g. USB).
+  //
+  BOOLEAN                           IsExternal;
+  //
+  // Should try booting from first dmg found in DevicePath.
+  //
+  BOOLEAN                           IsFolder;
+  //
+  // Set when this entry refers to a generic booter (e.g. BOOTx64.EFI).
+  //
+  BOOLEAN                           IsGeneric;
+  //
+  // Set when this entry refers to a custom boot entry.
+  //
+  BOOLEAN                           IsCustom;
+  //
+  // Set when entry was created by OC_BOOT_ENTRY_PROTOCOL.
+  //
+  BOOLEAN                           IsBootEntryProtocol;
+  //
+  // Set when entry is identified as macOS installer.
+  //
+  BOOLEAN                           IsAppleInstaller;
+  //
+  // Should make this option default boot option.
+  //
+  BOOLEAN                           SetDefault;
+  //
+  // Should launch this entry in text mode.
+  //
+  BOOLEAN                           LaunchInText;
+  //
+  // Should expose real device path when dealing with custom entries.
+  //
+  BOOLEAN                           ExposeDevicePath;
+  //
+  // Should disable OpenRuntime NVRAM protection around invocation of tool.
+  //
+  BOOLEAN                           FullNvramAccess;
+  //
+  // Partition UUID of entry device.
+  // Set for non-system action boot entry protocol boot entries only.
+  //
+  EFI_GUID                          UniquePartitionGUID;
+  //
+  // Load option data (usually "boot args") size.
+  //
+  UINT32                            LoadOptionsSize;
+  //
+  // Load option data (usually "boot args").
+  //
+  VOID                              *LoadOptions;
+  //
+  // Audio base path for system action. Boot Entry Protocol only.
+  //
+  CHAR8                             *AudioBasePath;
+  //
+  // Audio base type for system action. Boot Entry Protocol only.
+  //
+  CHAR8                             *AudioBaseType;
+};
+
+/**
+  Parsed load option or shell variable.
+**/
+typedef struct OC_PARSED_VAR_ASCII_ {
+  CHAR8    *Name;
+  CHAR8    *Value;
+} OC_PARSED_VAR_ASCII;
+
+typedef struct OC_PARSED_VAR_UNICODE_ {
+  CHAR16    *Name;
+  CHAR16    *Value;
+} OC_PARSED_VAR_UNICODE;
+
+typedef union OC_PARSED_VAR_ {
+  OC_PARSED_VAR_ASCII      Ascii;
+  OC_PARSED_VAR_UNICODE    Unicode;
+} OC_PARSED_VAR;
+
+/**
+  Boot filesystem containing boot entries.
+**/
+typedef struct OC_BOOT_FILESYSTEM_ OC_BOOT_FILESYSTEM;
+struct OC_BOOT_FILESYSTEM_ {
+  //
+  // Link in filesystem list in OC_BOOT_CONTEXT.
+  //
+  LIST_ENTRY            Link;
+  //
+  // Filesystem handle.
+  //
+  EFI_HANDLE            Handle;
+  //
+  // List of boot entries (OC_BOOT_ENTRY).
+  //
+  LIST_ENTRY            BootEntries;
+  //
+  // Pointer to APFS Recovery partition (if any).
+  //
+  OC_BOOT_FILESYSTEM    *RecoveryFs;
+  //
+  // External filesystem.
+  //
+  BOOLEAN               External;
+  //
+  // Loader filesystem.
+  //
+  BOOLEAN               LoaderFs;
+  //
+  // Contains recovery on the filesystem.
+  //
+  BOOLEAN               HasSelfRecovery;
+};
+
+/**
+  Boot context containing boot filesystems.
+**/
+typedef struct OC_BOOT_CONTEXT_ {
+  //
+  // Total boot entry count.
+  //
+  UINTN                BootEntryCount;
+  //
+  // Total filesystem count.
+  //
+  UINTN                FileSystemCount;
+  //
+  // List of filesystems containing boot entries (OC_BOOT_FILESYSTEM).
+  //
+  LIST_ENTRY           FileSystems;
+  //
+  // GUID namespace for boot entries.
+  //
+  EFI_GUID             *BootVariableGuid;
+  //
+  // Default entry to be booted.
+  //
+  OC_BOOT_ENTRY        *DefaultEntry;
+  //
+  // Picker context for externally configured parameters.
+  //
+  OC_PICKER_CONTEXT    *PickerContext;
+} OC_BOOT_CONTEXT;
+
+/**
   Exposed start interface with chosen boot entry but otherwise equivalent
   to EFI_BOOT_SERVICES StartImage.
 **/
@@ -562,22 +606,6 @@ EFI_STATUS
   OUT UINTN                       *ExitDataSize,
   OUT CHAR16                      **ExitData    OPTIONAL,
   IN  BOOLEAN                     LaunchInText
-  );
-
-/**
-  Exposed custom entry load interface.
-  Returns allocated file buffer from pool on success.
-**/
-typedef
-EFI_STATUS
-(EFIAPI *OC_CUSTOM_READ)(
-  IN  OC_STORAGE_CONTEXT          *Storage,
-  IN  OC_BOOT_ENTRY               *ChosenEntry,
-  OUT VOID                        **Data,
-  OUT UINT32                      *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL    **DevicePath,
-  OUT EFI_HANDLE                  *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL    **StoragePath
   );
 
 /**
@@ -642,17 +670,25 @@ typedef struct {
   //
   CHAR8                             *AudioBaseType;
   //
-  // External boot system action. Boot Entry Protocol only. Optional.
+  // External boot action. Boot Entry Protocol only. Optional.
   //
-  OC_BOOT_EXTERNAL_SYSTEM_ACTION    ExternalSystemAction;
+  OC_BOOT_EXTERNAL_BOOT_ACTION      ExternalBootAction;
   //
-  // Gets Device Path for external boot system boot entry. Boot Entry Protocol only. Optional.
+  // Gets Device Path for external boot entry. Boot Entry Protocol only. Optional.
   //
-  OC_BOOT_EXTERNAL_SYSTEM_GET_DP    ExternalSystemGetDevicePath;
+  OC_BOOT_EXTERNAL_BOOT_GET_DP      ExternalBootGetDevicePath;
   //
-  // External boot system Device Path. Boot Entry Protocol only. Optional.
+  // External Device Path. For external boot and possibly other Boot Entry Protocol entries. Optional.
   //
-  EFI_DEVICE_PATH_PROTOCOL          *ExternalSystemDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL          *ExternalDevicePath;
+  //
+  // Custom entry image read routine, optional for non-custom entries.
+  //
+  OC_CUSTOM_READ                    CustomRead;
+  //
+  // Custom entry routine to free custom items. Optional.
+  //
+  OC_CUSTOM_FREE                    CustomFree;
   //
   // Whether this entry should be labeled as external to the system. Boot Entry Protocol only. Optional.
   //
@@ -925,7 +961,7 @@ struct OC_PICKER_CONTEXT_ {
   //
   BOOLEAN                     CustomBootGuid;
   //
-  // Custom entry reading routine, optional for no custom entries.
+  // Custom entry image read routine, optional for non-custom entries.
   //
   OC_CUSTOM_READ              CustomRead;
   //
