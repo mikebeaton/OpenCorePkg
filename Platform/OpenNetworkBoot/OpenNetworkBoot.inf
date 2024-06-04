@@ -1,0 +1,44 @@
+## @file
+#  Boot entry protocol handler for PXE and HTTP Boot.
+#
+#  Copyright (C) 2024, Mike Beaton. All rights reserved.<BR>
+#  SPDX-License-Identifier: BSD-3-Clause
+##
+
+[Defines]
+  INF_VERSION    = 0x00010005
+  BASE_NAME      = OpenNetworkBoot
+  ENTRY_POINT    = UefiMain
+  FILE_GUID      = CA2BA189-98E8-4126-ABA5-2CE5C9B4C2D8
+  MODULE_TYPE    = UEFI_DRIVER
+  VERSION_STRING = 1.0
+
+[Packages]
+  OpenCorePkg/OpenCorePkg.dec
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  DebugLib
+  DevicePathLib
+  OcBootManagementLib
+  OcFlexArrayLib
+  OcVirtualFsLib
+  PrintLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+  UefiLib
+
+[Protocols]
+  gEfiHttpBootCallbackProtocolGuid              ## CONSUMES
+  gEfiLoadFileProtocolGuid                      ## CONSUMES
+  gEfiRamDiskProtocolGuid                       ## SOMETIMES_CONSUMES
+  gOcBootEntryProtocolGuid                      ## PRODUCES
+
+[Sources]
+  Callback.c
+  BmBoot.c
+  BmBootDescription.c
+  CustomRead.c
+  NetworkBootInternal.h
+  OpenNetworkBoot.c
+  Uri.c
