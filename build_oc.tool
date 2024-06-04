@@ -201,6 +201,7 @@ package() {
       "OpenHfsPlus.efi"
       "OpenLegacyBoot.efi"
       "OpenLinuxBoot.efi"
+      "OpenNetworkBoot.efi"
       "OpenNtfsDxe.efi"
       "OpenPartitionDxe.efi"
       "OpenRuntime.efi"
