@@ -110,7 +110,7 @@ FreePickerEntry (
 
 STATIC
 EFI_STATUS
-ExternalSystemActionDoLegacyBoot (
+UnmanagedBootActionDoLegacyBoot (
   IN OUT  OC_PICKER_CONTEXT         *PickerContext,
   IN      EFI_DEVICE_PATH_PROTOCOL  *DevicePath
   )
@@ -211,7 +211,7 @@ ExternalSystemActionDoLegacyBoot (
 
 STATIC
 EFI_STATUS
-ExternalSystemGetDevicePath (
+UnmanagedBootGetDevicePath (
   IN OUT  OC_PICKER_CONTEXT         *PickerContext,
   IN OUT  EFI_DEVICE_PATH_PROTOCOL  **DevicePath
   )
@@ -424,9 +424,9 @@ OcGetLegacyBootEntries (
     PickerEntry->TextMode                    = FALSE;
     PickerEntry->RealPath                    = FALSE;
     PickerEntry->External                    = IsExternal;
-    PickerEntry->ExternalSystemAction        = ExternalSystemActionDoLegacyBoot;
-    PickerEntry->ExternalSystemGetDevicePath = ExternalSystemGetDevicePath;
-    PickerEntry->ExternalSystemDevicePath    = BlockDevicePath;
+    PickerEntry->UnmanagedBootAction         = UnmanagedBootActionDoLegacyBoot;
+    PickerEntry->UnmanagedBootGetDevicePath  = UnmanagedBootGetDevicePath;
+    PickerEntry->UnmanagedBootDevicePath     = BlockDevicePath;
 
     if ((PickerEntry->Name == NULL) || (PickerEntry->Flavour == NULL)) {
       OcFlexArrayFree (&FlexPickerEntries);
