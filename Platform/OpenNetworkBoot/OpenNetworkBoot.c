@@ -14,8 +14,8 @@ STATIC BOOLEAN mAllowHttpBoot;
 
 STATIC CHAR16  *mHttpBootUri;
 
-STATIC CHAR16 PxeBootId[]  = L"PXEv_";
-STATIC CHAR16 HttpBootId[] = L"HTTPv_";
+STATIC CHAR16 PxeBootId[]  = L"PXE Boot IPv_";
+STATIC CHAR16 HttpBootId[] = L"HTTP Boot IPv_";
 
 VOID
 InternalFreePickerEntry (
@@ -191,16 +191,10 @@ GetNetworkBootEntries (
   for (Index = 0; Index < HandleCount; ++Index) {
     NetworkDescription = BmGetNetworkDescription (HandleBuffer[Index]);
     if (NetworkDescription == NULL) {
-      DEBUG ((
-        DEBUG_INFO,
-        "NTBT: Handle %u/%u not network boot, load file description '%s'\n",
-        Index,
-        HandleCount,
-        BmGetLoadFileDescription (HandleBuffer[Index])
-      ));
+      DebugPrintDevicePathForHandle (DEBUG_INFO, "NTBT: LoadFile handle not PXE/HTTP boot dp", HandleBuffer[Index]);
     } else {
       //
-      // Use network description as shortcut to identify entry type.
+      // Use fixed format network description as shortcut to identify PXE/HTTP and IPv4/6.
       //
       if (mAllowPxeBoot && StrStr (NetworkDescription, PxeBootId)) {
         DEBUG ((DEBUG_INFO, "NTBT: Adding %s\n", NetworkDescription));
