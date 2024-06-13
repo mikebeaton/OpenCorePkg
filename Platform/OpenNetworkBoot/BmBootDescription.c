@@ -144,7 +144,7 @@ BmGetNetworkDescription (
   //   "PXEv6 (MAC:11-22-33-44-55-66 VLAN1)"
   //   "HTTPv4 (MAC:11-22-33-44-55-66)"
   //
-  DescriptionSize = sizeof (L"HTTPv6 (MAC:112233445566 VLAN65535)");
+  DescriptionSize = sizeof (L"HTTPv6 (MAC:11-22-33-44-55-66 VLAN65535)");
   Description     = AllocatePool (DescriptionSize);
   ASSERT (Description != NULL);
   UnicodeSPrint (
