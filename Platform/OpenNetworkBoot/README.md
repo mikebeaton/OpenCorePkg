@@ -6,8 +6,8 @@ the required network boot drivers have been loaded (e.g. by OpenCore). Using
 additional network boot drivers (provided with OpenCore) when needed, HTTP
 boot should be available on most firmware, even if not natively supported.
 
-**Note**: Above and below, 'HTTP boot' refers to booting using either `http://`
-or `https://`. The additional steps to configure a certificate for
+**Note**: In the above, and below, 'HTTP boot' refers to booting using either
+`http://` or `https://`. The additional steps to configure a certificate for
 `https://` (and to lock `OpenNetworkBoot` to `https://` only if required)
 are covered below.
 
@@ -21,7 +21,7 @@ On some firmware (e.g. HP) the native network boot drivers are not loaded
 if the system boots directly to OpenCore, therefore it is necessary to start
 OpenCore via the firmware boot menu in order to see PXE boot entries.
 (Alternatively, it should be possible to load the entire network boot stack as
-provided with OpenCore. See OVMF instructions.)
+provided with OpenCore, see OVMF instructions.)
 
 ## HTTP Boot
 
@@ -80,26 +80,59 @@ to examine later, within a booted OS. For example `dh > fs0:\foo` or:
 
 OVMF can be compiled with the following flags for full network boot support:
 
-`TODO`
+`-D NETWORK_HTTP_BOOT_ENABLE -D NETWORK_TLS_ENABLE -D NETWORK_IP6_ENABLE`
 
-In addition, if OVMF is compiled with only these flags (for no network boot support)
+In addition `-D LINUX_LOADER` (for audk OVMF only) and
+`-D DEBUG_ON_SERIAL_PORT` and a `DEBUG` or `NOOPT` build are
+recommended.
 
-`TODO`
+If OVMF is compiled without network boot support, then network boot support
+within OpenCore may be added by loading the full network boot stack provided
+with OpenCore:
 
-then network boot support can be added by loading the full network boot stack
-provided with OpenCore:
+ - TODO: confirm, and list
 
- - TODO
+### OVMF networking
 
-To start OVMF with bridged network support, the following flags may be used:
+To start OVMF with bridged network support the following options (which
+require `sudo`) may be used:
 
-`TODO`
-
+```
+-netdev vmnet-bridged,id=mynet0,ifname=en0 \
+-device e1000,netdev=mynet0,id=mynic0
+```
 **Note**: When experimenting with network boot, if any clients (e.g. OVMF,
 VMWare) or network boot server programs (e.g. Apache, `dnsmasq`, WDS) are
 running on VMs, then bridged network support (where the VM appears as a
-separate device with its own IP address on the network) is usually the easiest
+separate device with its own IP address on the network) is usually easiest
 to set up and test.
+
+PXE boot may also be tested in OVMF using the built-in TFTP server available
+with the qemu user mode network stack, for instance using the following
+options:
+
+```
+-netdev user,id=net0,tftp=/Users/user/tftp,bootfile=/OpenShell.efi \
+-device virtio-net-pci,netdev=net0
+```
+
+No equivalent options are available for HTTP boot, so to test this a
+combination such as bridged networking and `dnsmasq` should be used.
+
+### OVMF HTTPS certificate
+
+When using `https://` as opposed to `http://`, remember that a certificate
+must be configured on the network boot client. In OVMF this is done in
+`Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
+(Note that no GUID needs to be provided - all zeroes will be used - if only a
+single, test certificate is going to be configured.)
+
+### Debugging
+
+Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
+`-serial stdio` option to qemu (and then scrolling back in the output to the
+point of a failed network boot) can be very useful when trying to debug failed
+network boots.
 
 ## Configuring network boot
 
@@ -116,8 +149,8 @@ flag for `OpenNetworkBoot`. If using this option, only an HTTP server (and
 certificate, for HTTPS), needs to be set up; no DHCP helper service is
 required.
 
-**Note 2**: No equivalent option is provided for PXE boot, since by far and away
-the most standard (and recommended) set up is for the program specifying the
+**Note 2**: No equivalent option is provided for PXE boot, since the most
+standard (and recommended) set up is for the program specifying the
 NBP file and the program serving it via TFTP to be one and the same.
 
 ### PXE Boot
