@@ -107,16 +107,16 @@ To start OVMF with bridged network support the following macOS-specific
 to set up and test these using bridged network support, which allows the VM to
 appear as a separate device with its own IP address on the network.
 
-PXE boot may also be tested in OVMF using the built-in TFTP server available
-with the qemu user mode network stack, for example using the following
-options:
+PXE boot may also be tested in OVMF using the built-in TFTP/PXE server
+available with the qemu user mode network stack, for example using the
+following options:
 
 ```
 -netdev user,id=net0,tftp=/Users/user/tftp,bootfile=/OpenShell.efi \
 -device virtio-net-pci,netdev=net0
 ```
 
-No equivalent options are available for HTTP boot, so to experiment with this
+No equivalent options are available for HTTP boot, so to experiment with this,
 a combination such as bridged networking and `dnsmasq` should be used.
 
 ### OVMF HTTPS certificate
