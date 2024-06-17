@@ -128,14 +128,19 @@ be done using
 (No GUID needs to be provided on this page - all zeroes will be
 used - if only a single, test certificate is going to be configured.)
 
-### Debugging
+### Debugging network boot on OVMF
 
 Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
 `-serial stdio` option to qemu (and then scrolling back in the output as
 needed, to the lines generated during a failed network boot) can be very
 useful when trying to debug network boot setup.
 
-## Configuring network boot
+OVMF can take packet captures using
+`-object filter-dump,netdev={net-id},id=filter0,file=/Users/user/ovmf.cap`
+(`{net-id}` should be replaced as appropriate with the `id` value specified in the
+corresponding `-netdev` option).
+
+## Configuring a network boot server
 
 In standard PXE or HTTP boot, the normal network DHCP server responds to a
 device's request for an IP address, but a separate DHCP helper service (often
@@ -156,11 +161,11 @@ NBP file and the program serving it via TFTP to be one and the same.
 
 ### PXE Boot
 
-In PXE boot, then NBP is loaded via TFTP, which is a slow protocol, not suitable
-for large files. Standard PXE boot NBPs tend to load further large files which
-they need themselves with their own network stack, not via TFTP.
+In PXE boot, the NBP is loaded via TFTP, which is a slow protocol, not suitable
+for large files. Standard PXE boot NBPs typically load any further large files
+which they need using their own network stack and not via TFTP.
 
-# WDS
+#### WDS
 
 Windows Deployment Services (WDS, which is incuded with Windows Server) can be
 used to provide responses to PXE boot requests.
@@ -168,10 +173,10 @@ used to provide responses to PXE boot requests.
 **Note**: WDS is now largely deprecated (only a few aspects are still
 supported).
 
-# dnsmasq
+#### dnsmasq
 
-`dnsmasq` can be used to both provide the location of the NBP file and then
-serve it by TFTP.
+`dnsmasq` can be used to both provide the location of the PXE boot NBP file
+and then serve it by TFTP.
 
 A basic `dnsmasq` PXE boot configuration is as follows:
 
@@ -185,21 +190,31 @@ HTTP boot.)
 
 TODO: More info on which hardware id and where it is set and saved.
 
+Reference:
+ - https://wiki.archlinux.org/title/dnsmasq
+
 ### HTTP Boot
+
+#### dnsmasq
 
 Although `dnsmasq` arguably does not provide as full support for HTTP
 boot as it does for PXE boot, its features can be used (or abused) to respond
-to requests for the location of HTTP boot NBP files. An HTTP server
-(such as Apache, or multiple other options) will be required to serve the
-files.
+to requests for the location of HTTP boot NBP files.
 
-Other options, such as TODO, may also be used.
+An HTTP server (such as Apache, nginx, or multiple other options) will be
+required to serve the actual NBP files over `http://` or `https://`.
 
 A basic `dnsmasq` HTTP boot configuration is as follows:
 
 ```
 TODO
 ```
+
+References:
+ - https://github.com/ipxe/ipxe/discussions/569
+ - https://www.mail-archive.com/dnsmasq-discuss@lists.thekelleys.org.uk/msg16278.html
+
+Other options, such as TODO, may also be used.
 
 ### HTTPS Boot
 
