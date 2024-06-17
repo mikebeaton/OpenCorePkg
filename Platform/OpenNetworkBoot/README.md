@@ -94,21 +94,21 @@ with OpenCore:
 
 ### OVMF networking
 
-To start OVMF with bridged network support the following options (which
-require `sudo`) may be used:
+To start OVMF with bridged network support the following macOS-specific
+`qemu` options (which require `sudo`) may be used:
 
 ```
 -netdev vmnet-bridged,id=mynet0,ifname=en0 \
 -device e1000,netdev=mynet0,id=mynic0
 ```
-**Note**: When experimenting with network boot, if any clients (e.g. OVMF,
-VMWare) or network boot server programs (e.g. Apache, `dnsmasq`, WDS) are
-running on VMs, then bridged network support (where the VM appears as a
-separate device with its own IP address on the network) is usually easiest
-to set up and test.
+
+**Note**: If any network boot clients (e.g. OVMF, VMWare) or server programs
+(e.g. Apache, `dnsmasq`, WDS) are running on VMs, then it is normally easier
+to set up and test these using bridged network support, which allows the VM to
+appear as a separate device with its own IP address on the network.
 
 PXE boot may also be tested in OVMF using the built-in TFTP server available
-with the qemu user mode network stack, for instance using the following
+with the qemu user mode network stack, for example using the following
 options:
 
 ```
@@ -116,27 +116,28 @@ options:
 -device virtio-net-pci,netdev=net0
 ```
 
-No equivalent options are available for HTTP boot, so to test this a
-combination such as bridged networking and `dnsmasq` should be used.
+No equivalent options are available for HTTP boot, so to experiment with this
+a combination such as bridged networking and `dnsmasq` should be used.
 
 ### OVMF HTTPS certificate
 
-When using `https://` as opposed to `http://`, remember that a certificate
-must be configured on the network boot client. In OVMF this is done in
+When using `https://` as opposed to `http://`, a certificate must be
+configured on the network boot client. Within the OVMF menus this may
+be done using
 `Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
-(Note that no GUID needs to be provided - all zeroes will be used - if only a
-single, test certificate is going to be configured.)
+(No GUID needs to be provided on this page - all zeroes will be
+used - if only a single, test certificate is going to be configured.)
 
 ### Debugging
 
 Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
-`-serial stdio` option to qemu (and then scrolling back in the output to the
-point of a failed network boot) can be very useful when trying to debug failed
-network boots.
+`-serial stdio` option to qemu (and then scrolling back in the output as
+needed, to the lines generated during a failed network boot) can be very
+useful when trying to debug network boot setup.
 
 ## Configuring network boot
 
-In standard PXE or HTTP boot, the usual network DHCP server responds to a
+In standard PXE or HTTP boot, the normal network DHCP server responds to a
 device's request for an IP address, but a separate DHCP helper service (often
 running on a different machine from the DHCP server) responds to the device's
 DHCP extension request to know which network boot program (NBP) to load. It is
@@ -145,7 +146,7 @@ usually more complex) to configure the main DHCP server to respond to both
 requests.
 
 **Note 1**: The NBP for HTTP boot can be configured by specifying the `--uri`
-flag for `OpenNetworkBoot`. If using this option, only an HTTP server (and
+flag for `OpenNetworkBoot`. When using this option, only an HTTP server (and
 certificate, for HTTPS), needs to be set up; no DHCP helper service is
 required.
 
@@ -157,34 +158,44 @@ NBP file and the program serving it via TFTP to be one and the same.
 
 In PXE boot, then NBP is loaded via TFTP, which is a slow protocol, not suitable
 for large files. Standard PXE boot NBPs tend to load further large files which
-they need themselves, with their own network stack, and not via TFTP.
+they need themselves with their own network stack, not via TFTP.
+
+# WDS
 
 Windows Deployment Services (WDS, which is incuded with Windows Server) can be
-used to provide responses to PXE boot requests. Note: this technology is now
-largely deprecated (only a few aspects are still supported).
+used to provide responses to PXE boot requests.
+
+**Note**: WDS is now largely deprecated (only a few aspects are still
+supported).
+
+# dnsmasq
 
 `dnsmasq` can be used to both provide the location of the NBP file and then
 serve it by TFTP.
 
-A simple configuration is as follows:
+A basic `dnsmasq` PXE boot configuration is as follows:
 
 ```
 TODO
 ```
 
-A more advanced configuration (for both PXE or HTTP boot) might serve
-different files to different machines, depending on their hardware id.
-(More info TODO.)
+A more advanced configuration might serve different files to different
+machines, depending on their hardware id. (The same point applies to
+HTTP boot.)
+
+TODO: More info on which hardware id and where it is set and saved.
 
 ### HTTP Boot
 
 Although `dnsmasq` arguably does not provide as full support for HTTP
 boot as it does for PXE boot, its features can be used (or abused) to respond
-to requests for the location of HTTP boot NBP files.
+to requests for the location of HTTP boot NBP files. An HTTP server
+(such as Apache, or multiple other options) will be required to serve the
+files.
 
 Other options, such as TODO, may also be used.
 
-A simple `dnsmasq` configuration is as follows:
+A basic `dnsmasq` HTTP boot configuration is as follows:
 
 ```
 TODO
@@ -201,7 +212,7 @@ clients, in this case we can do so.
 
 ## Booting ISO and IMG files
 
-Though often not noted in the documentation, the vast majority of HTTP Boot
+Though not often noted in the documentation, the vast majority of HTTP Boot
 implementations support loading `.iso` and `.img` files, which will be
 automatically mounted as a ramdisk. If the mounted filesystem includes
 `\EFI\BOOT\BOOTx64.efi` (or `\EFI\BOOT\BOOTIA32.efi` for 32-bit) then this
@@ -216,7 +227,7 @@ The MIME type for `.efi` files is:
 
  - `application/efi`
 
-If the MIME type is not one of the above then the corresponding file
+If the MIME type is not one of the above, then the corresponding file
 extensions (`.iso`, `.img` and `.efi`) are used instead to identify the NBP
 file type.
 
@@ -236,10 +247,10 @@ automatically loaded, in order to allow DMG chunklist verification.
 In order for `.dmg` and `.chunklist` files to be loaded by standard HTTP boot
 drivers (including the `HttpBootDxe` driver currently shipped with OpenCore),
 they must be served with the MIME type `application/efi`, otherwise they will
-be treated as having an unknown file type and will not be loaded. (Note that
-`.dmg` files cannot use the MIME types for ISO or IMG files, as above, or else
-standard HTTP boot drivers will try to load, mount and boot from them as the
-corresponding type of ramdisk, which will fail.)
+be treated as having an unknown file type and will not be loaded. (Note also
+that `.dmg` files should not use the MIME types for ISO or IMG files, as above,
+or else standard HTTP boot drivers will try to load, mount and boot from them
+as the corresponding type of ramdisk, which will fail.)
 
 For example, to set up the required MIME types when using Apache installed via
 Homebrew on macOS, the following line should be added to
@@ -271,8 +282,9 @@ will load (assuming it is a non-corrupt DMG file) even when verification fails.
 
 ## NOTE: Security
 
-Unfortunately some or all of the recent CVEs affecting HTTP boot (which
-perhaps most importantly render it vulnerable to MITM attacks by an
-attacker on your network) almost certainly apply to the EDK-2-derived HTTP
-boot drivers which are currently shipped with OpenCore. The drivers shipped
-with OpenCore will be updated after fixes have appeared in the EDK-2 code.
+Unfortunately, some or all of the recent CVEs affecting HTTP boot will almost
+certainly apply to the EDK-2-derived HTTP boot drivers which are currently
+shipped with OpenCore. Perhaps most importantly, these vulnerabilities render
+HTTPS boot vulnerable to MITM attacks, by an attacker on your network. The
+drivers shipped with OpenCore will be updated after fixes have appeared in
+the EDK-2 code.
