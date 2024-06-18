@@ -154,7 +154,9 @@ HttpBootCustomRead (
   }
 
   //
-  // Load the first (or only) file.
+  // Load the first (or only) file. This method has been extended to
+  // abort early (avoiding a pointless, long, slow load of a DMG) if DmgLoading
+  // is disabled and the requested file extension is `.dmg` (or `.chunklist`).
   //
   *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize, DmgLoading);
 
@@ -185,10 +187,6 @@ HttpBootCustomRead (
     } else {
       Status = ExtractOtherUri (*DevicePath, ".chunklist", ".dmg", &OtherUri, FALSE);
       if (!EFI_ERROR (Status)) {
-        //
-        // We could abort if DmgLoading == OcDmgLoadingDisabled here, but since
-        // (or while) we can't usefully abort above, there's not much point.
-        //
         Status = SetDmgPreloadChunklist (DmgPreloadContext, Data, DataSize);
         if (EFI_ERROR (Status)) {
           FreePool (OtherUri);
