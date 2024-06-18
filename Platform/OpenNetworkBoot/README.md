@@ -297,13 +297,11 @@ the NBP, and the other matching file will be loaded afterwards, automatically.
 are found as the NBP, then the HTTP boot process will be aborted. (Allowing
 these files to load and then passing them to the OpenCore DMG loading process
 would be pointless, as they would be rejected at that point anyway.)
- - If `DmgLoading` is set to `Any` and the NBP is `{filename}.dmg`, then no
-attempt will be made to load the corresponding `{filename}.chunklist` as it
-is not required. Specifying `{filename}.chunklist` as the NBP can be used to
-force both files to be loaded and DMG verification to occur, in this situation.
-The success or failure result of the verification can be seen in the OpenCore
-log file, but since verification is not required (with this setting) the DMG
-will load (assuming it is a non-corrupt DMG file) even when verification fails.
+ - If `DmgLoading` is set to `Any` and the NBP is `{filename}.dmg` then only
+the `.dmg` file will be loaded, as verification via `.chunklist` is not
+carried out with this setting. If the NBP is `{filename}.chunklist` then
+the `.chunklist` followed by the `.dmg` will be loaded, but the `.chunklist`
+will not be used.
 
 ## NOTE: Security
 
