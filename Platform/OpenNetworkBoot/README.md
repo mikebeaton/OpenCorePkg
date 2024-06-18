@@ -34,7 +34,7 @@ try adding all three of `HttpDxe`, `HttpUtilitiesDxe` and `HttpBootDxe`.
 
 If this still does not work, proceed to the next section.
 
-## Identifying missing drivers
+## Identifying missing network boot drivers
 
 The `dh` command in UEFI Shell (for instance `OpenShell` provided with
 OpenCore) is useful for working out which drivers are missing for network
@@ -87,8 +87,8 @@ In addition `-D LINUX_LOADER` (for audk OVMF only) and
 recommended.
 
 If OVMF is compiled without network boot support, then network boot support
-within OpenCore may be added by loading the full network boot stack provided
-with OpenCore:
+within OpenCore only may be added loading the full network boot stack provided
+with OpenCore as OpenCore `Drivers`:
 
  - TODO: confirm, and list
 
@@ -103,7 +103,7 @@ To start OVMF with bridged network support the following macOS-specific
 ```
 
 **Note**: If any network boot clients (e.g. OVMF, VMWare) or server programs
-(e.g. Apache, `dnsmasq`, WDS) are running on VMs, then it is normally easier
+(e.g. Apache, `dnsmasq`, WDS) are running on VMs, then it is normally easiest
 to set up and test these using bridged network support, which allows the VM to
 appear as a separate device with its own IP address on the network.
 
@@ -125,7 +125,7 @@ When using `https://` as opposed to `http://`, a certificate must be
 configured on the network boot client. Within the OVMF menus this may
 be done using
 `Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
-(No GUID needs to be provided on this page - all zeroes will be
+(No GUID needs to be provided in that dialog - all zeroes will be
 used - if only a single, test certificate is going to be configured.)
 
 ### Debugging network boot on OVMF
@@ -135,19 +135,19 @@ Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
 needed, to the lines generated during a failed network boot) can be very
 useful when trying to debug network boot setup.
 
-OVMF can take packet captures using
+OVMF can capture packets using
 `-object filter-dump,netdev={net-id},id=filter0,file=/Users/user/ovmf.cap`
 (`{net-id}` should be replaced as appropriate with the `id` value specified in the
 corresponding `-netdev` option).
 
 ## Configuring a network boot server
 
-In standard PXE or HTTP boot, the normal network DHCP server responds to a
-device's request for an IP address, but a separate DHCP helper service (often
-running on a different machine from the DHCP server) responds to the device's
-DHCP extension request to know which network boot program (NBP) to load. It is
-possible (but actually less standard, even on enterprise networks; and
-usually more complex) to configure the main DHCP server to respond to both
+In standard PXE and HTTP boot, the network's normal DHCP server responds to a
+client device's request for an IP address, but a separate DHCP helper service
+(often running on a different machine from the DHCP server) responds to the
+device's DHCP extension request to know which network boot program (NBP) to
+load. It is possible (but less standard, even on enterprise networks;
+and usually more complex) to configure the main DHCP server to respond to both
 requests.
 
 **Note 1**: The NBP for HTTP boot can be configured by specifying the `--uri`
@@ -168,10 +168,19 @@ which they need using their own network stack and not via TFTP.
 #### WDS
 
 Windows Deployment Services (WDS, which is incuded with Windows Server) can be
-used to provide responses to PXE boot requests.
+used to provide responses to PXE boot requests, and can be configured to serve
+non-Windows NBPs.
 
-**Note**: WDS is now largely deprecated (only a few aspects are still
+**Note 1**: WDS is now largely deprecated (only a few aspects are still
 supported).
+
+**Note 2**: On certain systems, the OpenCore `TextRenderer` setting 
+must be set to one of the `System` values in order to see the early output of
+`wdsmgfw.efi` (the NBP served by default by WDS). This can be worked round by
+pressing either `F12` or `Enter` in the pause after this program has loaded,
+in order to access the next screen.
+The issue of the early text of this software not appearing in some circumstances
+is not unique to OpenCore: https://serverfault.com/q/683314
 
 #### dnsmasq
 
@@ -252,10 +261,11 @@ the `HttpBootDxe` driver currently shipped with OpenCore).
 
 ## Booting DMG files
 
-In order to allow booting macOS, `OpenNetworkBoot` includes additional support for
-loading `.dmg` files via HTTP boot. If the NBP filename is `{filename}.dmg`
-or `{filename}.chunklist` then the other file of this pair will be
-automatically loaded, in order to allow DMG chunklist verification.
+In order to allow booting macOS Recovery OS, `OpenNetworkBoot` includes
+additional support for loading `.dmg` files via HTTP boot. If the NBP
+filename is `{filename}.dmg` or `{filename}.chunklist` then the other
+file of this pair will be automatically loaded, in order to allow DMG
+chunklist verification.
 
 ### Required MIME types
 
