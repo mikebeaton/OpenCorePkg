@@ -171,14 +171,14 @@ Windows Deployment Services (WDS, which is incuded with Windows Server) can be
 used to provide responses to PXE boot requests, and can be configured to serve
 non-Windows NBPs.
 
-**Note 1**: WDS is now largely deprecated (only a few aspects are still
-supported).
+**Note 1**: Certain aspects of WDS are now deprecated:
+https://aka.ms/WDSSupport
 
 **Note 2**: On certain systems, the OpenCore `TextRenderer` setting 
 must be set to one of the `System` values in order to see the early output of
-`wdsmgfw.efi` (the NBP served by default by WDS). This can be worked round by
-pressing either `F12` or `Enter` in the pause after this program has loaded,
-in order to access the next screen.
+`wdsmgfw.efi` (the NBP served by default by WDS). If this text is not visible,
+this can be worked round by pressing either `F12` or `Enter` in the pause
+after the program has loaded, in order to access the next screen.
 The issue of the early text of this software not appearing in some circumstances
 is not unique to OpenCore: https://serverfault.com/q/683314
 
