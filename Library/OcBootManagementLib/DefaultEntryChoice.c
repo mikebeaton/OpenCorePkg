@@ -1588,6 +1588,7 @@ InternalLoadBootEntry (
                         );
 
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_WARN, "OCB: Custom read failed - %r\n", Status));
       return Status;
     }
   }
