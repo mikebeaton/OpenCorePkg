@@ -273,9 +273,9 @@ In order for `.dmg` and `.chunklist` files to be loaded by standard HTTP boot
 drivers (including the `HttpBootDxe` driver currently shipped with OpenCore),
 they must be served with the MIME type `application/efi`, otherwise they will
 be treated as having an unknown file type and will not be loaded. (Note also
-that `.dmg` files should not use the MIME types for ISO or IMG files, as above,
-or else standard HTTP boot drivers will try to load, mount and boot from them
-as the corresponding type of ramdisk, which will fail.)
+that `.dmg` files should not use the MIME types for ISO or IMG files mentioned
+above, or else the HTTP boot drivers will try to load, mount and boot from
+them as the corresponding type of ramdisk, which will fail.)
 
 For example, to set up the required MIME types when using Apache installed via
 Homebrew on macOS, the following line should be added to
