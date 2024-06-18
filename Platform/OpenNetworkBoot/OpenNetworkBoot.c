@@ -133,10 +133,14 @@ InternalAddEntry (
   }
   PickerEntry->UnmanagedBootDevicePath = NewDevicePath;
 
-  PickerEntry->CustomRead = NetworkBootCustomRead;
-  PickerEntry->CustomFree = NetworkBootCustomFree;
-
-  PickerEntry->Flavour = IsHttpBoot ? OC_FLAVOUR_HTTP_BOOT : OC_FLAVOUR_PXE_BOOT;
+  if (IsHttpBoot) {
+    PickerEntry->CustomRead = HttpBootCustomRead;
+    PickerEntry->CustomFree = HttpBootCustomFree;
+    PickerEntry->Flavour = OC_FLAVOUR_HTTP_BOOT;
+  } else {
+    PickerEntry->CustomRead = PxeBootCustomRead;
+    PickerEntry->Flavour = OC_FLAVOUR_PXE_BOOT;
+  }
 
   //
   // Probably sensible on balance ... although not yet clear how it will interact with GUI-based firmware.
