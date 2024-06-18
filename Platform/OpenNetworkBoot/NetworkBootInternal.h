@@ -112,13 +112,28 @@ BmDestroyRamDisk (
 
 EFI_STATUS
 EFIAPI
-NetworkBootCustomFree (
+HttpBootCustomFree (
   IN  VOID      *Context
   );
 
 EFI_STATUS
 EFIAPI
-NetworkBootCustomRead (
+HttpBootCustomRead (
+  IN  OC_STORAGE_CONTEXT                  *Storage,
+  IN  OC_BOOT_ENTRY                       *ChosenEntry,
+  OUT VOID                                **Data,
+  OUT UINT32                              *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
+  OUT EFI_HANDLE                          *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
+  OUT VOID                                **Context
+  );
+
+EFI_STATUS
+EFIAPI
+PxeBootCustomRead (
   IN  OC_STORAGE_CONTEXT                  *Storage,
   IN  OC_BOOT_ENTRY                       *ChosenEntry,
   OUT VOID                                **Data,
