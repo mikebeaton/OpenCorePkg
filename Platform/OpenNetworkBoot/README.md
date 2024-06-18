@@ -29,7 +29,7 @@ On most recent firmware, either no or only a few additional drivers are needed
 for HTTP boot, as most required drivers are already present in firmware.
 
 After adding `OpenNetworkBoot`, if no HTTP boot entries are seen, the next
-thing to try is adding only the driver `HttpBootDxe`. If this does not work,
+thing to try is adding the driver `HttpBootDxe`. If this does not work,
 try adding all three of `HttpDxe`, `HttpUtilitiesDxe` and `HttpBootDxe`.
 
 If this still does not work, proceed to the next section.
