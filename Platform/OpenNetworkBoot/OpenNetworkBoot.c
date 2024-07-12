@@ -7,15 +7,6 @@
 
 #include "NetworkBootInternal.h"
 
-STATIC
-OC_BOOT_ENTRY_PROTOCOL
-  mNetworkBootEntryProtocol = {
-  OC_BOOT_ENTRY_PROTOCOL_REVISION,
-  GetNetworkBootEntries,
-  FreeNetworkBootEntries,
-  NULL
-};
-
 typedef struct {
   EFI_GUID          *OwnerGuid;
   UINTN             CertSize;
@@ -213,7 +204,7 @@ GetNetworkBootEntries (
   for (Index = 0; Index < HandleCount; ++Index) {
     NetworkDescription = BmGetNetworkDescription (HandleBuffer[Index]);
     if (NetworkDescription == NULL) {
-      DebugPrintDevicePathForHandle (DEBUG_INFO, "NTBT: LoadFile handle not PXE/HTTP boot dp", HandleBuffer[Index]);
+      DebugPrintDevicePathForHandle (DEBUG_INFO, "NTBT: LoadFile handle not PXE/HTTP boot DP", HandleBuffer[Index]);
     } else {
       //
       // Use fixed format network description as shortcut to identify PXE/HTTP and IPv4/6.
@@ -427,6 +418,15 @@ EnrollCerts (
 
   return Status;
 }
+
+STATIC
+OC_BOOT_ENTRY_PROTOCOL
+mNetworkBootEntryProtocol = {
+  OC_BOOT_ENTRY_PROTOCOL_REVISION,
+  GetNetworkBootEntries,
+  FreeNetworkBootEntries,
+  NULL
+};
 
 EFI_STATUS
 EFIAPI
