@@ -16,6 +16,7 @@
 [Packages]
   OpenCorePkg/OpenCorePkg.dec
   MdePkg/MdePkg.dec
+  NetworkPkg/NetworkPkg.dec
 
 [LibraryClasses]
   DebugLib

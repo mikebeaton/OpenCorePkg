@@ -15,8 +15,8 @@ EFI_STATUS
 (*PROCESS_CERT)(
   IN VOID                 *Context,
   IN UINTN                CertIndex,
-  IN EFI_SIGNATURE_DATA   *Cert,
-  IN UINTN                CertSize
+  IN UINTN                CertSize,
+  IN EFI_SIGNATURE_DATA   *Cert
   );
 
 typedef struct {
@@ -55,8 +55,6 @@ LoopOverInstalledCerts (
   EFI_SIGNATURE_LIST  *CertList;
   EFI_SIGNATURE_DATA  *Cert;
   UINT32              ItemDataSize;
-  EFI_STRING_ID       GuidID;
-  EFI_STRING_ID       Help;
 
   ASSERT (ProcessCert != NULL);
 
@@ -111,7 +109,7 @@ LoopOverInstalledCerts (
                                     + CertList->SignatureHeaderSize
                                     + Index * CertList->SignatureSize);
 
-      Status = ProcessCert (Context, Cert, CertList->SignatureListSize, GuidIndex);
+      Status = ProcessCert (Context, GuidIndex, CertList->SignatureListSize, Cert);
       if (EFI_ERROR (Status)) {
         break;
       }
@@ -136,8 +134,8 @@ EFI_STATUS
 LogCert (
   IN VOID                 *Context,
   IN UINTN                CertIndex,
-  IN EFI_SIGNATURE_DATA   *Cert,
-  IN UINTN                CertSize
+  IN UINTN                CertSize,
+  IN EFI_SIGNATURE_DATA   *Cert
   )
 {
   DEBUG ((DEBUG_INFO, "NTBT: Cert %g\n", &Cert->SignatureOwner));
@@ -175,8 +173,8 @@ EFI_STATUS
 CheckCertPresent (
   IN VOID                 *VoidContext,
   IN UINTN                CertIndex,
-  IN EFI_SIGNATURE_DATA   *Cert,
-  IN UINTN                CertSize
+  IN UINTN                CertSize,
+  IN EFI_SIGNATURE_DATA   *Cert
   )
 {
   CERT_IS_PRESENT_CONTEXT     *Context;
