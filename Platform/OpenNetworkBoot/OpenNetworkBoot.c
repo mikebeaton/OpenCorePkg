@@ -257,7 +257,7 @@ EnrollCerts (
   UINTN           CertSize;
   OC_PARSED_VAR   *Option;
   CERT_INFO       *Certs;
-  BOOLEAN         HaveCertsToAdd;
+  BOOLEAN         Removed;
 
   //
   // Find certs in options.
@@ -274,13 +274,6 @@ EnrollCerts (
           )
         )
       {
-        if (Option->Unicode.Value == NULL) {
-          if (Pass == 0) {
-            DEBUG ((DEBUG_INFO, "NTBT: Missing value for %s, ignoring\n", Option->Unicode.Name));
-          }
-          continue;
-        }
-
         CertIndex = CertCount++;
 
         if (Pass == 1) {
@@ -302,18 +295,23 @@ EnrollCerts (
           }
 
           //
-          // We do not include the terminating '\0' in the stored certificate,
-          // which matches how stored by e.g. OVMF when loaded from file;
-          // but we must allocate space for '\0' for Unicode to ASCII conversion.
+          // Empty cert value forces clear for owner GUID.
           //
-          CertSize = StrLen (Option->Unicode.Value);
-          Certs[CertIndex].CertData = AllocateZeroPool (CertSize + 1);
-          if (Certs[CertIndex].CertData == NULL) {
-            Status = EFI_OUT_OF_RESOURCES;
-            break;
+          if (Option->Unicode.Value != NULL) {
+            //
+            // We do not include the terminating '\0' in the stored certificate,
+            // which matches how stored by e.g. OVMF when loaded from file;
+            // but we must allocate space for '\0' for Unicode to ASCII conversion.
+            //
+            CertSize = StrLen (Option->Unicode.Value);
+            Certs[CertIndex].CertData = AllocateZeroPool (CertSize + 1);
+            if (Certs[CertIndex].CertData == NULL) {
+              Status = EFI_OUT_OF_RESOURCES;
+              break;
+            }
+            Certs[CertIndex].CertSize = CertSize;
+            UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertIndex].CertData, CertSize + 1);
           }
-          Certs[CertIndex].CertSize = CertSize;
-          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertIndex].CertData, CertSize + 1);
         }
       }
     }
@@ -339,24 +337,28 @@ EnrollCerts (
   // for a given owner GUID if any certs for it are missing.
   //
   if (!EFI_ERROR (Status) && Certs != NULL) {
-    HaveCertsToAdd  = FALSE;
+    Removed = FALSE;
 
     for (Index = 0; Index < CertCount; ++Index) {
       if (Certs[Index].AddThisCert) {
         continue;
       }
 
-      Status = CertIsPresent (
-            EFI_TLS_CA_CERTIFICATE_VARIABLE,
-            &gEfiTlsCaCertificateGuid,
-            Certs[Index].OwnerGuid,
-            Certs[Index].CertSize,
-            Certs[Index].CertData
-      );
+      if (Certs[Index].CertData == NULL) {
+        Status = EFI_SUCCESS;
+      } else {
+        Status = CertIsPresent (
+              EFI_TLS_CA_CERTIFICATE_VARIABLE,
+              &gEfiTlsCaCertificateGuid,
+              Certs[Index].OwnerGuid,
+              Certs[Index].CertSize,
+              Certs[Index].CertData
+        );
 
-      if (EFI_ERROR (Status) && (Status != EFI_ALREADY_STARTED)) {
-        DEBUG ((DEBUG_INFO, "NTBT: Error checking for cert presence - %r\n", Status));
-        break;
+        if (EFI_ERROR (Status) && (Status != EFI_ALREADY_STARTED)) {
+          DEBUG ((DEBUG_INFO, "NTBT: Error checking for cert presence - %r\n", Status));
+          break;
+        }
       }
       
       if (Status == EFI_ALREADY_STARTED) {
@@ -364,7 +366,8 @@ EnrollCerts (
       } else {
         DEBUG ((
           DEBUG_INFO,
-          "NTBT: Cert not present, clearing existing certs for owner GUID %g\n",
+          "NTBT: %a clearing existing certs for owner GUID %g\n",
+          Certs[Index].CertData == NULL ? "Empty cert data forces" : "Cert not present,",
           Certs[Index].OwnerGuid
         ));
         Status = DeleteCertsForOwner (
@@ -380,7 +383,7 @@ EnrollCerts (
           ));
           break;
         }
-        HaveCertsToAdd = TRUE;
+        Removed = TRUE;
         Certs[Index].AddThisCert = TRUE;
         for (Index2 = 0; Index2 < CertCount; ++Index2) {
           if ( (Index2 != Index)
@@ -394,11 +397,11 @@ EnrollCerts (
     }
 
     if (!EFI_ERROR (Status)) {
-      if (!HaveCertsToAdd) {
+      if (!Removed) {
         DEBUG ((DEBUG_INFO, "NTBT: All certs already present\n"));
       } else {
         for (Index = 0; Index < CertCount; ++Index) {
-          if (Certs[Index].AddThisCert) {
+          if (Certs[Index].AddThisCert && (Certs[Index].CertData != NULL)) {
             DEBUG ((DEBUG_INFO, "NTBT: Adding cert for owner GUID %g\n", Certs[Index].OwnerGuid));
             Status = EnrollX509toVariable (
               EFI_TLS_CA_CERTIFICATE_VARIABLE,
