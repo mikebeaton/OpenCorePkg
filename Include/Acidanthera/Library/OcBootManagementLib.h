@@ -1573,9 +1573,10 @@ typedef struct OC_BOOT_ARGUMENTS_ {
 } OC_BOOT_ARGUMENTS;
 
 //
-// Sanity check max. size for LoadOptions.
+// Sanity check max. size for LoadOptions. We need to pass PEM certificates
+// to some drivers (e.g. OpenNetworkBoot), so this has to be quite large.
 //
-#define MAX_LOAD_OPTIONS_SIZE  SIZE_4KB
+#define MAX_LOAD_OPTIONS_SIZE  SIZE_16KB
 
 /**
   Are load options apparently valid (Unicode string or cleanly non-present)?
