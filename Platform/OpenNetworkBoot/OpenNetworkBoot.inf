@@ -25,6 +25,7 @@
   OcVirtualFsLib
   PrintLib
   UefiBootServicesTableLib
+  UefiRuntimeServicesTableLib
   UefiDriverEntryPoint
   UefiLib
 
@@ -34,6 +35,11 @@
   gEfiRamDiskProtocolGuid                       ## SOMETIMES_CONSUMES
   gOcBootEntryProtocolGuid                      ## PRODUCES
 
+[Guids]
+  gEfiTlsCaCertificateGuid                      ## SOMETIMES_CONSUMES  ## Variable:L"TlsCaCertificate"
+  gEdkiiHttpTlsCipherListGuid                   ## SOMETIMES_CONSUMES  ## Variable:L"HttpTlsCipherList"
+  gEfiCertX509Guid                              ## SOMETIMES_CONSUMES  ## GUID  # Check the cert type
+
 [Sources]
   Callback.c
   BmBoot.c
@@ -41,4 +47,5 @@
   CustomRead.c
   NetworkBootInternal.h
   OpenNetworkBoot.c
+  TlsAuthConfigImpl.c
   Uri.c
