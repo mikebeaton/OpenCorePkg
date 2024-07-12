@@ -251,6 +251,7 @@ EnrollCerts (
   EFI_STATUS      Status;
   UINTN           Index;
   UINTN           Index2;
+  UINTN           CertIndex;
   UINTN           CertCount;
   UINTN           Pass;
   UINTN           CertSize;
@@ -280,10 +281,11 @@ EnrollCerts (
           continue;
         }
 
-        ++CertCount;
+        CertIndex = CertCount++;
+
         if (Pass == 1) {
-          Certs[CertCount].OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
-          if (Certs[CertCount].OwnerGuid == NULL) {
+          Certs[CertIndex].OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
+          if (Certs[CertIndex].OwnerGuid == NULL) {
             Status = EFI_OUT_OF_RESOURCES;
             break;
           }
@@ -292,23 +294,32 @@ EnrollCerts (
           // Use all zeros GUID if no user value supplied.
           //
           if (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':') {
-            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertCount].OwnerGuid);
+            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertIndex].OwnerGuid);
             if (EFI_ERROR (Status)) {
               DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner GUID from %s - %r\n", Option->Unicode.Name, Status));
               break;
             }
           }
 
-          CertSize = StrSize (Option->Unicode.Value);
-          Certs[CertCount].CertData = AllocateZeroPool (CertSize);
-          if (Certs[CertCount].CertData == NULL) {
+          //
+          // We do not include the terminating '\0' in the stored certificate,
+          // which matches how stored by e.g. OVMF when loaded from file;
+          // but we must allocate space for '\0' for Unicode to ASCII conversion.
+          //
+          CertSize = StrLen (Option->Unicode.Value);
+          Certs[CertIndex].CertData = AllocateZeroPool (CertSize + 1);
+          if (Certs[CertIndex].CertData == NULL) {
             Status = EFI_OUT_OF_RESOURCES;
             break;
           }
-          Certs[CertCount].CertSize = CertSize;
-          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertCount].CertData, CertSize);
+          Certs[CertIndex].CertSize = CertSize;
+          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertIndex].CertData, CertSize + 1);
         }
       }
+    }
+
+    if (EFI_ERROR (Status)) {
+      break;
     }
 
     if (Pass == 0) {
@@ -351,18 +362,22 @@ EnrollCerts (
       if (Status == EFI_ALREADY_STARTED) {
         Status = EFI_SUCCESS;
       } else {
+        DEBUG ((
+          DEBUG_INFO,
+          "NTBT: Cert not present, clearing existing certs for owner GUID %g\n",
+          Certs[Index].OwnerGuid
+        ));
         Status = DeleteCertsForOwner (
           EFI_TLS_CA_CERTIFICATE_VARIABLE,
           &gEfiTlsCaCertificateGuid,
           Certs[Index].OwnerGuid
         );
-        DEBUG ((
-          DEBUG_INFO,
-          "NTBT: Cert not present, removed certs for owner GUID %g - %r\n",
-          Certs[Index].OwnerGuid,
-          Status
-        ));
         if (EFI_ERROR (Status)) {
+          DEBUG ((
+            DEBUG_INFO,
+            "NTBT: Error clearing certs - %r\n",
+            Status
+          ));
           break;
         }
         HaveCertsToAdd = TRUE;

@@ -109,7 +109,7 @@ LoopOverInstalledCerts (
                                     + CertList->SignatureHeaderSize
                                     + Index * CertList->SignatureSize);
 
-      Status = ProcessCert (Context, GuidIndex, CertList->SignatureListSize, Cert);
+      Status = ProcessCert (Context, GuidIndex, CertList->SignatureSize, Cert);
       if (EFI_ERROR (Status)) {
         break;
       }
@@ -138,7 +138,7 @@ LogCert (
   IN EFI_SIGNATURE_DATA   *Cert
   )
 {
-  DEBUG ((DEBUG_INFO, "NTBT: Cert %g\n", &Cert->SignatureOwner));
+  DEBUG ((DEBUG_INFO, "NTBT: Cert %u owner %g\n", CertIndex, &Cert->SignatureOwner));
   return EFI_SUCCESS;
 }
 
@@ -156,6 +156,7 @@ LogInstalledCerts (
   IN EFI_GUID                      *VendorGuid
   )
 {
+  DEBUG ((DEBUG_INFO, "NTBT: Listing installed certs...\n"));
   return LoopOverInstalledCerts (
     VariableName,
     VendorGuid,
@@ -185,8 +186,8 @@ CheckCertPresent (
     return EFI_SUCCESS;
   }
 
-  if ( (CertSize == Context->X509DataSize)
-    && (CompareMem (Cert->SignatureData, Context->X509Data, CertSize) == 0)
+  if ( (CertSize == Context->X509DataSize + sizeof (EFI_GUID))
+    && (CompareMem (Cert->SignatureData, Context->X509Data, Context->X509DataSize) == 0)
   ) {
     return EFI_ALREADY_STARTED;
   }
