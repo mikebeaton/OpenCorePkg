@@ -17,12 +17,15 @@
 #include <Library/OcStringLib.h>
 #include <Library/OcVirtualFsLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/UefiLib.h>
 #include <Protocol/HttpBootCallback.h>
 #include <Protocol/LoadFile.h>
 #include <Protocol/LoadedImage.h>
 #include <Protocol/OcBootEntry.h>
 #include <Protocol/RamDisk.h>
+#include <Guid/ImageAuthentication.h>
+#include <Guid/TlsAuthentication.h>
 
 /**
   Set if we should enforce https only within this driver.
@@ -181,6 +184,41 @@ HttpBootAddUri (
 EFI_EVENT
 MonitorHttpBootCallback (
   EFI_HANDLE    LoadFileHandle
+  );
+
+///
+/// TlsAuthConfigImpl.c
+///
+
+EFI_STATUS
+LogInstalledCerts (
+  IN CHAR16                        *VariableName,
+  IN EFI_GUID                      *VendorGuid
+  );
+
+EFI_STATUS
+CertIsPresent (
+  IN CHAR16                        *VariableName,
+  IN EFI_GUID                      *VendorGuid,
+  IN EFI_GUID                      *OwnerGuid,
+  IN UINTN                         X509DataSize,
+  IN VOID                          *X509Data
+  );
+
+EFI_STATUS
+DeleteCertsForOwner (
+  IN CHAR16                        *VariableName,
+  IN EFI_GUID                      *VendorGuid,
+  IN EFI_GUID                      *OwnerGuid
+  );
+
+EFI_STATUS
+EnrollX509toVariable (
+  IN CHAR16                        *VariableName,
+  IN EFI_GUID                      *VendorGuid,
+  IN EFI_GUID                      *OwnerGuid,
+  IN UINTN                         X509DataSize,
+  IN VOID                          *X509Data
   );
 
 #endif // LOAD_FILE_INTERNAL_H

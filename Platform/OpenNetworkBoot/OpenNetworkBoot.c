@@ -7,6 +7,24 @@
 
 #include "NetworkBootInternal.h"
 
+STATIC
+OC_BOOT_ENTRY_PROTOCOL
+  mNetworkBootEntryProtocol = {
+  OC_BOOT_ENTRY_PROTOCOL_REVISION,
+  GetNetworkBootEntries,
+  FreeNetworkBootEntries,
+  NULL
+};
+
+typedef struct {
+  EFI_GUID          *OwnerGuid;
+  UINTN             CertSize;
+  CHAR8             *CertData;
+  BOOLEAN           AddThisCert;
+} CERT_INFO;
+
+#define ENROLL_CERT L"--enroll-cert"
+
 BOOLEAN gRequireHttpsUri;
 
 STATIC BOOLEAN mAllowPxeBoot;
@@ -234,23 +252,6 @@ GetNetworkBootEntries (
   return EFI_SUCCESS;
 }
 
-STATIC
-OC_BOOT_ENTRY_PROTOCOL
-  mNetworkBootEntryProtocol = {
-  OC_BOOT_ENTRY_PROTOCOL_REVISION,
-  GetNetworkBootEntries,
-  FreeNetworkBootEntries,
-  NULL
-};
-
-typedef struct {
-  EFI_GUID  *Guid;
-  CHAR8     *Cert;
-  BOOLEAN   AddThisCert;
-} CERT_INFO;
-
-#define ENROLL_CERT L"--enroll-cert"
-
 EFI_STATUS
 EnrollCerts (
   OC_FLEX_ARRAY        *ParsedLoadOptions
@@ -261,10 +262,10 @@ EnrollCerts (
   UINTN           Index2;
   UINTN           CertCount;
   UINTN           Pass;
-  UINTN           CertLen;
+  UINTN           CertSize;
   OC_PARSED_VAR   *Option;
   CERT_INFO       *Certs;
-  BOOLEAN         Removed;
+  BOOLEAN         HaveCertsToAdd;
 
   //
   // Find certs in options.
@@ -290,8 +291,8 @@ EnrollCerts (
 
         ++CertCount;
         if (Pass == 1) {
-          Certs[CertCount].Guid = AllocateZeroPool (sizeof(EFI_GUID));
-          if (Certs[CertCount].Guid == NULL) {
+          Certs[CertCount].OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
+          if (Certs[CertCount].OwnerGuid == NULL) {
             Status = EFI_OUT_OF_RESOURCES;
             break;
           }
@@ -300,20 +301,21 @@ EnrollCerts (
           // Use all zeros GUID if no user value supplied.
           //
           if (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':') {
-            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertCount].Guid);
+            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertCount].OwnerGuid);
             if (EFI_ERROR (Status)) {
-              DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner guid from %s - %r\n", Option->Unicode.Name, Status));
+              DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner GUID from %s - %r\n", Option->Unicode.Name, Status));
               break;
             }
           }
 
-          CertLen = StrLen (Option->Unicode.Value);
-          Certs[CertCount].Cert = AllocateZeroPool (CertLen + 1);
-          if (Certs[CertCount].Cert == NULL) {
+          CertSize = StrSize (Option->Unicode.Value);
+          Certs[CertCount].CertData = AllocateZeroPool (CertSize);
+          if (Certs[CertCount].CertData == NULL) {
             Status = EFI_OUT_OF_RESOURCES;
             break;
           }
-          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertCount].Cert, CertLen);
+          Certs[CertCount].CertSize = CertSize;
+          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertCount].CertData, CertSize);
         }
       }
     }
@@ -332,24 +334,52 @@ EnrollCerts (
 
   //
   // Work out if any certs are missing; clear down and re-apply everything
-  // for a given owner guid, when any certs for it are missing.
+  // for a given owner GUID if any certs for it are missing.
   //
   if (!EFI_ERROR (Status) && Certs != NULL) {
-    Removed = FALSE;
+    HaveCertsToAdd  = FALSE;
+
     for (Index = 0; Index < CertCount; ++Index) {
-      if ( !Certs[Index].AddThisCert  ///< Don't need to check if already marked for adding.
-        && !CertIsPresent (Certs[Index].Cert, Certs[Index].Guid)) {
-        Removed = TRUE;
-        DEBUG ((DEBUG_INFO, "NTBT: Cert not present, removing all certs for owner guid %g\n", Certs[Index].Guid));
-        Status = RemoveCertsForOwner (Certs[Index].Guid);
+      if (Certs[Index].AddThisCert) {
+        continue;
+      }
+
+      Status = CertIsPresent (
+            EFI_TLS_CA_CERTIFICATE_VARIABLE,
+            &gEfiTlsCaCertificateGuid,
+            Certs[Index].OwnerGuid,
+            Certs[Index].CertSize,
+            Certs[Index].CertData
+      );
+
+      if (EFI_ERROR (Status) && (Status != EFI_ALREADY_STARTED)) {
+        DEBUG ((DEBUG_INFO, "NTBT: Error checking for cert presence - %r\n", Status));
+        break;
+      }
+      
+      if (Status == EFI_ALREADY_STARTED) {
+        Status = EFI_SUCCESS;
+      } else {
+        Status = DeleteCertsForOwner (
+          EFI_TLS_CA_CERTIFICATE_VARIABLE,
+          &gEfiTlsCaCertificateGuid,
+          Certs[Index].OwnerGuid
+        );
+        DEBUG ((
+          DEBUG_INFO,
+          "NTBT: Cert not present, removed certs for owner GUID %g - %r\n",
+          Certs[Index].OwnerGuid,
+          Status
+        ));
         if (EFI_ERROR (Status)) {
           break;
         }
+        HaveCertsToAdd = TRUE;
         Certs[Index].AddThisCert = TRUE;
         for (Index2 = 0; Index2 < CertCount; ++Index2) {
           if ( (Index2 != Index)
             && !Certs[Index2].AddThisCert
-            && CompareGuid (Certs[Index].Guid, Certs[Index2].Guid)
+            && CompareGuid (Certs[Index].OwnerGuid, Certs[Index2].OwnerGuid)
           ) {
             Certs[Index2].AddThisCert = TRUE;
           }
@@ -358,13 +388,19 @@ EnrollCerts (
     }
 
     if (!EFI_ERROR (Status)) {
-      if (!Removed) {
+      if (!HaveCertsToAdd) {
         DEBUG ((DEBUG_INFO, "NTBT: All certs already present\n"));
       } else {
         for (Index = 0; Index < CertCount; ++Index) {
           if (Certs[Index].AddThisCert) {
-            DEBUG ((DEBUG_INFO, "NTBT: Adding cert for owner guid %g\n", Certs[Index].Guid));
-            Status = AddCert (Certs[Index].Cert, Certs[Index].Guid);
+            DEBUG ((DEBUG_INFO, "NTBT: Adding cert for owner GUID %g\n", Certs[Index].OwnerGuid));
+            Status = EnrollX509toVariable (
+              EFI_TLS_CA_CERTIFICATE_VARIABLE,
+              &gEfiTlsCaCertificateGuid,
+              Certs[Index].OwnerGuid,
+              Certs[Index].CertSize,
+              Certs[Index].CertData
+            );
             if (EFI_ERROR (Status)) {
               break;
             }
@@ -379,11 +415,11 @@ EnrollCerts (
   //
   if (Certs != NULL) {
     for (Index = 0; Index < CertCount; ++Index) {
-      if (Certs[Index].Guid != NULL) {
-        FreePool (Certs[Index].Guid);
+      if (Certs[Index].OwnerGuid != NULL) {
+        FreePool (Certs[Index].OwnerGuid);
       }
-      if (Certs[Index].Cert != NULL) {
-        FreePool (Certs[Index].Cert);
+      if (Certs[Index].CertData != NULL) {
+        FreePool (Certs[Index].CertData);
       }
     }
     FreePool (Certs);
@@ -453,6 +489,10 @@ UefiMain (
       if (EFI_ERROR (Status)) {
         DEBUG ((DEBUG_WARN, "NTBT: Failed to enroll certs - %r\n", Status));
       }
+
+      DEBUG_CODE_BEGIN ();
+      LogInstalledCerts (EFI_TLS_CA_CERTIFICATE_VARIABLE, &gEfiTlsCaCertificateGuid);
+      DEBUG_CODE_END ();
     }
   }
 
