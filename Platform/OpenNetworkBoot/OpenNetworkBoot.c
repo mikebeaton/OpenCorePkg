@@ -243,6 +243,155 @@ OC_BOOT_ENTRY_PROTOCOL
   NULL
 };
 
+typedef struct {
+  EFI_GUID  *Guid;
+  CHAR8     *Cert;
+  BOOLEAN   AddThisCert;
+} CERT_INFO;
+
+#define ENROLL_CERT L"--enroll-cert"
+
+EFI_STATUS
+EnrollCerts (
+  OC_FLEX_ARRAY        *ParsedLoadOptions
+  )
+{
+  EFI_STATUS      Status;
+  UINTN           Index;
+  UINTN           Index2;
+  UINTN           CertCount;
+  UINTN           Pass;
+  UINTN           CertLen;
+  OC_PARSED_VAR   *Option;
+  CERT_INFO       *Certs;
+  BOOLEAN         Removed;
+
+  //
+  // Find certs in options.
+  //
+  Certs   = NULL;
+  Status  = EFI_SUCCESS;
+  for (Pass = 0; Pass <= 1; ++Pass) {
+    CertCount = 0;
+    for (Index = 0; Index < ParsedLoadOptions->Count; ++Index) {
+      Option = OcFlexArrayItemAt (ParsedLoadOptions, Index);
+      if ( OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)
+        && ( (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == CHAR_NULL)
+          || (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':')
+          )
+        )
+      {
+        if (Option->Unicode.Value == NULL) {
+          if (Pass == 0) {
+            DEBUG ((DEBUG_INFO, "NTBT: Missing value for %s, ignoring\n", Option->Unicode.Name));
+          }
+          continue;
+        }
+
+        ++CertCount;
+        if (Pass == 1) {
+          Certs[CertCount].Guid = AllocateZeroPool (sizeof(EFI_GUID));
+          if (Certs[CertCount].Guid == NULL) {
+            Status = EFI_OUT_OF_RESOURCES;
+            break;
+          }
+
+          //
+          // Use all zeros GUID if no user value supplied.
+          //
+          if (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':') {
+            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertCount].Guid);
+            if (EFI_ERROR (Status)) {
+              DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner guid from %s - %r\n", Option->Unicode.Name, Status));
+              break;
+            }
+          }
+
+          CertLen = StrLen (Option->Unicode.Value);
+          Certs[CertCount].Cert = AllocateZeroPool (CertLen + 1);
+          if (Certs[CertCount].Cert == NULL) {
+            Status = EFI_OUT_OF_RESOURCES;
+            break;
+          }
+          UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertCount].Cert, CertLen);
+        }
+      }
+    }
+
+    if (Pass == 0) {
+      if (CertCount == 0) {
+        break;
+      }
+
+      Certs = AllocateZeroPool (CertCount * sizeof (CERT_INFO));
+      if (Certs == NULL) {
+        return EFI_OUT_OF_RESOURCES;
+      }
+    }
+  }
+
+  //
+  // Work out if any certs are missing; clear down and re-apply everything
+  // for a given owner guid, when any certs for it are missing.
+  //
+  if (!EFI_ERROR (Status) && Certs != NULL) {
+    Removed = FALSE;
+    for (Index = 0; Index < CertCount; ++Index) {
+      if ( !Certs[Index].AddThisCert  ///< Don't need to check if already marked for adding.
+        && !CertIsPresent (Certs[Index].Cert, Certs[Index].Guid)) {
+        Removed = TRUE;
+        DEBUG ((DEBUG_INFO, "NTBT: Cert not present, removing all certs for owner guid %g\n", Certs[Index].Guid));
+        Status = RemoveCertsForOwner (Certs[Index].Guid);
+        if (EFI_ERROR (Status)) {
+          break;
+        }
+        Certs[Index].AddThisCert = TRUE;
+        for (Index2 = 0; Index2 < CertCount; ++Index2) {
+          if ( (Index2 != Index)
+            && !Certs[Index2].AddThisCert
+            && CompareGuid (Certs[Index].Guid, Certs[Index2].Guid)
+          ) {
+            Certs[Index2].AddThisCert = TRUE;
+          }
+        }
+      }
+    }
+
+    if (!EFI_ERROR (Status)) {
+      if (!Removed) {
+        DEBUG ((DEBUG_INFO, "NTBT: All certs already present\n"));
+      } else {
+        for (Index = 0; Index < CertCount; ++Index) {
+          if (Certs[Index].AddThisCert) {
+            DEBUG ((DEBUG_INFO, "NTBT: Adding cert for owner guid %g\n", Certs[Index].Guid));
+            Status = AddCert (Certs[Index].Cert, Certs[Index].Guid);
+            if (EFI_ERROR (Status)) {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  //
+  // Free resources.
+  //
+  if (Certs != NULL) {
+    for (Index = 0; Index < CertCount; ++Index) {
+      if (Certs[Index].Guid != NULL) {
+        FreePool (Certs[Index].Guid);
+      }
+      if (Certs[Index].Cert != NULL) {
+        FreePool (Certs[Index].Cert);
+      }
+    }
+    FreePool (Certs);
+  }
+
+  return Status;
+}
+
 EFI_STATUS
 EFIAPI
 UefiMain (
@@ -279,6 +428,7 @@ UefiMain (
     if (Status != EFI_NOT_FOUND) {
       return Status;
     }
+    Status = EFI_SUCCESS;
   } else {
     //
     // e.g. --https --uri=https://imageserver.org/OpenShell.efi
@@ -294,57 +444,66 @@ UefiMain (
     if (TempUri != NULL) {
       mHttpBootUri = AllocateCopyPool (StrSize (TempUri), TempUri);
       if (mHttpBootUri == NULL) {
-        OcFlexArrayFree (&ParsedLoadOptions);
-        return EFI_OUT_OF_RESOURCES;
+        Status = EFI_OUT_OF_RESOURCES;
+      }
+    }
+
+    if (!EFI_ERROR (Status)) {
+      Status = EnrollCerts (ParsedLoadOptions);
+      if (EFI_ERROR (Status)) {
+        DEBUG ((DEBUG_WARN, "NTBT: Failed to enroll certs - %r\n", Status));
       }
     }
   }
 
-  if (AllowIpv4 == AllowIpv6) {
-    IdChar = CHAR_NULL; ///< If neither (or both) are specified, allow both.
-  } else if (AllowIpv4) {
-    IdChar = L'4';
-  } else {
-    IdChar = L'6';
-  }
-
-  PxeBootId[L_STR_LEN (PxeBootId) - 1]    = IdChar;
-  HttpBootId[L_STR_LEN (HttpBootId) - 1]  = IdChar;
-
-  if (!gRequireHttpsUri && !mAllowHttpBoot && !mAllowPxeBoot) {
-    mAllowHttpBoot = TRUE;
-    mAllowPxeBoot  = TRUE;
-  }
-
-  if (gRequireHttpsUri) {
-    mAllowHttpBoot = TRUE;
-  }
-
-  if (mHttpBootUri != NULL) {
-    if (!mAllowHttpBoot) {
-      DEBUG ((DEBUG_INFO, "NTBT: URI specified but HTTP boot is disabled\n"));
+  if (!EFI_ERROR (Status)) {
+    if (AllowIpv4 == AllowIpv6) {
+      IdChar = CHAR_NULL; ///< If neither (or both) are specified, allow both.
+    } else if (AllowIpv4) {
+      IdChar = L'4';
     } else {
-      if (!HasValidUriProtocol (mHttpBootUri)) {
-        OcFlexArrayFree (&ParsedLoadOptions);
-        return EFI_INVALID_PARAMETER;
+      IdChar = L'6';
+    }
+
+    PxeBootId[L_STR_LEN (PxeBootId) - 1]    = IdChar;
+    HttpBootId[L_STR_LEN (HttpBootId) - 1]  = IdChar;
+
+    if (!gRequireHttpsUri && !mAllowHttpBoot && !mAllowPxeBoot) {
+      mAllowHttpBoot = TRUE;
+      mAllowPxeBoot  = TRUE;
+    }
+
+    if (gRequireHttpsUri) {
+      mAllowHttpBoot = TRUE;
+    }
+
+    if (mHttpBootUri != NULL) {
+      if (!mAllowHttpBoot) {
+        DEBUG ((DEBUG_INFO, "NTBT: URI specified but HTTP boot is disabled\n"));
+      } else {
+        if (!HasValidUriProtocol (mHttpBootUri)) {
+          Status = EFI_INVALID_PARAMETER;
+        }
       }
     }
-  }
 
-  Status = gBS->InstallMultipleProtocolInterfaces (
-                  &ImageHandle,
-                  &gOcBootEntryProtocolGuid,
-                  &mNetworkBootEntryProtocol,
-                  NULL
-                  );
-
-  if (EFI_ERROR (Status)) {
-    return Status;
+    if (!EFI_ERROR (Status)) {
+      Status = gBS->InstallMultipleProtocolInterfaces (
+                      &ImageHandle,
+                      &gOcBootEntryProtocolGuid,
+                      &mNetworkBootEntryProtocol,
+                      NULL
+                      );
+    }
   }
 
   if (ParsedLoadOptions != NULL) {
     OcFlexArrayFree (&ParsedLoadOptions);
   }
+  
+  if (EFI_ERROR (Status) && mHttpBootUri != NULL) {
+    FreePool (mHttpBootUri);
+  }
 
-  return EFI_SUCCESS;
+  return Status;
 }
