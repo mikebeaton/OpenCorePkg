@@ -212,6 +212,7 @@ package() {
       "ResetNvramEntry.efi"
       "SnpDxe.efi"
       "TcpDxe.efi"
+      "TlsDxe.efi"
       "ToggleSipEntry.efi"
       "Udp4Dxe.efi"
       "UsbMouseDxe.efi"
