@@ -7560,6 +7560,53 @@ OpenCore is installed, in order for the \texttt{Launchd.command} script to work 
   could be the second 256 MB corrupted by the Intel HD 3000 or an area with faulty RAM.
   Refer to the \hyperref[uefirsvdprops]{ReservedMemory Properties} section below for details.
 
+\item
+  \texttt{UnloadImages}\\
+  \textbf{Type}: \texttt{plist\ array}\\
+  \textbf{Failsafe}: Empty\\
+  \textbf{Description}: Unload specified firmware images.
+
+  To be filled with \texttt{plist\ string} entries containing
+  the names of firmware images to unload before loading the
+  \texttt{Drivers} section.
+  This setting is typically only required if a user-provided driver is a variant of an
+  existing system firmware driver, and if the new driver would detect itself
+  as partially loaded, or otherwise fail to operate correctly, unless the old
+  driver is unloaded first.
+
+  \textbf{Warning}: Unloading system firmware drivers is usually not required
+  and not recommended.
+
+  \emph{Note 1}: The image name provided for each entry in the list
+  must be the first listed name for that driver in \texttt{SysReport/Drivers/DriverInfo.txt}.
+
+  If the driver listing is
+  \texttt{HttpBootDxe,UEFI HTTP Boot Driver,FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}
+  then the entry should be \texttt{HttpBootDxe}. 
+  If it is
+  \texttt{,UEFI HTTP Boot Driver,}
+  then the entry should be \texttt{UEFI HTTP Boot Driver}.
+  If it is
+  \texttt{,{},FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}
+  then the entry should be \texttt{FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}.
+
+  \emph{Note 2}: The relevant names are the image section name, driver component name
+  and driver image path (short representation), in that order. These values may
+  also be viewed using the OpenShell \texttt{dh} command (e.g. \texttt{dh \{DriverNum\}},
+  \texttt{dh -d \{DriverNum\}}
+  and \texttt{dh -v \{DriverNum\}}). Any loaded image without any of these
+  names cannot be unloaded using this setting, and will
+  not be listed in the \texttt{SysReport} file.
+
+  \emph{Note 3}: The NVRAM \texttt{Lang} and \texttt{PlatformLang} variables
+  are ignored when determining the names recognised by this option (and listed
+  in the \texttt{SysReport} file). This is in order to make unloading
+  images stable across any changes in these variables. When using \texttt{dh}
+  with firmware with multi-lingual support, these variables may affect the
+  driver component names listed, and it  may be necessary to temporarily
+  clear these variables in order to make the \texttt{dh} command show
+  driver component names in their default language.
+
 \end{enumerate}
 
 \subsection{APFS Properties}\label{uefiapfsprops}
