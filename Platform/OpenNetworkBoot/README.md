@@ -2,13 +2,13 @@
 
 `OpenNetworkBoot` is an OpenCore boot entry protocol driver which provides
 PXE and HTTP boot entries if the underlying firmware supports it, or if
-the required network boot drivers have been loaded (e.g. by OpenCore). Using
-additional network boot drivers (provided with OpenCore) when needed, HTTP
+the required network boot drivers have been loaded by OpenCore. Using the
+additional network boot drivers provided with OpenCore, when needed, HTTP
 boot should be available on most firmware, even if not natively supported.
 
-**Note**: In the above, and below, 'HTTP boot' refers to booting using either
-`http://` or `https://`. The additional steps to configure a certificate for
-`https://` (and to lock `OpenNetworkBoot` to `https://` only if required)
+> **Note**: In the above, and below, 'HTTP boot' refers to booting using either
+`http://` or `https://` URIs. The additional steps to configure a certificate for
+`https://` (and to lock `OpenNetworkBoot` to `https://` only, if required)
 are covered below.
 
 ## PXE Boot
@@ -18,25 +18,31 @@ adding `OpenNetworkBoot.efi` to the OpenCore drivers should produce PXE
 boot entries.
 
 On some firmware (e.g. HP) the native network boot drivers are not loaded
-if the system boots directly to OpenCore, therefore it is necessary to start
-OpenCore via the firmware boot menu in order to see PXE boot entries.
+if the system boots directly to OpenCore and it is necessary to start
+OpenCore from the firmware boot menu in order to see PXE and HTTP boot entries.
 (Alternatively, it should be possible to load the entire network boot stack as
 provided with OpenCore, see OVMF instructions.)
 
 ## HTTP Boot
 
-On most recent firmware, either no or only a few additional drivers are needed
+On most recent firmware either no or only a few additional drivers are needed
 for HTTP boot, as most required drivers are already present in firmware.
 
-After adding `OpenNetworkBoot`, if no HTTP boot entries are seen, the next
-thing to try is adding the driver `HttpBootDxe`. If this does not work,
-try adding all three of `HttpDxe`, `HttpUtilitiesDxe` and `HttpBootDxe`.
 
-If this still does not work, proceed to the next section.
+After adding `OpenNetworkBoot`, if no HTTP boot entries are seen, 
+try adding just the driver `HttpBootDxe`. If this does not produce
+network boot enrties, try also adding `HttpDxe` and `HttpUtilitiesDxe`.
+If `http://` URIs can be booted but not `https://` try adding `TlsDxe.efi`.
+
+If the above steps do not work, proceed to the next section.
+
+> **Note**: In some firmware there may be an existing `HttpDxe` driver which
+is locked down to `https://` URIs only (even if the machine has no BIOS UI
+for HTTP Boot; e.g. Dell OptiPlex 3070).
 
 ## Identifying missing network boot drivers
 
-The `dh` command in UEFI Shell (for instance `OpenShell` provided with
+The `dh` command in the UEFI Shell (e.g. `OpenShell` provided with
 OpenCore) is useful for working out which drivers are missing for network
 boot.
 
@@ -45,17 +51,19 @@ path ending in an IPv4 or IPv6 address should indicate available PXE boot
 options. Handles with a device path ending in `Uri(...)` should indicate
 available HTTP boot options
 
- On some systems, there may be additional
-`LoadFile` handles with non-standard paths. These may correspond, for
-instance, to GUI network boot options. These cannot be used by
-OpenNetworkBoot.
+> **Note**: On some systems, there may be additional
+`LoadFile` handles with vendor-specific device paths. These may correspond, for
+instance, to GUI network boot options. These cannot be used by OpenNetworkBoot.
 
 After identifying the handles for network boot entries,
 the other handles just before and slightly after these, in the full
 list of handles displayed by `dh`, should correspond to the currently loaded
-network boot drivers. Examining the names printed by `dh` for these handles
+network boot drivers. If there are no LoadFile options, then
+search in the full handle list for strings such as 'tcp', 'tls', 'http'
+(normally the native network boot drivers will appear grouped together in the
+handle list). Examining the names printed by `dh` for these handles
 and comparing them by eye to the available network boot drivers (see OVMF
-section) can be used to identify any missing drivers.
+section) can be used to identify missing drivers.
 
 Typical output when all drivers are loaded will look something like:
 
@@ -63,11 +71,11 @@ Typical output when all drivers are loaded will look something like:
 TODO
 ```
 
-**Note 1**: On systems with reasonably fast console text output, the `-b`
-option can be used with `dh` (and with most UEFI Shell commands) to
+> **Note 1**: On systems with reasonably fast console text output, the `-b`
+option can be used with `dh` (as with most UEFI Shell commands) to
 display results one page at a time.
 
-**Note 2**: For systems with very slow console output, it may be more
+> **Note 2**: For systems with very slow console output, it may be more
 convenient to pipe the results of `dh` to a file on a convenient file system
 to examine later, within a booted OS. For example `dh > fs0:\foo` or:
 
@@ -107,7 +115,7 @@ To start OVMF with bridged network support the following macOS-specific
 to set up and test these using bridged network support, which allows the VM to
 appear as a separate device with its own IP address on the network.
 
-PXE boot may also be tested in OVMF using the built-in TFTP/PXE server
+PXE boot may also be tested in OVMF using qemu's built-in TFTP/PXE server,
 available with the qemu user mode network stack, for example using the
 following options:
 
@@ -206,18 +214,18 @@ Reference:
 
 #### dnsmasq
 
-Although `dnsmasq` arguably does not provide as full support for HTTP
-boot as it does for PXE boot, its features can be used (or abused) to respond
-to requests for the location of HTTP boot NBP files.
-
-An HTTP server (such as Apache, nginx, or multiple other options) will be
-required to serve the actual NBP files over `http://` or `https://`.
+Although `dnsmasq` does not provide as full support for HTTP
+boot as it does for PXE boot, its PXE boot features can be configured
+to respond to requests for the location of HTTP boot NBP files.
 
 A basic `dnsmasq` HTTP boot configuration is as follows:
 
 ```
 TODO
 ```
+
+An HTTP server (such as Apache, nginx, or multiple other options) will be
+required to serve the actual NBP files over `http://` or `https://`.
 
 References:
  - https://github.com/ipxe/ipxe/discussions/569
@@ -255,7 +263,7 @@ If the MIME type is not one of the above, then the corresponding file
 extensions (`.iso`, `.img` and `.efi`) are used instead to identify the NBP
 file type.
 
-**Note**: Files which cannot be recognised by any of the above MIME types or
+> **Note**: Files which cannot be recognised by any of the above MIME types or
 file extensions will not be loaded by standard HTTP boot drivers (including
 the `HttpBootDxe` driver currently shipped with OpenCore).
 
