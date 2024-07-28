@@ -7569,43 +7569,37 @@ OpenCore is installed, in order for the \texttt{Launchd.command} script to work 
   To be filled with \texttt{plist\ string} entries containing
   the names of firmware images to unload before loading the
   \texttt{Drivers} section.
-  This setting is typically only required if a user-provided driver is a variant of an
-  existing system firmware driver, and if the new driver would detect itself
-  as partially loaded, or otherwise fail to operate correctly, unless the old
-  driver is unloaded first.
+  This setting is typically only required if a user-provided driver is a variant of
+  an existing system firmware driver, and if the new driver would detect itself
+  as partially loaded, or otherwise fail to operate correctly, if the old
+  driver is not unloaded first.
 
   \textbf{Warning}: Unloading system firmware drivers is usually not required
   and not recommended.
 
   \emph{Note 1}: The image name provided for each entry in the list
-  must be the first listed name for that driver in \texttt{SysReport/Drivers/DriverInfo.txt}.
-
-  If the driver listing is
-  \texttt{HttpBootDxe,UEFI HTTP Boot Driver,FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}
-  then the entry should be \texttt{HttpBootDxe}. 
-  If it is
-  \texttt{,UEFI HTTP Boot Driver,}
-  then the entry should be \texttt{UEFI HTTP Boot Driver}.
-  If it is
-  \texttt{,{},FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}
-  then the entry should be \texttt{FvFile(ECEBCB00-D9C8-11E4-AF3D-8CDCD426C973)}.
+  may be any one of the names listed for that driver in
+  \texttt{SysReport/Drivers/DriverInfo.txt}.
 
   \emph{Note 2}: The relevant names are the image section name, driver component name
-  and driver image path (short representation), in that order. These values may
-  also be viewed using the OpenShell \texttt{dh} command (e.g. \texttt{dh \{DriverNum\}},
-  \texttt{dh -d \{DriverNum\}}
-  and \texttt{dh -v \{DriverNum\}}). Any loaded image without any of these
-  names cannot be unloaded using this setting, and will
-  not be listed in the \texttt{SysReport} file.
+  and driver image path (short form).
+  Not all of these names are present and accessible using UEFI protocols on all firmware.
+  For instance, only the driver component name can be accessed for loaded images
+  on MP5,1 firmware.
+  Any loaded image without any of these names cannot be unloaded using this setting.
 
-  \emph{Note 3}: The NVRAM \texttt{Lang} and \texttt{PlatformLang} variables
-  are ignored when determining the names recognised by this option (and listed
-  in the \texttt{SysReport} file). This is in order to make unloading
-  images stable across any changes in these variables. When using \texttt{dh}
-  with firmware with multi-lingual support, these variables may affect the
-  driver component names listed, and it  may be necessary to temporarily
-  clear these variables in order to make the \texttt{dh} command show
-  driver component names in their default language.
+  \emph{Note 3}:  These values may also be found using the OpenShell \texttt{dh}
+  command (e.g. \texttt{dh \{DriverNum\}}, \texttt{dh -d \{DriverNum\}} and
+  \texttt{dh -v \{DriverNum\}}).
+
+  \emph{Note 4}: The NVRAM \texttt{Lang} and \texttt{PlatformLang} variables
+  are ignored when determining the driver component names recognised by this
+  option (and listed in the \texttt{SysReport} file). This is in order to make
+  unloading images stable across any changes in these variables. When using
+  \texttt{dh} with firmware with multi-lingual support, these variables may
+  affect the driver component names listed, and it  may be necessary to temporarily
+  clear these variables in order to make the \texttt{dh} command show driver
+  component names in their default language.
 
 \end{enumerate}
 
