@@ -186,6 +186,7 @@ package() {
       "BiosVideo.efi"
       "CrScreenshotDxe.efi"
       "Dhcp4Dxe.efi"
+      "Dhcp6Dxe.efi"
       "DnsDxe.efi"
       "DpcDxe.efi"
       "Ext4Dxe.efi"
@@ -195,6 +196,7 @@ package() {
       "HttpDxe.efi"
       "HttpUtilitiesDxe.efi"
       "Ip4Dxe.efi"
+      "Ip6Dxe.efi"
       "MnpDxe.efi"
       "NvmExpressDxe.efi"
       "OpenCanopy.efi"
@@ -215,6 +217,7 @@ package() {
       "TlsDxe.efi"
       "ToggleSipEntry.efi"
       "Udp4Dxe.efi"
+      "Udp6Dxe.efi"
       "UsbMouseDxe.efi"
       "XhciDxe.efi"
       )

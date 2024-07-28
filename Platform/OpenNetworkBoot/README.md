@@ -2,9 +2,9 @@
 
 `OpenNetworkBoot` is an OpenCore boot entry protocol driver which provides
 PXE and HTTP boot entries if the underlying firmware supports it, or if
-the required network boot drivers have been loaded by OpenCore. Using the
+the required network boot drivers have been loaded using OpenCore. Using the
 additional network boot drivers provided with OpenCore, when needed, HTTP
-boot should be available on most firmware, even if not natively supported.
+boot should be available on most firmware even if not natively supported.
 
 > **Note**: In the above, and below, 'HTTP boot' refers to booting using either
 `http://` or `https://` URIs. The additional steps to configure a certificate for
@@ -20,8 +20,7 @@ boot entries.
 On some firmware (e.g. HP) the native network boot drivers are not loaded
 if the system boots directly to OpenCore and it is necessary to start
 OpenCore from the firmware boot menu in order to see PXE and HTTP boot entries.
-(Alternatively, it should be possible to load the entire network boot stack as
-provided with OpenCore, see OVMF instructions.)
+(Alternatively, it should be possible to load the network boot stack provided with OpenCore, see OVMF instructions.)
 
 ## HTTP Boot
 
@@ -36,9 +35,25 @@ If `http://` URIs can be booted but not `https://` try adding `TlsDxe.efi`.
 
 If the above steps do not work, proceed to the next section.
 
-> **Note**: In some firmware there may be an existing `HttpDxe` driver which
-is locked down to `https://` URIs only (even if the machine has no BIOS UI
-for HTTP Boot; e.g. Dell OptiPlex 3070).
+> **Note 1**: In some firmware the existing `HttpDxe` driver may be locked down to `https://` URIs only (even if the machine has no BIOS UI
+for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` will work, but fail to load from `http://` URIs.
+
+> **Note 2**: In some firmware the existing `HttpBootDxe` driver may produce
+options which do not work correctly (e.g. blank screen when selected), e.g.
+because they are designed to work with a firmware UI which is not present
+when OpenCore is running.
+If so, it may be necessary to use the `UEFI/Unload` config setting
+to unload the existing driver before loading the `HttpBootDxe` driver provided
+with OpenCore.
+
+### Security
+
+Unfortunately, some or all of the recent CVEs affecting HTTP boot
+apply to the EDK-2-derived HTTP boot drivers which are currently
+shipped with OpenCore. These vulnerabilities render
+HTTPS boot vulnerable to MITM attacks. The
+drivers shipped with OpenCore will be updated after fixes have appeared in
+the EDK-2 code. Until such time, HTTP(S) Boot should be considered experimental, and should be avoided in any security critical environment.
 
 ## Identifying missing network boot drivers
 
@@ -51,7 +66,7 @@ path ending in an IPv4 or IPv6 address should indicate available PXE boot
 options. Handles with a device path ending in `Uri(...)` should indicate
 available HTTP boot options
 
-> **Note**: On some systems, there may be additional
+> **Note 1**: On some systems, there may be additional
 `LoadFile` handles with vendor-specific device paths. These may correspond, for
 instance, to GUI network boot options. These cannot be used by OpenNetworkBoot.
 
@@ -65,88 +80,18 @@ handle list). Examining the names printed by `dh` for these handles
 and comparing them by eye to the available network boot drivers (see OVMF
 section) can be used to identify missing drivers.
 
-Typical output when all drivers are loaded will look something like:
-
-```
-TODO
-```
-
-> **Note 1**: On systems with reasonably fast console text output, the `-b`
+> **Note 2**: On systems with reasonably fast console text output, the `-b`
 option can be used with `dh` (as with most UEFI Shell commands) to
 display results one page at a time.
 
-> **Note 2**: For systems with very slow console output, it may be more
+> **Note 3**: For systems with slow console output, it may be more
 convenient to pipe the results of `dh` to a file on a convenient file system
-to examine later, within a booted OS. For example `dh > fs0:\foo` or:
+to examine later, within a booted OS. For example `dh > fs0:\dh_dump` or:
 
 ```
 > fs0:
-> dh > foo
+> dh > dh_dump
 ```
-
-## OVMF
-
-OVMF can be compiled with the following flags for full network boot support:
-
-`-D NETWORK_HTTP_BOOT_ENABLE -D NETWORK_TLS_ENABLE -D NETWORK_IP6_ENABLE`
-
-In addition `-D LINUX_LOADER` (for audk OVMF only) and
-`-D DEBUG_ON_SERIAL_PORT` and a `DEBUG` or `NOOPT` build are
-recommended.
-
-If OVMF is compiled without network boot support, then network boot support
-within OpenCore only may be added loading the full network boot stack provided
-with OpenCore as OpenCore `Drivers`:
-
- - TODO: confirm, and list
-
-### OVMF networking
-
-To start OVMF with bridged network support the following macOS-specific
-`qemu` options (which require `sudo`) may be used:
-
-```
--netdev vmnet-bridged,id=mynet0,ifname=en0 \
--device e1000,netdev=mynet0,id=mynic0
-```
-
-**Note**: If any network boot clients (e.g. OVMF, VMWare) or server programs
-(e.g. Apache, `dnsmasq`, WDS) are running on VMs, then it is normally easiest
-to set up and test these using bridged network support, which allows the VM to
-appear as a separate device with its own IP address on the network.
-
-PXE boot may also be tested in OVMF using qemu's built-in TFTP/PXE server,
-available with the qemu user mode network stack, for example using the
-following options:
-
-```
--netdev user,id=net0,tftp=/Users/user/tftp,bootfile=/OpenShell.efi \
--device virtio-net-pci,netdev=net0
-```
-
-No equivalent options are available for HTTP boot, so to experiment with this,
-a combination such as bridged networking and `dnsmasq` should be used.
-
-### OVMF HTTPS certificate
-
-When using `https://` as opposed to `http://`, a certificate must be
-configured on the network boot client. Within the OVMF menus this may
-be done using
-`Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
-(No GUID needs to be provided in that dialog - all zeroes will be
-used - if only a single, test certificate is going to be configured.)
-
-### Debugging network boot on OVMF
-
-Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
-`-serial stdio` option to qemu (and then scrolling back in the output as
-needed, to the lines generated during a failed network boot) can be very
-useful when trying to debug network boot setup.
-
-OVMF can capture packets using
-`-object filter-dump,netdev={net-id},id=filter0,file=/Users/user/ovmf.cap`
-(`{net-id}` should be replaced as appropriate with the `id` value specified in the
-corresponding `-netdev` option).
 
 ## Configuring a network boot server
 
@@ -160,10 +105,10 @@ requests.
 
 **Note 1**: The NBP for HTTP boot can be configured by specifying the `--uri`
 flag for `OpenNetworkBoot`. When using this option, only an HTTP server (and
-certificate, for HTTPS), needs to be set up; no DHCP helper service is
+certificate, for HTTPS), needs to be set up, but no DHCP helper service is
 required.
 
-**Note 2**: No equivalent option is provided for PXE boot, since the most
+**Note 2**: No equivalent NBP path option is provided for PXE boot, since the most
 standard (and recommended) set up is for the program specifying the
 NBP file and the program serving it via TFTP to be one and the same.
 
@@ -236,7 +181,7 @@ Other options, such as TODO, may also be used.
 ### HTTPS Boot
 
 Note that the certificate for validating https requests should be loaded into
-firmware (***TODO***).
+firmware using the OpenNetworkBoot `--enroll-cert` option.
 
 A normal https site would not serve files using a self-signed certificate
 authority (CA), but since we are only attempting to serve files to HTTP boot
@@ -259,12 +204,12 @@ The MIME type for `.efi` files is:
 
  - `application/efi`
 
-If the MIME type is not one of the above, then the corresponding file
+If the MIME type is none of the above, then the corresponding file
 extensions (`.iso`, `.img` and `.efi`) are used instead to identify the NBP
 file type.
 
 > **Note**: Files which cannot be recognised by any of the above MIME types or
-file extensions will not be loaded by standard HTTP boot drivers (including
+file extensions will _not_ be loaded by standard HTTP boot drivers (including
 the `HttpBootDxe` driver currently shipped with OpenCore).
 
 ## Booting DMG files
@@ -275,7 +220,7 @@ filename is `{filename}.dmg` or `{filename}.chunklist` then the other
 file of this pair will be automatically loaded, in order to allow DMG
 chunklist verification.
 
-### Required MIME types
+### MIME types
 
 In order for `.dmg` and `.chunklist` files to be loaded by standard HTTP boot
 drivers (including the `HttpBootDxe` driver currently shipped with OpenCore),
@@ -293,7 +238,7 @@ Homebrew on macOS, the following line should be added to
 application/efi                                 efi dmg chunklist
 ```
 
-### DmgLoading settings
+### `DmgLoading` configuration setting
 
 The behaviour of `OpenNetworkBoot`'s DMG support depends on the OpenCore
 `DmgLoading` setting as follows:
@@ -302,20 +247,112 @@ The behaviour of `OpenNetworkBoot`'s DMG support depends on the OpenCore
 must be available from the HTTP server. Either file can be specified as
 the NBP, and the other matching file will be loaded afterwards, automatically.
  - If `DmgLoading` is set to `Disabled` and either of these two file extensions
-are found as the NBP, then the HTTP boot process will be aborted. (Allowing
-these files to load and then passing them to the OpenCore DMG loading process
-would be pointless, as they would be rejected at that point anyway.)
+are found as the NBP, then the HTTP boot process will be aborted. (If we allowed
+these files to load and then passed them to the OpenCore DMG loading process,
+they would be rejected at that point anyway.)
  - If `DmgLoading` is set to `Any` and the NBP is `{filename}.dmg` then only
 the `.dmg` file will be loaded, as verification via `.chunklist` is not
 carried out with this setting. If the NBP is `{filename}.chunklist` then
-the `.chunklist` followed by the `.dmg` will be loaded, but the `.chunklist`
-will not be used.
+the `.chunklist` followed by the `.dmg` will be loaded, but only the `.dmg`
+will be used.
 
-## NOTE: Security
+## OVMF
 
-Unfortunately, some or all of the recent CVEs affecting HTTP boot will almost
-certainly apply to the EDK-2-derived HTTP boot drivers which are currently
-shipped with OpenCore. Perhaps most importantly, these vulnerabilities render
-HTTPS boot vulnerable to MITM attacks, by an attacker on your network. The
-drivers shipped with OpenCore will be updated after fixes have appeared in
-the EDK-2 code.
+OVMF can be compiled with the following flags for full network boot support:
+
+`-D NETWORK_HTTP_BOOT_ENABLE -D NETWORK_TLS_ENABLE -D NETWORK_IP6_ENABLE`
+
+If OVMF is compiled without network boot support (`-D NETWORK_ENABLE=0`), then
+network boot support provided with OpenCore may be added by loading the full
+network boot stack:
+
+### Base
+```
+DpcDxe
+SnpDxe
+MnpDxe
+ArpDxe
+```
+
+### IPv4
+```
+Dhcp4Dxe
+Ip4Dxe
+Udp4Dxe
+```
+
+### IPv6
+```
+Dhcp6Dxe
+Ip6Dxe
+Udp6Dxe
+```
+
+### HTTP Boot
+```
+DnsDxe
+HttpDxe
+HttpUtilitiesDxe
+HttpBootDxe
+```
+
+### HTTPS support for HTTP Boot
+```
+TlsDxe
+```
+
+### PXE
+For PXE Boot support (not currently provided) we would also add::
+```
+Mtftp4Dxe (IPv4)
+Mtftp6Dxe (IPv4)
+```
+
+### OVMF networking
+
+To start OVMF with bridged network support the following macOS-specific
+`qemu` options (which require `sudo`) may be used:
+
+```
+-netdev vmnet-bridged,id=mynet0,ifname=en0 \
+-device e1000,netdev=mynet0,id=mynic0
+```
+
+> **Tip**: If any network boot clients (e.g. OVMF, VMWare) or server programs
+(e.g. Apache, `dnsmasq`, WDS) are running on VMs, it is normally easiest
+to set these up using bridged network support, which allows the VM to
+appear as a separate device with its own IP address on the network.
+
+PXE boot may also be tested in OVMF using qemu's built-in TFTP/PXE server,
+available with the qemu user mode network stack, for example using the
+following options:
+
+```
+-netdev user,id=net0,tftp=/Users/user/tftp,bootfile=/OpenShell.efi \
+-device virtio-net-pci,netdev=net0
+```
+
+No equivalent option is available for HTTP boot, so to experiment with this,
+a combination such as bridged networking and `dnsmasq` should be used.
+
+### OVMF HTTPS certificate
+
+When using `https://` as opposed to `http://`, a certificate must be
+configured on the network boot client. Within the OVMF menus this may
+be done using
+`Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
+
+> **Tip**: No GUID needs to be provided in that dialog. All zeroes will be
+used if nothing is specified, which is fine if only a single certificate is going to be configured and managed.
+
+### Debugging network boot on OVMF
+
+Building OVMF with the `-D DEBUG_ON_SERIAL_PORT` option and then passing the
+`-serial stdio` option to qemu (and then scrolling back in the output as
+needed, to the lines generated during a failed network boot) can be very
+useful when trying to debug network boot setup.
+
+OVMF can capture packets using
+`-object filter-dump,netdev={net-id},id=filter0,file=/Users/user/ovmf.cap`
+(`{net-id}` should be replaced as appropriate with the `id` value specified in the
+corresponding `-netdev` option).
