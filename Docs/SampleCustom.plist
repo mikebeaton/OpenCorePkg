@@ -2419,7 +2419,7 @@
 				<string>RuntimeCode</string>
 			</dict>
 		</array>
-		<key>UnloadImages</key>
+		<key>Unload</key>
 		<array/>
 	</dict>
 </dict>

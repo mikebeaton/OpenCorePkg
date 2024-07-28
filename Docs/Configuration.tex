@@ -7561,13 +7561,13 @@ OpenCore is installed, in order for the \texttt{Launchd.command} script to work 
   Refer to the \hyperref[uefirsvdprops]{ReservedMemory Properties} section below for details.
 
 \item
-  \texttt{UnloadImages}\\
+  \texttt{Unload}\\
   \textbf{Type}: \texttt{plist\ array}\\
   \textbf{Failsafe}: Empty\\
-  \textbf{Description}: Unload specified firmware images.
+  \textbf{Description}: Unload specified firmware drivers.
 
   To be filled with \texttt{plist\ string} entries containing
-  the names of firmware images to unload before loading the
+  the names of firmware drivers to unload before loading the
   \texttt{Drivers} section.
   This setting is typically only required if a user-provided driver is a variant of
   an existing system firmware driver, and if the new driver would detect itself
@@ -7577,29 +7577,20 @@ OpenCore is installed, in order for the \texttt{Launchd.command} script to work 
   \textbf{Warning}: Unloading system firmware drivers is usually not required
   and not recommended.
 
-  \emph{Note 1}: The image name provided for each entry in the list
-  may be any one of the names listed for that driver in
-  \texttt{SysReport/Drivers/DriverInfo.txt}.
+  \emph{Note 1}: The list of driver which this option can attempt to unload
+  can be found in \texttt{SysReport/Drivers/DriverInfo.txt}.
+  The relevant name is the driver component name, if available, otherwise
+  the image section name, if available. Drivers are only listed if they
+  implement \texttt{DriverBindingProtocol} and \texttt{LoadedImageProtocol},
+  and have an available name.
 
-  \emph{Note 2}: The relevant names are the image section name, driver component name
-  and driver image path (short form).
-  Not all of these names are present and accessible using UEFI protocols on all firmware.
-  For instance, only the driver component name can be accessed for loaded images
-  on MP5,1 firmware.
-  Any loaded image without any of these names cannot be unloaded using this setting.
-
-  \emph{Note 3}:  These values may also be found using the OpenShell \texttt{dh}
-  command (e.g. \texttt{dh \{DriverNum\}}, \texttt{dh -d \{DriverNum\}} and
-  \texttt{dh -v \{DriverNum\}}).
-
-  \emph{Note 4}: The NVRAM \texttt{Lang} and \texttt{PlatformLang} variables
+  \emph{Note 2}: The NVRAM \texttt{Lang} and \texttt{PlatformLang} variables
   are ignored when determining the driver component names recognised by this
-  option (and listed in the \texttt{SysReport} file). This is in order to make
-  unloading images stable across any changes in these variables. When using
-  \texttt{dh} with firmware with multi-lingual support, these variables may
-  affect the driver component names listed, and it  may be necessary to temporarily
-  clear these variables in order to make the \texttt{dh} command show driver
-  component names in their default language.
+  option, and listed in the \texttt{SysReport} file. This is in order to make
+  unloading images stable across changes in these variables.
+  The UEFI Shell \texttt{dh} command takes account of these variables,
+  so in some circumstances may display different driver component names from
+  those listed for this option, unless these variables are cleared.
 
 \end{enumerate}
 
