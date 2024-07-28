@@ -2051,6 +2051,8 @@
 				<string>RuntimeCode</string>
 			</dict>
 		</array>
+		<key>UnloadImages</key>
+		<array/>
 	</dict>
 </dict>
 </plist>
