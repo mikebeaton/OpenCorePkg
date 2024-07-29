@@ -462,7 +462,7 @@ BmExpandLoadFile (
       FreePool (FileBuffer);
       return NULL;
     }
-    *DataSize = BufferSize;
+    *DataSize = (UINT32)BufferSize;
     *Data     = FileBuffer;
 
     return DuplicateDevicePath (FullPath);
