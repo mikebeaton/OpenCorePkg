@@ -17,7 +17,7 @@ On almost all firmware, the drivers for PXE boot will already be present;
 adding `OpenNetworkBoot.efi` to the OpenCore drivers should produce PXE
 boot entries.
 
-On some firmware (e.g. HP) the native network boot drivers are not loaded
+> **Note**: On some firmware (e.g. HP) the native network boot drivers are not loaded
 if the system boots directly to OpenCore and it is necessary to start
 OpenCore from the firmware boot menu in order to see PXE and HTTP boot entries.
 (Alternatively, it should be possible to load the network boot stack provided with OpenCore, see OVMF instructions.)
@@ -36,24 +36,15 @@ If `http://` URIs can be booted but not `https://` try adding `TlsDxe.efi`.
 If the above steps do not work, proceed to the next section.
 
 > **Note 1**: In some firmware the existing `HttpDxe` driver may be locked down to `https://` URIs only (even if the machine has no BIOS UI
-for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` will work, but fail to load from `http://` URIs.
+for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` will work, but refuse to load (failure message) if loading from `http://` URIs.
 
 > **Note 2**: In some firmware the existing `HttpBootDxe` driver may produce
-options which do not work correctly (e.g. blank screen when selected), e.g.
+options which do not work correctly (e.g. blank screen when selected),
 because they are designed to work with a firmware UI which is not present
 when OpenCore is running.
 If so, it may be necessary to use the `UEFI/Unload` config setting
 to unload the existing driver before loading the `HttpBootDxe` driver provided
 with OpenCore.
-
-### Security
-
-Unfortunately, some or all of the recent CVEs affecting HTTP boot
-apply to the EDK-2-derived HTTP boot drivers which are currently
-shipped with OpenCore. These vulnerabilities render
-HTTPS boot vulnerable to MITM attacks. The
-drivers shipped with OpenCore will be updated after fixes have appeared in
-the EDK-2 code. Until such time, HTTP(S) Boot should be considered experimental, and should be avoided in any security critical environment.
 
 ## Identifying missing network boot drivers
 
