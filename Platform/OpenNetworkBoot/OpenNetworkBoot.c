@@ -20,11 +20,12 @@ BOOLEAN gRequireHttpsUri;
 
 STATIC BOOLEAN mAllowPxeBoot;
 STATIC BOOLEAN mAllowHttpBoot;
-
+STATIC BOOLEAN mAllowIpv4;
+STATIC BOOLEAN mAllowIpv6;
 STATIC CHAR16  *mHttpBootUri;
 
-STATIC CHAR16 PxeBootId[]  = L"PXE Boot IPv_";
-STATIC CHAR16 HttpBootId[] = L"HTTP Boot IPv_";
+STATIC CHAR16 PxeBootId[]  = L"PXE Boot IPv";
+STATIC CHAR16 HttpBootId[] = L"HTTP Boot IPv";
 
 VOID
 InternalFreePickerEntry (
@@ -89,6 +90,7 @@ InternalAddEntry (
   CHAR16            *Description,
   EFI_HANDLE        Handle,
   CHAR16            *HttpBootUri,
+  BOOLEAN           IsIPv4,
   BOOLEAN           IsHttpBoot
   )
 {
@@ -145,10 +147,10 @@ InternalAddEntry (
   if (IsHttpBoot) {
     PickerEntry->CustomRead = HttpBootCustomRead;
     PickerEntry->CustomFree = HttpBootCustomFree;
-    PickerEntry->Flavour = OC_FLAVOUR_HTTP_BOOT;
+    PickerEntry->Flavour = IsIPv4 ? OC_FLAVOUR_HTTP_BOOT4 : OC_FLAVOUR_HTTP_BOOT6;
   } else {
     PickerEntry->CustomRead = PxeBootCustomRead;
-    PickerEntry->Flavour = OC_FLAVOUR_PXE_BOOT;
+    PickerEntry->Flavour = IsIPv4 ? OC_FLAVOUR_PXE_BOOT4 : OC_FLAVOUR_PXE_BOOT6;
   }
 
   //
@@ -174,7 +176,10 @@ GetNetworkBootEntries (
   EFI_HANDLE        *HandleBuffer;
   UINTN             Index;
   CHAR16            *NetworkDescription;
+  CHAR16            *IdStr;
   OC_FLEX_ARRAY     *FlexPickerEntries;
+  BOOLEAN           IsIPv4;
+  BOOLEAN           IsHttpBoot;
 
   //
   // Here we produce custom entries only, not entries found on filesystems.
@@ -207,14 +212,29 @@ GetNetworkBootEntries (
       DebugPrintDevicePathForHandle (DEBUG_INFO, "NTBT: LoadFile handle not PXE/HTTP boot DP", HandleBuffer[Index]);
     } else {
       //
-      // Use fixed format network description as shortcut to identify PXE/HTTP and IPv4/6.
+      // Use fixed format network description which we control as shortcut
+      // to identify PXE/HTTP and IPv4/6.
       //
-      if (mAllowPxeBoot && StrStr (NetworkDescription, PxeBootId)) {
+      if ((IdStr = StrStr (NetworkDescription, PxeBootId)) != NULL) {
+        IsIPv4 = IdStr[STRLEN(PxeBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[STRLEN(PxeBootId)] == L'6'));
+        IsHttpBoot = FALSE;
+      } else if ((IdStr = StrStr (NetworkDescription, HttpBootId)) != NULL) {
+        IsIPv4 = IdStr[STRLEN(HttpBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[STRLEN(HttpBootId)] == L'6'));
+        IsHttpBoot = TRUE;
+      }
+
+      if (IdStr != NULL && ((IsIPv4 && mAllowIpv4) || (!IsIPv4 && mAllowIpv6))) {
         DEBUG ((DEBUG_INFO, "NTBT: Adding %s\n", NetworkDescription));
-        Status = InternalAddEntry (FlexPickerEntries, NetworkDescription, HandleBuffer[Index], NULL, FALSE);
-      } else if (mAllowHttpBoot && StrStr (NetworkDescription, HttpBootId)) {
-        DEBUG ((DEBUG_INFO, "NTBT: Adding %s\n", NetworkDescription));
-        Status = InternalAddEntry (FlexPickerEntries, NetworkDescription, HandleBuffer[Index], mHttpBootUri, TRUE);
+        Status = InternalAddEntry (
+                    FlexPickerEntries,
+                    NetworkDescription,
+                    HandleBuffer[Index],
+                    IsHttpBoot ? mHttpBootUri : NULL,
+                    IsIPv4,
+                    IsHttpBoot
+                  );
       } else {
         DEBUG ((DEBUG_INFO, "NTBT: Ignoring %s\n", NetworkDescription));
       }
@@ -457,9 +477,6 @@ UefiMain (
   EFI_LOADED_IMAGE_PROTOCOL *LoadedImage;
   OC_FLEX_ARRAY             *ParsedLoadOptions;
   CHAR16                    *TempUri;
-  BOOLEAN                   AllowIpv4;
-  BOOLEAN                   AllowIpv6;
-  CHAR16                    IdChar;
 
   Status = gBS->HandleProtocol (
                   ImageHandle,
@@ -470,8 +487,8 @@ UefiMain (
     return Status;
   }
 
-  AllowIpv4         = FALSE;
-  AllowIpv6         = FALSE;
+  mAllowIpv4         = FALSE;
+  mAllowIpv6         = FALSE;
   mAllowPxeBoot     = FALSE;
   mAllowHttpBoot    = FALSE;
   gRequireHttpsUri  = FALSE;
@@ -487,8 +504,8 @@ UefiMain (
     //
     // e.g. --https --uri=https://imageserver.org/OpenShell.efi
     //
-    AllowIpv4         = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
-    AllowIpv6         = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
+    mAllowIpv4         = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
+    mAllowIpv6         = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
     mAllowPxeBoot     = OcHasParsedVar (ParsedLoadOptions, L"--pxe", OcStringFormatUnicode);
     mAllowHttpBoot    = OcHasParsedVar (ParsedLoadOptions, L"--http", OcStringFormatUnicode);
     gRequireHttpsUri  = OcHasParsedVar (ParsedLoadOptions, L"--https", OcStringFormatUnicode);
@@ -515,17 +532,6 @@ UefiMain (
   }
 
   if (!EFI_ERROR (Status)) {
-    if (AllowIpv4 == AllowIpv6) {
-      IdChar = CHAR_NULL; ///< If neither (or both) are specified, allow both.
-    } else if (AllowIpv4) {
-      IdChar = L'4';
-    } else {
-      IdChar = L'6';
-    }
-
-    PxeBootId[L_STR_LEN (PxeBootId) - 1]    = IdChar;
-    HttpBootId[L_STR_LEN (HttpBootId) - 1]  = IdChar;
-
     if (!gRequireHttpsUri && !mAllowHttpBoot && !mAllowPxeBoot) {
       mAllowHttpBoot = TRUE;
       mAllowPxeBoot  = TRUE;
