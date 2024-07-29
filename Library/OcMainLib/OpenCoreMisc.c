@@ -236,17 +236,17 @@ ProduceDebugReport (
   Status = OcSafeFileOpen (
              SysReport,
              &SubReport,
-             L"Driver",
+             L"Drivers",
              EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
              EFI_FILE_DIRECTORY
              );
   if (!EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "OC: Dumping DriverInfo for report...\n"));
+    DEBUG ((DEBUG_INFO, "OC: Dumping DriverImageNames for report...\n"));
     Status = OcDriverInfoDump (SubReport);
     SubReport->Close (SubReport);
   }
 
-  DEBUG ((DEBUG_INFO, "OC: DriverInfo dumping - %r\n", Status));
+  DEBUG ((DEBUG_INFO, "OC: DriverImageNames dumping - %r\n", Status));
 
   SysReport->Close (SysReport);
   Fs->Close (Fs);

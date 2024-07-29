@@ -399,7 +399,7 @@ OcDriverInfoDump (
   // Save dumped driver info to file.
   //
   if (Context.FileBuffer != NULL) {
-    UnicodeSPrint (TmpFileName, sizeof (TmpFileName), L"DriverInfo.txt");
+    UnicodeSPrint (TmpFileName, sizeof (TmpFileName), L"DriverImageNames.txt");
     Status = OcSetFileData (Root, TmpFileName, Context.FileBuffer, (UINT32)AsciiStrLen (Context.FileBuffer));
     DEBUG ((DEBUG_INFO, "OC: Dumped driver info - %r\n", Status));
 
