@@ -173,6 +173,7 @@
     BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
     # FileExplorerLib is for TlsAuthConfigDxe only (not used by us, but enabled by NETWORK_TLS_ENABLE)
     FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
+    IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
     OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
     RngLib|MdeModulePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
     SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
