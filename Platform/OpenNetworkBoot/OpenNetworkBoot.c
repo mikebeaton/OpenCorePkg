@@ -14,7 +14,8 @@ typedef struct {
   BOOLEAN           AddThisCert;
 } CERT_INFO;
 
-#define ENROLL_CERT L"--enroll-cert"
+#define ENROLL_CERT   L"--enroll-cert"
+#define DELETE_CERTS  L"--delete-certs"
 
 BOOLEAN gRequireHttpsUri;
 
@@ -278,6 +279,9 @@ EnrollCerts (
   OC_PARSED_VAR   *Option;
   CERT_INFO       *Certs;
   BOOLEAN         Removed;
+  BOOLEAN         EnrollCert;
+  BOOLEAN         DeleteCerts;
+  UINTN           OptionLen;
 
   //
   // Find certs in options.
@@ -288,12 +292,35 @@ EnrollCerts (
     CertCount = 0;
     for (Index = 0; Index < ParsedLoadOptions->Count; ++Index) {
       Option = OcFlexArrayItemAt (ParsedLoadOptions, Index);
-      if ( OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)
-        && ( (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == CHAR_NULL)
-          || (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':')
-          )
+
+      EnrollCert  = FALSE;
+      DeleteCerts = FALSE;
+
+      if (OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)) {
+        EnrollCert = TRUE;
+        OptionLen = L_STR_LEN (ENROLL_CERT);
+      } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_CERTS, TRUE)) {
+        DeleteCerts = TRUE;
+        OptionLen = L_STR_LEN (DELETE_CERTS);
+      }
+
+      if ( (EnrollCert || DeleteCerts)
+        && (Option->Unicode.Name[OptionLen] != CHAR_NULL)
+        && (Option->Unicode.Name[OptionLen] != L':')
         )
       {
+        EnrollCert  = FALSE;
+        DeleteCerts = FALSE;
+      }
+
+      if (EnrollCert && (Option->Unicode.Value == NULL)) {
+        if (Pass == 0) {
+          DEBUG ((DEBUG_INFO, "NTBT: Ignoring %s option with no cert value\n", Option->Unicode.Name));
+        }
+        EnrollCert = FALSE;
+      }
+
+      if (EnrollCert || DeleteCerts) {
         CertIndex = CertCount++;
 
         if (Pass == 1) {
@@ -306,8 +333,8 @@ EnrollCerts (
           //
           // Use all zeros GUID if no user value supplied.
           //
-          if (Option->Unicode.Name[L_STR_LEN (ENROLL_CERT)] == L':') {
-            Status = StrToGuid (&Option->Unicode.Name[L_STR_LEN (ENROLL_CERT L":")], Certs[CertIndex].OwnerGuid);
+          if (Option->Unicode.Name[OptionLen] == L':') {
+            Status = StrToGuid (&Option->Unicode.Name[OptionLen + 1], Certs[CertIndex].OwnerGuid);
             if (EFI_ERROR (Status)) {
               DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner GUID from %s - %r\n", Option->Unicode.Name, Status));
               break;
@@ -315,9 +342,9 @@ EnrollCerts (
           }
 
           //
-          // Empty cert value forces clear for owner GUID.
+          // Store --delete-certs as cert for GUID with no CertData.
           //
-          if (Option->Unicode.Value != NULL) {
+          if (EnrollCert) {
             //
             // We do not include the terminating '\0' in the stored certificate,
             // which matches how stored by e.g. OVMF when loaded from file;
@@ -386,8 +413,8 @@ EnrollCerts (
       } else {
         DEBUG ((
           DEBUG_INFO,
-          "NTBT: %a clearing existing certs for owner GUID %g\n",
-          Certs[Index].CertData == NULL ? "Empty cert data forces" : "Cert not present,",
+          "NTBT: %s clearing existing certs for owner GUID %g\n",
+          Certs[Index].CertData == NULL ? DELETE_CERTS : L"Cert not present,",
           Certs[Index].OwnerGuid
         ));
         Status = DeleteCertsForOwner (

@@ -102,6 +102,7 @@ LoopOverInstalledCerts (
       continue;
     }
 
+    Status = EFI_SUCCESS;
     CertCount = (CertList->SignatureListSize - sizeof (EFI_SIGNATURE_LIST) - CertList->SignatureHeaderSize) / CertList->SignatureSize;
     for (Index = 0; Index < CertCount; Index++) {
       Cert = (EFI_SIGNATURE_DATA *)((UINT8 *)CertList
@@ -115,6 +116,9 @@ LoopOverInstalledCerts (
       }
 
       ++GuidIndex;
+    }
+    if (EFI_ERROR (Status)) {
+      break;
     }
 
     ItemDataSize -= CertList->SignatureListSize;
@@ -166,8 +170,8 @@ LogInstalledCerts (
 }
 
 /**
-  @retval   EFI_SUCCESS             Success, certificate not found; continue processing.
-  @retval   EFI_ALREADY_STARTED     Success, certificate found; stop processing for more.
+  @retval   EFI_SUCCESS             Certificate not found; continue processing.
+  @retval   EFI_ALREADY_STARTED     Certificate found; stop processing.
 **/
 STATIC
 EFI_STATUS
@@ -220,7 +224,7 @@ CertIsPresent (
 
   ASSERT (X509Data != NULL);
 
-  Context.OwnerGuid      = OwnerGuid;
+  Context.OwnerGuid     = OwnerGuid;
   Context.X509DataSize  = X509DataSize;
   Context.X509Data      = X509Data;
 
