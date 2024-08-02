@@ -6,7 +6,7 @@ the required network boot drivers have been loaded using OpenCore. Using the
 additional network boot drivers provided with OpenCore, when needed, HTTP
 boot should be available on most firmware even if not natively supported.
 
-> **Note**: In the above, and below, 'HTTP boot' refers to booting using either
+> **Note**: In this file 'HTTP boot' refers to booting using either
 `http://` or `https://` URIs. The additional steps to configure a certificate for
 `https://` (and to lock `OpenNetworkBoot` to `https://` only, if required)
 are covered below.
@@ -25,7 +25,7 @@ OpenCore from the firmware boot menu in order to see PXE and HTTP boot entries.
 ## HTTP Boot
 
 On most recent firmware either no or only a few additional drivers are needed
-for HTTP boot, as most required drivers are already present in firmware.
+for HTTP boot, as most of the required drivers are already present in firmware.
 
 
 After adding `OpenNetworkBoot`, if no HTTP boot entries are seen, 
@@ -33,10 +33,10 @@ try adding just the driver `HttpBootDxe`. If this does not produce
 network boot enrties, try also adding `HttpDxe` and `HttpUtilitiesDxe`.
 If `http://` URIs can be booted but not `https://` try adding `TlsDxe.efi`.
 
-If the above steps do not work, proceed to the next section.
+If the above steps do not work, proceed to the next section to identify which drivers are required.
 
-> **Note 1**: In some firmware the existing `HttpDxe` driver may be locked down to `https://` URIs only (even if the machine has no BIOS UI
-for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` will work, but refuse to load (failure message) if loading from `http://` URIs.
+> **Note 1**: In some firmware the existing `HttpDxe` driver may be locked down to `https://` URIs only (even in some cases where the machine has no BIOS UI
+for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` can work with the native `HttpDxe`, but will only  from `https://` URIs (giving a failure message otherwise).
 
 > **Note 2**: In some firmware the existing `HttpBootDxe` driver may produce
 options which do not work correctly (e.g. blank screen when selected),
@@ -48,7 +48,7 @@ with OpenCore.
 
 ## Identifying missing network boot drivers
 
-The `dh` command in the UEFI Shell (e.g. `OpenShell` provided with
+The `dh` command in UEFI Shell (e.g. `OpenShell` provided with
 OpenCore) is useful for working out which drivers are missing for network
 boot.
 
@@ -59,16 +59,16 @@ available HTTP boot options
 
 > **Note 1**: On some systems, there may be additional
 `LoadFile` handles with vendor-specific device paths. These may correspond, for
-instance, to GUI network boot options. These cannot be used by OpenNetworkBoot.
+instance, to GUI network boot options. These will not produce boot entries when using OpenNetworkBoot.
 
 After identifying the handles for network boot entries,
-the other handles just before and slightly after these, in the full
+the other handles just before and after these, in the full
 list of handles displayed by `dh`, should correspond to the currently loaded
 network boot drivers. If there are no LoadFile options, then
 search in the full handle list for strings such as 'tcp', 'tls', 'http'
-(normally the native network boot drivers will appear grouped together in the
-handle list). Examining the names printed by `dh` for these handles
-and comparing them by eye to the available network boot drivers (see OVMF
+(normally the native network boot drivers will appear grouped together).
+Examining the names printed by `dh` for these handles
+and comparing them to the available network boot drivers (see OVMF
 section) can be used to identify missing drivers.
 
 > **Note 2**: On systems with reasonably fast console text output, the `-b`
@@ -105,15 +105,51 @@ NBP file and the program serving it via TFTP to be one and the same.
 
 ### PXE Boot
 
-In PXE boot, the NBP is loaded via TFTP, which is a slow protocol, not suitable
+In PXE boot, the NBP is loaded via TFTP, which is a slow protocol not suitable
 for large files. Standard PXE boot NBPs typically load any further large files
 which they need using their own network stack and not via TFTP.
+
+`dnsmasq`, WDS, or other options, such as FOGProject, may be used to specify
+PXE boot responses.
+
+#### dnsmasq
+
+`dnsmasq` can be used to both provide the location of the PXE boot NBP file
+and then serve it by TFTP.
+
+A basic `dnsmasq` PXE boot configuration is as follows:
+
+```
+# Disable DNS Server
+port=0
+
+# Run as network boot DHCP proxy
+dhcp-range=192.168.10.0,proxy
+
+# Identify requested arch
+# REF: https://wiki.archlinux.org/title/dnsmasq#PXE_server
+dhcp-match=set:arch_x64,option:client-arch,7
+dhcp-match=set:arch_x64,option:client-arch,9
+dhcp-match=set:arch_ia32,option:client-arch,6
+
+# Specify one or more boot options per architecture
+pxe-service=tag:arch_x64,x86-64_EFI,"Open Shell",OpenShell.efi
+pxe-service=tag:arch_x64,x86-64_EFI,"Boot Helper",BootHelper.efi
+
+# Enable TFTP support
+enable-tftp
+tftp-root=/home/mjsbeaton/tftp
+```
+
+A more advanced configuration might serve different files to different
+machines, depending on their hardware id. (The same point applies to
+HTTP boot.) See `dnsmasq` documentation.
 
 #### WDS
 
 Windows Deployment Services (WDS, which is incuded with Windows Server) can be
 used to provide responses to PXE boot requests, and can be configured to serve
-non-Windows NBPs.
+non-Windows NBP files.
 
 **Note 1**: Certain aspects of WDS are now deprecated:
 https://aka.ms/WDSSupport
@@ -126,38 +162,37 @@ after the program has loaded, in order to access the next screen.
 The issue of the early text of this software not appearing in some circumstances
 is not unique to OpenCore: https://serverfault.com/q/683314
 
-#### dnsmasq
-
-`dnsmasq` can be used to both provide the location of the PXE boot NBP file
-and then serve it by TFTP.
-
-A basic `dnsmasq` PXE boot configuration is as follows:
-
-```
-TODO
-```
-
-A more advanced configuration might serve different files to different
-machines, depending on their hardware id. (The same point applies to
-HTTP boot.)
-
-TODO: More info on which hardware id and where it is set and saved.
-
-Reference:
- - https://wiki.archlinux.org/title/dnsmasq
-
 ### HTTP Boot
 
 #### dnsmasq
 
-Although `dnsmasq` does not provide as full support for HTTP
-boot as it does for PXE boot, its PXE boot features can be configured
+Although `dnsmasq` does not provide complete support for HTTP
+boot, as it does for PXE boot, its PXE boot features can be used
 to respond to requests for the location of HTTP boot NBP files.
 
 A basic `dnsmasq` HTTP boot configuration is as follows:
 
 ```
-TODO
+# Disable DNS Server
+port=0
+
+# Run as PXE Boot DHCP proxy for specified network (use default /24 network size)
+dhcp-range=192.168.2.0,proxy
+
+# Trigger PXE Boot support on HTTP Boot client request
+dhcp-pxe-vendor=HTTPClient
+
+# Set triggering tag if correct arch is present in option 60
+dhcp-match=set:arch_x64,option:client-arch,16
+
+# Make PXE Boot support believe it has something to send...
+pxe-service=tag:arch_x64,x86-64_EFI,"Network Boot"
+
+# Specify bootfile-name via PXE Boot setting
+dhcp-boot=tag:arch_x64,https://michaels-air.lan:8443/images/OpenShell.efi
+
+# Force required vendor class in response, even if not requested
+dhcp-option-force=tag:arch_x64,option:vendor-class,HTTPClient
 ```
 
 An HTTP server (such as Apache, nginx, or multiple other options) will be
@@ -167,11 +202,9 @@ References:
  - https://github.com/ipxe/ipxe/discussions/569
  - https://www.mail-archive.com/dnsmasq-discuss@lists.thekelleys.org.uk/msg16278.html
 
-Other options, such as TODO, may also be used.
-
 ### HTTPS Boot
 
-Note that the certificate for validating https requests should be loaded into
+Note that the certificate for validating `https://` requests should be loaded into
 firmware using the OpenNetworkBoot `--enroll-cert` option.
 
 A normal https site would not serve files using a self-signed certificate
@@ -180,7 +213,7 @@ clients, in this case we can do so.
 
 ## Booting ISO and IMG files
 
-Though not often noted in the documentation, the vast majority of HTTP Boot
+Though not often noted in the documentation, the majority of HTTP Boot
 implementations support loading `.iso` and `.img` files, which will be
 automatically mounted as a ramdisk. If the mounted filesystem includes
 `\EFI\BOOT\BOOTx64.efi` (or `\EFI\BOOT\BOOTIA32.efi` for 32-bit) then this
@@ -205,21 +238,22 @@ the `HttpBootDxe` driver currently shipped with OpenCore).
 
 ## Booting DMG files
 
-In order to allow booting macOS Recovery OS, `OpenNetworkBoot` includes
+In order to allow booting macOS Recovery, `OpenNetworkBoot` includes
 additional support for loading `.dmg` files via HTTP boot. If the NBP
 filename is `{filename}.dmg` or `{filename}.chunklist` then the other
 file of this pair will be automatically loaded, in order to allow DMG
-chunklist verification.
+chunklist verification, and both files will be used for OpenCore DMG booting.
 
 ### MIME types
 
 In order for `.dmg` and `.chunklist` files to be loaded by standard HTTP boot
 drivers (including the `HttpBootDxe` driver currently shipped with OpenCore),
 they must be served with the MIME type `application/efi`, otherwise they will
-be treated as having an unknown file type and will not be loaded. (Note also
-that `.dmg` files should not use the MIME types for ISO or IMG files mentioned
+be treated as having an unknown file type and will not be loaded.
+
+> **Note**: `.dmg` files should not use the MIME types for ISO or IMG files mentioned
 above, or else the HTTP boot drivers will try to load, mount and boot from
-them as the corresponding type of ramdisk, which will fail.)
+them as if they were the corresponding type of ramdisk, which will fail.
 
 For example, to set up the required MIME types when using Apache installed via
 Homebrew on macOS, the following line should be added to
@@ -293,13 +327,18 @@ TlsDxe
 ```
 
 ### PXE
-For PXE Boot support (not currently provided) we would also add::
+For PXE Boot support we would also add (not provided with OpenCore):
 ```
 Mtftp4Dxe (IPv4)
-Mtftp6Dxe (IPv4)
+Mtftp6Dxe (IPv6)
 ```
 
 ### OVMF networking
+
+If any network boot clients (e.g. OVMF, VMWare) or server programs
+(e.g. Apache, `dnsmasq`, WDS) are running on VMs, it is normally easiest
+to set these up using bridged network support, which allows the VM to
+appear as a separate device with its own IP address on the network.
 
 To start OVMF with bridged network support the following macOS-specific
 `qemu` options (which require `sudo`) may be used:
@@ -308,11 +347,6 @@ To start OVMF with bridged network support the following macOS-specific
 -netdev vmnet-bridged,id=mynet0,ifname=en0 \
 -device e1000,netdev=mynet0,id=mynic0
 ```
-
-> **Tip**: If any network boot clients (e.g. OVMF, VMWare) or server programs
-(e.g. Apache, `dnsmasq`, WDS) are running on VMs, it is normally easiest
-to set these up using bridged network support, which allows the VM to
-appear as a separate device with its own IP address on the network.
 
 PXE boot may also be tested in OVMF using qemu's built-in TFTP/PXE server,
 available with the qemu user mode network stack, for example using the
@@ -333,7 +367,7 @@ configured on the network boot client. Within the OVMF menus this may
 be done using
 `Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
 
-> **Tip**: No GUID needs to be provided in that dialog. All zeroes will be
+> **Tip**: No GUID needs to be provided in the above dialog. All zeroes will be
 used if nothing is specified, which is fine if only a single certificate is going to be configured and managed.
 
 ### Debugging network boot on OVMF
