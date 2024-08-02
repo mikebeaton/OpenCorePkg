@@ -20,7 +20,8 @@ boot entries.
 > **Note**: On some firmware (e.g. HP) the native network boot drivers are not loaded
 if the system boots directly to OpenCore and it is necessary to start
 OpenCore from the firmware boot menu in order to see PXE and HTTP boot entries.
-(Alternatively, it should be possible to load the network boot stack provided with OpenCore, see OVMF instructions.)
+(Alternatively, it should be possible to load the network boot stack provided with
+OpenCore, see OVMF instructions.)
 
 ## HTTP Boot
 
@@ -33,10 +34,14 @@ try adding just the driver `HttpBootDxe`. If this does not produce
 network boot enrties, try also adding `HttpDxe` and `HttpUtilitiesDxe`.
 If `http://` URIs can be booted but not `https://` try adding `TlsDxe.efi`.
 
-If the above steps do not work, proceed to the next section to identify which drivers are required.
+If the above steps do not work, proceed to the next section to identify
+which drivers are required.
 
-> **Note 1**: In some firmware the existing `HttpDxe` driver may be locked down to `https://` URIs only (even in some cases where the machine has no BIOS UI
-for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` can work with the native `HttpDxe`, but will only  from `https://` URIs (giving a failure message otherwise).
+> **Note 1**: In some firmware the existing `HttpDxe` driver may be locked
+down to `https://` URIs only (even in some cases where the machine has no BIOS UI
+for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` can work
+with the native `HttpDxe`, but will only  from `https://` URIs (giving a failure
+message otherwise).
 
 > **Note 2**: In some firmware the existing `HttpBootDxe` driver may produce
 options which do not work correctly (e.g. blank screen when selected),
@@ -59,7 +64,8 @@ available HTTP boot options
 
 > **Note 1**: On some systems, there may be additional
 `LoadFile` handles with vendor-specific device paths. These may correspond, for
-instance, to GUI network boot options. These will not produce boot entries when using OpenNetworkBoot.
+instance, to GUI network boot options. These will not produce boot entries when
+using OpenNetworkBoot.
 
 After identifying the handles for network boot entries,
 the other handles just before and after these, in the full
@@ -368,7 +374,8 @@ be done using
 `Device Manager/Tls Auth Configuration/Server CA Configuration/Enroll Cert/Enroll Cert Using File`.
 
 > **Tip**: No GUID needs to be provided in the above dialog. All zeroes will be
-used if nothing is specified, which is fine if only a single certificate is going to be configured and managed.
+used if nothing is specified, which is fine if only a single certificate is going
+to be configured and managed.
 
 ### Debugging network boot on OVMF
 
