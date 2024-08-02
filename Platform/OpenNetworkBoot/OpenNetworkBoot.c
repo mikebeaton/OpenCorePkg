@@ -216,12 +216,12 @@ GetNetworkBootEntries (
       // to identify PXE/HTTP and IPv4/6.
       //
       if ((IdStr = StrStr (NetworkDescription, PxeBootId)) != NULL) {
-        IsIPv4 = IdStr[STRLEN(PxeBootId)] == L'4';
-        ASSERT (IsIPv4 || (IdStr[STRLEN(PxeBootId)] == L'6'));
+        IsIPv4 = IdStr[L_STR_LEN(PxeBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[L_STR_LEN(PxeBootId)] == L'6'));
         IsHttpBoot = FALSE;
       } else if ((IdStr = StrStr (NetworkDescription, HttpBootId)) != NULL) {
-        IsIPv4 = IdStr[STRLEN(HttpBootId)] == L'4';
-        ASSERT (IsIPv4 || (IdStr[STRLEN(HttpBootId)] == L'6'));
+        IsIPv4 = IdStr[L_STR_LEN(HttpBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[L_STR_LEN(HttpBootId)] == L'6'));
         IsHttpBoot = TRUE;
       }
 
@@ -487,8 +487,8 @@ UefiMain (
     return Status;
   }
 
-  mAllowIpv4         = FALSE;
-  mAllowIpv6         = FALSE;
+  mAllowIpv4        = FALSE;
+  mAllowIpv6        = FALSE;
   mAllowPxeBoot     = FALSE;
   mAllowHttpBoot    = FALSE;
   gRequireHttpsUri  = FALSE;
@@ -504,8 +504,8 @@ UefiMain (
     //
     // e.g. --https --uri=https://imageserver.org/OpenShell.efi
     //
-    mAllowIpv4         = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
-    mAllowIpv6         = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
+    mAllowIpv4        = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
+    mAllowIpv6        = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
     mAllowPxeBoot     = OcHasParsedVar (ParsedLoadOptions, L"--pxe", OcStringFormatUnicode);
     mAllowHttpBoot    = OcHasParsedVar (ParsedLoadOptions, L"--http", OcStringFormatUnicode);
     gRequireHttpsUri  = OcHasParsedVar (ParsedLoadOptions, L"--https", OcStringFormatUnicode);
@@ -532,6 +532,11 @@ UefiMain (
   }
 
   if (!EFI_ERROR (Status)) {
+    if (!mAllowIpv4 && !mAllowIpv6) {
+      mAllowIpv4  = TRUE;
+      mAllowIpv6  = TRUE;
+    }
+
     if (!gRequireHttpsUri && !mAllowHttpBoot && !mAllowPxeBoot) {
       mAllowHttpBoot = TRUE;
       mAllowPxeBoot  = TRUE;

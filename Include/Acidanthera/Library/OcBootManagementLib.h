@@ -78,14 +78,14 @@ typedef struct OC_HOTKEY_CONTEXT_ OC_HOTKEY_CONTEXT;
 #define OC_FLAVOUR_TOGGLE_SIP           "ToggleSIP:NVRAMTool"
 #define OC_FLAVOUR_TOGGLE_SIP_ENABLED   "ToggleSIP_Enabled:ToggleSIP:NVRAMTool"
 #define OC_FLAVOUR_TOGGLE_SIP_DISABLED  "ToggleSIP_Disabled:ToggleSIP:NVRAMTool"
-#define OC_FLAVOUR_FIRMWARE_SETTINGS    "FirmwareSettings:Recovery"
-#define OC_FLAVOUR_HTTP_BOOT4           "HttpBoot4:HttpBoot:NetBoot:Recv"
-#define OC_FLAVOUR_HTTP_BOOT6           "HttpBoot6:HttpBoot:NetBoot:Recv"
-#define OC_FLAVOUR_PXE_BOOT4            "PxeBoot4:PxeBoot:NetBoot:Recv"
-#define OC_FLAVOUR_PXE_BOOT6            "PxeBoot6:PxeBoot:NetBoot:Recv"
+#define OC_FLAVOUR_FIRMWARE_SETTINGS    "FirmwareSettings"
+#define OC_FLAVOUR_HTTP_BOOT4           "HttpBoot4:HttpBoot:NetworkBoot"
+#define OC_FLAVOUR_HTTP_BOOT6           "HttpBoot6:HttpBoot:NetworkBoot"
+#define OC_FLAVOUR_PXE_BOOT4            "PxeBoot4:PxeBoot:NetworkBoot"
+#define OC_FLAVOUR_PXE_BOOT6            "PxeBoot6:PxeBoot:NetworkBoot"
 #define OC_FLAVOUR_APPLE_OS             "Apple"
-#define OC_FLAVOUR_APPLE_RECOVERY       "AppleRecv:Recv:Apple"
-#define OC_FLAVOUR_APPLE_FW             "AppleRecv:Recv:Apple"
+#define OC_FLAVOUR_APPLE_RECOVERY       "AppleRecv:Apple"
+#define OC_FLAVOUR_APPLE_FW             "AppleRecv:Apple"
 #define OC_FLAVOUR_APPLE_TIME_MACHINE   "AppleTM:Apple"
 #define OC_FLAVOUR_WINDOWS              "Windows"
 
@@ -97,6 +97,7 @@ typedef struct OC_HOTKEY_CONTEXT_ OC_HOTKEY_CONTEXT;
 #define OC_FLAVOUR_ID_TOGGLE_SIP_ENABLED   "ToggleSIP_Enabled"
 #define OC_FLAVOUR_ID_TOGGLE_SIP_DISABLED  "ToggleSIP_Disabled"
 #define OC_FLAVOUR_ID_FIRMWARE_SETTINGS    "FirmwareSettings"
+#define OC_FLAVOUR_ID_NETWORK_BOOT         "NetworkBoot"
 
 /**
   Paths allowed to be accessible by the interfaces.
