@@ -209,7 +209,10 @@ EFI_STATUS
 DeleteCertsForOwner (
   IN CHAR16                        *VariableName,
   IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid
+  IN EFI_GUID                      *OwnerGuid,
+  IN UINTN                         X509DataSize,
+  IN VOID                          *X509Data,
+  OUT UINTN                        *DeletedCount
   );
 
 EFI_STATUS

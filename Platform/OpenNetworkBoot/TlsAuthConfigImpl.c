@@ -26,7 +26,8 @@ typedef struct {
 } CERT_IS_PRESENT_CONTEXT;
 
 /**
-  Perform function for all signatures in specified database.
+  Perform action for all signatures in specified database, with
+  possibility of aborting early.
 
   @param[in]    VariableName        The variable name of the vendor's signature database.
   @param[in]    VendorGuid          A unique identifier for the signature database vendor.
@@ -39,7 +40,7 @@ typedef struct {
 **/
 STATIC
 EFI_STATUS
-LoopOverInstalledCerts (
+ProcessAllCerts (
   IN CHAR16                        *VariableName,
   IN EFI_GUID                      *VendorGuid,
   IN PROCESS_CERT                  ProcessCert,
@@ -161,7 +162,7 @@ LogInstalledCerts (
   )
 {
   DEBUG ((DEBUG_INFO, "NTBT: Listing installed certs...\n"));
-  return LoopOverInstalledCerts (
+  return ProcessAllCerts (
     VariableName,
     VendorGuid,
     LogCert,
@@ -190,7 +191,7 @@ CheckCertPresent (
     return EFI_SUCCESS;
   }
 
-  if ( (CertSize == Context->X509DataSize + sizeof (EFI_GUID))
+  if ( (CertSize == sizeof (EFI_SIGNATURE_DATA) - 1 + Context->X509DataSize)
     && (CompareMem (Cert->SignatureData, Context->X509Data, Context->X509DataSize) == 0)
   ) {
     return EFI_ALREADY_STARTED;
@@ -228,7 +229,7 @@ CertIsPresent (
   Context.X509DataSize  = X509DataSize;
   Context.X509Data      = X509Data;
 
-  return LoopOverInstalledCerts (
+  return ProcessAllCerts (
     VariableName,
     VendorGuid,
     CheckCertPresent,
@@ -237,12 +238,16 @@ CertIsPresent (
 }
 
 /**
-  Delete all entries with specified owner from signature database.
-  (Modified from EDK 2 DeleteCertsForOwner which removes one cert, identified by index.)
+  Delete specific entry or all entries with owner guid from signature database.
+  (Based on original EDK 2 DeleteCert which removes one cert, identified by index.)
 
   @param[in]    VariableName        The variable name of the signature database.
   @param[in]    VendorGuid          A unique identifier for the signature database vendor.
-  @param[in]    OwnerGuid           A unique identifier for owner of the certificate to be installed.
+  @param[in]    OwnerGuid           A unique identifier for owner of the certificate(s) to be deleted.
+  @param[in]    X509DataSize        Optional certificate data size.
+  @param[in]    X509Data            Optional certificate data. If non-NULL, delete only specific certificate
+                                    for owner, if present. If NULL, delete all certificates for owner.
+  @param[in]    DeletedCount        Optional return count of deleted certificates.
 
   @retval   EFI_SUCCESS             Delete signature successfully.
   @retval   EFI_OUT_OF_RESOURCES    Could not allocate needed resources.
@@ -251,7 +256,10 @@ EFI_STATUS
 DeleteCertsForOwner (
   IN CHAR16                        *VariableName,
   IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid
+  IN EFI_GUID                      *OwnerGuid,
+  IN UINTN                         X509DataSize,
+  IN VOID                          *X509Data,
+  OUT UINTN                        *DeletedCount
   )
 {
   EFI_STATUS          Status;
@@ -265,8 +273,15 @@ DeleteCertsForOwner (
   EFI_SIGNATURE_DATA  *Cert;
   UINTN               CertCount;
   UINT32              Offset;
-  BOOLEAN             IsItemFound;
+  UINTN               LocalDeleteCount;
   UINT32              ItemDataSize;
+
+  ASSERT ((X509Data == NULL) || (X509DataSize != 0));
+
+  if (DeletedCount == NULL) {
+    DeletedCount = &LocalDeleteCount;
+  }
+  *DeletedCount = 0;
 
   Data     = NULL;
   OldData  = NULL;
@@ -309,7 +324,6 @@ DeleteCertsForOwner (
   //
   // Enumerate all data, erasing target items.
   //
-  IsItemFound  = FALSE;
   ItemDataSize = (UINT32)DataSize;
   CertList     = (EFI_SIGNATURE_LIST *)OldData;
   Offset       = 0;
@@ -324,12 +338,18 @@ DeleteCertsForOwner (
       Cert        = (EFI_SIGNATURE_DATA *)((UINT8 *)CertList + sizeof (EFI_SIGNATURE_LIST) + CertList->SignatureHeaderSize);
       CertCount   = (CertList->SignatureListSize - sizeof (EFI_SIGNATURE_LIST) - CertList->SignatureHeaderSize) / CertList->SignatureSize;
       for (Index = 0; Index < CertCount; Index++) {
-        if (CompareGuid (&Cert->SignatureOwner, OwnerGuid)) {
+        if ( CompareGuid (&Cert->SignatureOwner, OwnerGuid)
+          && ( (X509Data == NULL)
+            || ( (CertList->SignatureSize == (UINT32)(sizeof (EFI_SIGNATURE_DATA) - 1 + X509DataSize))
+              && (CompareMem ((UINT8 *)(Cert->SignatureData), X509Data, X509DataSize) == 0)
+            )
+          )
+         ) {
           //
           // Find it! Skip it!
           //
           NewCertList->SignatureListSize -= CertList->SignatureSize;
-          IsItemFound                     = TRUE;
+          ++(*DeletedCount);
         } else {
           //
           // This item doesn't match. Copy it to the Data buffer.
@@ -352,7 +372,7 @@ DeleteCertsForOwner (
     CertList      = (EFI_SIGNATURE_LIST *)((UINT8 *)CertList + CertList->SignatureListSize);
   }
 
-  if (IsItemFound) {
+  if (*DeletedCount != 0) {
     //
     // Delete the EFI_SIGNATURE_LIST header if there is no signature remaining in any list.
     //
@@ -429,6 +449,15 @@ EnrollX509toVariable (
 
   ASSERT (X509Data != NULL);
 
+  //
+  // Note: As implemented in EDK 2, each signature list can have multiple
+  // instances of signature data (owner guid followed by signature data),
+  // but every instance in one list must have the same size.
+  // The signature data is the unprocessed contents of a .pem or .der file.
+  // It is not immediately obvious how the multiple signature feature would
+  // be useful as signature file data does not in general have a fixed size
+  // (not even for .pem files: https://security.stackexchange.com/q/152584).
+  //
   SigDataSize = sizeof (EFI_SIGNATURE_LIST) + sizeof (EFI_SIGNATURE_DATA) - 1 + X509DataSize;
 
   Data = AllocateZeroPool (SigDataSize);

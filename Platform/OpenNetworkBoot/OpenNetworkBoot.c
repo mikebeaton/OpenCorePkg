@@ -7,15 +7,9 @@
 
 #include "NetworkBootInternal.h"
 
-typedef struct {
-  EFI_GUID          *OwnerGuid;
-  UINTN             CertSize;
-  CHAR8             *CertData;
-  BOOLEAN           AddThisCert;
-} CERT_INFO;
-
-#define ENROLL_CERT   L"--enroll-cert"
-#define DELETE_CERTS  L"--delete-certs"
+#define ENROLL_CERT       L"--enroll-cert"
+#define DELETE_CERT       L"--delete-cert"
+#define DELETE_ALL_CERTS  L"--delete-all-certs"
 
 BOOLEAN gRequireHttpsUri;
 
@@ -271,214 +265,143 @@ EnrollCerts (
 {
   EFI_STATUS      Status;
   UINTN           Index;
-  UINTN           Index2;
-  UINTN           CertIndex;
-  UINTN           CertCount;
-  UINTN           Pass;
-  UINTN           CertSize;
   OC_PARSED_VAR   *Option;
-  CERT_INFO       *Certs;
-  BOOLEAN         Removed;
+  EFI_GUID        *OwnerGuid;
+  UINTN           CertSize;
+  CHAR8           *CertData;
   BOOLEAN         EnrollCert;
-  BOOLEAN         DeleteCerts;
+  BOOLEAN         DeleteCert;
+  BOOLEAN         DeleteAllCerts;
   UINTN           OptionLen;
+  UINTN           DeletedCount;
+
+  Status = EFI_SUCCESS;
 
   //
   // Find certs in options.
   //
-  Certs   = NULL;
-  Status  = EFI_SUCCESS;
-  for (Pass = 0; Pass <= 1; ++Pass) {
-    CertCount = 0;
-    for (Index = 0; Index < ParsedLoadOptions->Count; ++Index) {
-      Option = OcFlexArrayItemAt (ParsedLoadOptions, Index);
+  for (Index = 0; Index < ParsedLoadOptions->Count; ++Index) {
+    Option = OcFlexArrayItemAt (ParsedLoadOptions, Index);
 
+    EnrollCert      = FALSE;
+    DeleteCert      = FALSE;
+    DeleteAllCerts  = FALSE;
+
+    if (OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)) {
+      EnrollCert = TRUE;
+      OptionLen = L_STR_LEN (ENROLL_CERT);
+    } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_CERT, TRUE)) {
+      DeleteCert = TRUE;
+      OptionLen = L_STR_LEN (DELETE_CERT);
+    } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_ALL_CERTS, TRUE)) {
+      DeleteAllCerts = TRUE;
+      OptionLen = L_STR_LEN (DELETE_ALL_CERTS);
+    }
+
+    if ( (EnrollCert || DeleteCert || DeleteAllCerts)
+      && (Option->Unicode.Name[OptionLen] != CHAR_NULL)
+      && (Option->Unicode.Name[OptionLen] != L':')
+      )
+    {
       EnrollCert  = FALSE;
-      DeleteCerts = FALSE;
-
-      if (OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)) {
-        EnrollCert = TRUE;
-        OptionLen = L_STR_LEN (ENROLL_CERT);
-      } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_CERTS, TRUE)) {
-        DeleteCerts = TRUE;
-        OptionLen = L_STR_LEN (DELETE_CERTS);
-      }
-
-      if ( (EnrollCert || DeleteCerts)
-        && (Option->Unicode.Name[OptionLen] != CHAR_NULL)
-        && (Option->Unicode.Name[OptionLen] != L':')
-        )
-      {
-        EnrollCert  = FALSE;
-        DeleteCerts = FALSE;
-      }
-
-      if (EnrollCert && (Option->Unicode.Value == NULL)) {
-        if (Pass == 0) {
-          DEBUG ((DEBUG_INFO, "NTBT: Ignoring %s option with no cert value\n", Option->Unicode.Name));
-        }
-        EnrollCert = FALSE;
-      }
-
-      if (EnrollCert || DeleteCerts) {
-        CertIndex = CertCount++;
-
-        if (Pass == 1) {
-          Certs[CertIndex].OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
-          if (Certs[CertIndex].OwnerGuid == NULL) {
-            Status = EFI_OUT_OF_RESOURCES;
-            break;
-          }
-
-          //
-          // Use all zeros GUID if no user value supplied.
-          //
-          if (Option->Unicode.Name[OptionLen] == L':') {
-            Status = StrToGuid (&Option->Unicode.Name[OptionLen + 1], Certs[CertIndex].OwnerGuid);
-            if (EFI_ERROR (Status)) {
-              DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner GUID from %s - %r\n", Option->Unicode.Name, Status));
-              break;
-            }
-          }
-
-          //
-          // Store --delete-certs as cert for GUID with no CertData.
-          //
-          if (EnrollCert) {
-            //
-            // We do not include the terminating '\0' in the stored certificate,
-            // which matches how stored by e.g. OVMF when loaded from file;
-            // but we must allocate space for '\0' for Unicode to ASCII conversion.
-            //
-            CertSize = StrLen (Option->Unicode.Value);
-            Certs[CertIndex].CertData = AllocateZeroPool (CertSize + 1);
-            if (Certs[CertIndex].CertData == NULL) {
-              Status = EFI_OUT_OF_RESOURCES;
-              break;
-            }
-            Certs[CertIndex].CertSize = CertSize;
-            UnicodeStrToAsciiStrS (Option->Unicode.Value, Certs[CertIndex].CertData, CertSize + 1);
-          }
-        }
-      }
+      DeleteCert  = FALSE;
+      DeleteAllCerts = FALSE;
     }
 
-    if (EFI_ERROR (Status)) {
-      break;
+    if ((EnrollCert || DeleteCert) && (Option->Unicode.Value == NULL)) {
+      DEBUG ((DEBUG_INFO, "NTBT: Ignoring %s option with no cert value\n", Option->Unicode.Name));
+      EnrollCert = FALSE;
+      DeleteCert = FALSE;
     }
 
-    if (Pass == 0) {
-      if (CertCount == 0) {
+    if (EnrollCert || DeleteCert || DeleteAllCerts) {
+      OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
+      if (OwnerGuid == NULL) {
+        Status = EFI_OUT_OF_RESOURCES;
         break;
       }
 
-      Certs = AllocateZeroPool (CertCount * sizeof (CERT_INFO));
-      if (Certs == NULL) {
-        return EFI_OUT_OF_RESOURCES;
-      }
-    }
-  }
-
-  //
-  // Work out if any certs are missing; clear down and re-apply everything
-  // for a given owner GUID if any certs for it are missing.
-  //
-  if (!EFI_ERROR (Status) && Certs != NULL) {
-    Removed = FALSE;
-
-    for (Index = 0; Index < CertCount; ++Index) {
-      if (Certs[Index].AddThisCert) {
-        continue;
-      }
-
-      if (Certs[Index].CertData == NULL) {
-        Status = EFI_SUCCESS;
-      } else {
-        Status = CertIsPresent (
-              EFI_TLS_CA_CERTIFICATE_VARIABLE,
-              &gEfiTlsCaCertificateGuid,
-              Certs[Index].OwnerGuid,
-              Certs[Index].CertSize,
-              Certs[Index].CertData
-        );
-
-        if (EFI_ERROR (Status) && (Status != EFI_ALREADY_STARTED)) {
-          DEBUG ((DEBUG_INFO, "NTBT: Error checking for cert presence - %r\n", Status));
+      //
+      // Use all zeros GUID if no user value supplied.
+      //
+      if (Option->Unicode.Name[OptionLen] == L':') {
+        Status = StrToGuid (&Option->Unicode.Name[OptionLen + 1], OwnerGuid);
+        if (EFI_ERROR (Status)) {
+          DEBUG ((DEBUG_WARN, "NTBT: Cannot parse cert owner GUID from %s - %r\n", Option->Unicode.Name, Status));
           break;
         }
       }
-      
-      if (Status == EFI_ALREADY_STARTED) {
-        Status = EFI_SUCCESS;
-      } else {
-        DEBUG ((
-          DEBUG_INFO,
-          "NTBT: %s clearing existing certs for owner GUID %g\n",
-          Certs[Index].CertData == NULL ? DELETE_CERTS : L"Cert not present,",
-          Certs[Index].OwnerGuid
-        ));
+
+      if (DeleteAllCerts) {
         Status = DeleteCertsForOwner (
           EFI_TLS_CA_CERTIFICATE_VARIABLE,
           &gEfiTlsCaCertificateGuid,
-          Certs[Index].OwnerGuid
+          OwnerGuid,
+          0,
+          NULL,
+          &DeletedCount
         );
-        if (EFI_ERROR (Status)) {
-          DEBUG ((
-            DEBUG_INFO,
-            "NTBT: Error clearing certs - %r\n",
-            Status
-          ));
+        DEBUG ((DEBUG_INFO, "NTBT: %s %u deleted - %r\n", Option->Unicode.Name, DeletedCount, Status));
+      } else {
+        //
+        // We do not include the terminating '\0' in the stored certificate,
+        // which matches how stored by e.g. OVMF when loaded from file;
+        // but we must allocate space for '\0' for Unicode to ASCII conversion.
+        //
+        CertSize = StrLen (Option->Unicode.Value);
+        CertData = AllocateZeroPool (CertSize + 1);
+        if (CertData == NULL) {
+          Status = EFI_OUT_OF_RESOURCES;
           break;
         }
-        Removed = TRUE;
-        Certs[Index].AddThisCert = TRUE;
-        for (Index2 = 0; Index2 < CertCount; ++Index2) {
-          if ( (Index2 != Index)
-            && !Certs[Index2].AddThisCert
-            && CompareGuid (Certs[Index].OwnerGuid, Certs[Index2].OwnerGuid)
-          ) {
-            Certs[Index2].AddThisCert = TRUE;
-          }
-        }
-      }
-    }
+        UnicodeStrToAsciiStrS (Option->Unicode.Value, CertData, CertSize + 1);
 
-    if (!EFI_ERROR (Status)) {
-      if (!Removed) {
-        DEBUG ((DEBUG_INFO, "NTBT: All certs already present\n"));
-      } else {
-        for (Index = 0; Index < CertCount; ++Index) {
-          if (Certs[Index].AddThisCert && (Certs[Index].CertData != NULL)) {
-            DEBUG ((DEBUG_INFO, "NTBT: Adding cert for owner GUID %g\n", Certs[Index].OwnerGuid));
+        if (DeleteCert) {
+          Status = DeleteCertsForOwner (
+            EFI_TLS_CA_CERTIFICATE_VARIABLE,
+            &gEfiTlsCaCertificateGuid,
+            OwnerGuid,
+            CertSize,
+            CertData,
+            &DeletedCount
+          );
+          DEBUG ((DEBUG_INFO, "NTBT: %s %u deleted - %r\n", Option->Unicode.Name, DeletedCount, Status));
+        } else {
+          Status = CertIsPresent (
+                EFI_TLS_CA_CERTIFICATE_VARIABLE,
+                &gEfiTlsCaCertificateGuid,
+                OwnerGuid,
+                CertSize,
+                CertData
+          );
+          if (EFI_ERROR (Status)) {
+            if (Status == EFI_ALREADY_STARTED) {
+              DEBUG ((DEBUG_INFO, "NTBT: %s already present\n", Option->Unicode.Name));
+              Status = EFI_SUCCESS;
+            } else {
+              DEBUG ((DEBUG_INFO, "NTBT: Error checking for cert presence - %r\n", Status));
+            }
+          } else {
             Status = EnrollX509toVariable (
               EFI_TLS_CA_CERTIFICATE_VARIABLE,
               &gEfiTlsCaCertificateGuid,
-              Certs[Index].OwnerGuid,
-              Certs[Index].CertSize,
-              Certs[Index].CertData
+              OwnerGuid,
+              CertSize,
+              CertData
             );
-            if (EFI_ERROR (Status)) {
-              break;
-            }
+            DEBUG ((DEBUG_INFO, "NTBT: %s - %r\n", Option->Unicode.Name, Status));
           }
         }
-      }
-    }
-  }
 
-  //
-  // Free resources.
-  //
-  if (Certs != NULL) {
-    for (Index = 0; Index < CertCount; ++Index) {
-      if (Certs[Index].OwnerGuid != NULL) {
-        FreePool (Certs[Index].OwnerGuid);
+        FreePool (CertData);
       }
-      if (Certs[Index].CertData != NULL) {
-        FreePool (Certs[Index].CertData);
+
+      FreePool (OwnerGuid);
+
+      if (EFI_ERROR (Status)) {
+        break;
       }
     }
-    FreePool (Certs);
   }
 
   return Status;
