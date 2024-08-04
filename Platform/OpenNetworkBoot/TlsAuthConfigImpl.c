@@ -451,7 +451,7 @@ EnrollX509toVariable (
 
   //
   // Note: As implemented in EDK 2, each signature list can have multiple
-  // instances of signature data (owner guid followed by signature data),
+  // instances of signature data (owner guid followed by raw signature data),
   // but every instance in one list must have the same size.
   // The signature data is the unprocessed contents of a .pem or .der file.
   // It is not immediately obvious how the multiple signature feature would
