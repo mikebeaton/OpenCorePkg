@@ -33,6 +33,32 @@
 extern BOOLEAN gRequireHttpsUri;
 
 /**
+  Custom validation for network boot device path.
+
+  @param Path         Device path to validate.
+
+  @retval EFI_SUCCESS           Device path should be accepted.
+  @retval other                 Device path should be rejected.
+**/
+typedef
+EFI_STATUS
+(*VALIDATE_BOOT_DEVICE_PATH)(
+  IN VOID                       *Context,
+  IN EFI_DEVICE_PATH_PROTOCOL   *Path
+  );
+
+/*
+  Return pointer to final node in device path, if it as a URI node.
+  Used to return the URI node for an HTTP Boot device path.
+
+  @return Required device path node if available, NULL otherwise.
+*/
+EFI_DEVICE_PATH_PROTOCOL *
+GetUriNode (
+  EFI_DEVICE_PATH_PROTOCOL *DevicePath
+  );
+
+/**
   Return the description for network boot device.
 
   @param Handle                Controller handle.
@@ -77,10 +103,11 @@ BmGetLoadFileDescription (
 **/
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
-  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
-  OUT VOID                      **Data,
-  OUT UINT32                    *DataSize,
-  IN  OC_DMG_LOADING_SUPPORT    DmgLoading
+  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
+  OUT VOID                        **Data,
+  OUT UINT32                      *DataSize,
+  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
+  IN  VOID                        *ValidateContext OPTIONAL
   );
 
 /**

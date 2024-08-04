@@ -377,11 +377,12 @@ BmDestroyRamDisk (
 STATIC
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFile (
-  IN  EFI_HANDLE                LoadFileHandle,
-  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
-  OUT VOID                      **Data,
-  OUT UINT32                    *DataSize,
-  IN  OC_DMG_LOADING_SUPPORT    DmgLoading
+  IN  EFI_HANDLE                  LoadFileHandle,
+  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
+  OUT VOID                        **Data,
+  OUT UINT32                      *DataSize,
+  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
+  IN  VOID                        *ValidateContext OPTIONAL
   )
 {
   EFI_STATUS                Status;
@@ -390,8 +391,6 @@ BmExpandLoadFile (
   EFI_HANDLE                RamDiskHandle;
   UINTN                     BufferSize;
   EFI_DEVICE_PATH_PROTOCOL  *FullPath;
-  CHAR8                     *Match;
-  BOOLEAN                   HasDmgExtension;
 
   ASSERT (Data != NULL);
   ASSERT (DataSize != NULL);
@@ -432,21 +431,17 @@ BmExpandLoadFile (
     FullPath = DevicePathFromHandle (LoadFileHandle);
 
     //
-    // Abort after first call to LoadFile if we are loading a .dmg and these are banned.
-    // TODO: Move this into callback
+    // Custom validation - this can be late for enforcing https:// protocol
+    // (or any other validation) in the unusual situation where image size
+    // cannot be obtained from HTTP HEAD command (in which case the image
+    // gets loaded and cached before we get to here), but it does still
+    // get enforced.
     //
-    if (DmgLoading == OcDmgLoadingDisabled) {
-      Match = ".dmg";
-      HasDmgExtension = UriFileHasExtension (FullPath, Match);
-      if (!HasDmgExtension) {
-        Match = ".chunklist";
-        HasDmgExtension = UriFileHasExtension (FullPath, Match);
-      }
-      if (HasDmgExtension)
-      {
-        DEBUG ((DEBUG_INFO, "NTBT: %a file is requested while DMG loading is disabled\n", Match));
-        return NULL;
-      }
+    if ( (Validate != NULL)
+      && EFI_ERROR(Validate (ValidateContext, FullPath))
+      )
+    {
+      return NULL;
     }
 
     FileBuffer = AllocatePool (BufferSize);
@@ -548,10 +543,11 @@ BmExpandLoadFile (
 **/
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
-  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
-  OUT VOID                      **Data,
-  OUT UINT32                    *DataSize,
-  IN  OC_DMG_LOADING_SUPPORT    DmgLoading
+  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
+  OUT VOID                        **Data,
+  OUT UINT32                      *DataSize,
+  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
+  IN  VOID                        *ValidateContext OPTIONAL
   )
 {
   EFI_STATUS                Status;
@@ -612,7 +608,7 @@ BmExpandLoadFiles (
     return NULL;
   }
 
-  Node = BmExpandLoadFile (Handle, FilePath, Data, DataSize, DmgLoading);
+  Node = BmExpandLoadFile (Handle, FilePath, Data, DataSize, Validate, ValidateContext);
 
   gBS->CloseEvent (NotifyEvent);
 

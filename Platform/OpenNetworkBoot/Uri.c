@@ -21,29 +21,15 @@ HasValidUriProtocol (
   CHAR16 	*Uri
   )
 {
-  CHAR16 *Walker;
-
   ASSERT (Uri != NULL);
 
-  //
-  // Note: Scheme is also converted in place to lower case in EDK-II HttpBootAddBootOption.
-  //
-  for (Walker = Uri; *Walker != CHAR_NULL; Walker++) {
-    if (*Walker == L':') {
-      break;
-    }
-    if (*Walker >= L'A' && *Walker <= L'Z') {
-      *Walker += L'a' - L'A';
-    }
-  }
-
-  if (StrnCmp (L"https://", Uri, L_STR_LEN(L"https://")) == 0) {
+  if (OcStrniCmp (L"https://", Uri, L_STR_LEN(L"https://")) == 0) {
     return TRUE;
   }
 
-  if (StrnCmp (L"http://", Uri, L_STR_LEN(L"http://")) == 0) {
+  if (OcStrniCmp (L"http://", Uri, L_STR_LEN(L"http://")) == 0) {
     if (gRequireHttpsUri) {
-      DEBUG ((DEBUG_WARN, "NTBT: http:// URI in URI when https:// is required\n"));
+      DEBUG ((DEBUG_WARN, "NTBT: http:// in URI when https:// is required\n"));
       return FALSE;
     }
     return TRUE;
@@ -53,11 +39,6 @@ HasValidUriProtocol (
   return FALSE;
 }
 
-//
-// Return pointer to final node in device path, if it as a URI node.
-// Used to return the URI node for an HTTP Boot device path.
-//
-STATIC
 EFI_DEVICE_PATH_PROTOCOL *
 GetUriNode (
   EFI_DEVICE_PATH_PROTOCOL *DevicePath
