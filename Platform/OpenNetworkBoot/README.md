@@ -6,6 +6,9 @@ the required network boot drivers have been loaded using OpenCore. Using the
 additional network boot drivers provided with OpenCore, when needed, HTTP
 boot should be available on most firmware even if not natively supported.
 
+See [OpenCore documentation](https://github.com/acidanthera/OpenCorePkg/blob/master/Docs/Configuration.pdf)
+for information on the optional configuration arguments which are available for this driver.
+
 > **Note**: In this file 'HTTP boot' refers to booting using either
 `http://` or `https://` URIs. The additional steps to configure a certificate for
 `https://` (and to lock `OpenNetworkBoot` to `https://` only, if required)
