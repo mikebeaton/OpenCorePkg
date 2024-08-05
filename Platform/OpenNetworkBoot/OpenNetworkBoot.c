@@ -17,6 +17,7 @@ STATIC BOOLEAN mAllowPxeBoot;
 STATIC BOOLEAN mAllowHttpBoot;
 STATIC BOOLEAN mAllowIpv4;
 STATIC BOOLEAN mAllowIpv6;
+STATIC BOOLEAN mAuxEntries;
 STATIC CHAR16  *mHttpBootUri;
 
 STATIC CHAR16 PxeBootId[]  = L"PXE Boot IPv";
@@ -152,6 +153,8 @@ InternalAddEntry (
   // Probably sensible on balance ... although not yet clear how it will interact with GUI-based firmware.
   //
   PickerEntry->TextMode = TRUE;
+
+  PickerEntry->Auxiliary = mAuxEntries;
 
   return EFI_SUCCESS;
 }
@@ -462,6 +465,7 @@ UefiMain (
     mAllowIpv6        = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
     mAllowPxeBoot     = OcHasParsedVar (ParsedLoadOptions, L"--pxe", OcStringFormatUnicode);
     mAllowHttpBoot    = OcHasParsedVar (ParsedLoadOptions, L"--http", OcStringFormatUnicode);
+    mAuxEntries       = OcHasParsedVar (ParsedLoadOptions, L"--aux", OcStringFormatUnicode);
     gRequireHttpsUri  = OcHasParsedVar (ParsedLoadOptions, L"--https", OcStringFormatUnicode);
 
     TempUri = NULL;
