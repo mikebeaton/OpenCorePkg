@@ -132,11 +132,18 @@ NotifyInstallHttpBootCallback (
 
   if (!EFI_ERROR (Status)) {
     //
-    // Our hook will stay installed until they do - or don't* - uninstall
-    // their callback. But it won't get called after our calls to LoadFile
-    // have finished.
-    // *REF: https://edk2.groups.io/g/devel/message/117469
+    // Due to a bug in EDK 2 HttpBootUninstallCallback, they do not uninstall
+    // this protocol when they try to. This is okay as long as there is only
+    // one consumer of the protocol, because our hooked version stays installed
+    // and gets reused (found as the already installed protocol) on second
+    // and subsequent tries in HttpBootInstallCallback.
+    // REF: https://edk2.groups.io/g/devel/message/117469
     // TODO: Add edk2 bugzilla issue.
+    // TODO: To safely allow for more than one consumer while allowing for
+    // their bug, we would need to store multiple original callbacks, one
+    // per http boot callback protocol address. (Otherwise using consumer
+    // A then consumer B, so that we are already installed on both handles,
+    // then consumer A again, will use the original callback for B.)
     //
     mOriginalHttpBootCallback = HttpBootCallback->Callback;
     HttpBootCallback->Callback = OpenNetworkBootHttpBootCallback;

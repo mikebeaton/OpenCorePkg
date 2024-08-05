@@ -42,10 +42,10 @@
   gEfiCertX509Guid                              ## SOMETIMES_CONSUMES  ## GUID  # Check the cert type
 
 [Sources]
-  Callback.c
   BmBoot.c
   BmBootDescription.c
-  CustomRead.c
+  HttpBootCallback.c
+  HttpBootCustomRead.c
   NetworkBootInternal.h
   OpenNetworkBoot.c
   TlsAuthConfigImpl.c
