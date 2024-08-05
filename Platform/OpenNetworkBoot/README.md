@@ -388,3 +388,6 @@ OVMF can capture packets using
 `-object filter-dump,netdev={net-id},id=filter0,file=/Users/user/ovmf.cap`
 (`{net-id}` should be replaced as appropriate with the `id` value specified in the
 corresponding `-netdev` option).
+
+For additional information on debugging OpenCore using OVMF,
+see https://github.com/acidanthera/OpenCorePkg/blob/master/Debug/README.md.
