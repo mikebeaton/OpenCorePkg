@@ -830,7 +830,7 @@ OcSetDefaultBootEntry (
   UnmanagedBootDevPath = NULL;
   if ((Entry->Type == OC_BOOT_UNMANAGED) && (Entry->UnmanagedBootGetDevicePath != NULL)) {
     UnmanagedBootDevPath = Entry->DevicePath;
-    Status         = Entry->UnmanagedBootGetDevicePath (Context, &UnmanagedBootDevPath);
+    Status               = Entry->UnmanagedBootGetDevicePath (Context, &UnmanagedBootDevPath);
     if (EFI_ERROR (Status)) {
       UnmanagedBootDevPath = NULL;
     } else {
@@ -1533,17 +1533,17 @@ InternalLoadBootEntry (
   OUT VOID                       **CustomFreeContext
   )
 {
-  EFI_STATUS                          Status;
-  EFI_STATUS                          OptionalStatus;
-  EFI_DEVICE_PATH_PROTOCOL            *DevicePath;
-  EFI_HANDLE                          StorageHandle;
-  EFI_DEVICE_PATH_PROTOCOL            *StoragePath;
-  CHAR16                              *UnicodeDevicePath;
-  EFI_LOADED_IMAGE_PROTOCOL           *LoadedImage;
-  VOID                                *EntryData;
-  UINT32                              EntryDataSize;
-  CONST CHAR8                         *Args;
-  OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT DmgPreloadContext;
+  EFI_STATUS                           Status;
+  EFI_STATUS                           OptionalStatus;
+  EFI_DEVICE_PATH_PROTOCOL             *DevicePath;
+  EFI_HANDLE                           StorageHandle;
+  EFI_DEVICE_PATH_PROTOCOL             *StoragePath;
+  CHAR16                               *UnicodeDevicePath;
+  EFI_LOADED_IMAGE_PROTOCOL            *LoadedImage;
+  VOID                                 *EntryData;
+  UINT32                               EntryDataSize;
+  CONST CHAR8                          *Args;
+  OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  DmgPreloadContext;
 
   ASSERT (BootEntry != NULL);
   //
@@ -1560,11 +1560,11 @@ InternalLoadBootEntry (
 
   ZeroMem (DmgLoadContext, sizeof (*DmgLoadContext));
 
-  EntryData           = NULL;
-  EntryDataSize       = 0;
-  StorageHandle       = NULL;
-  StoragePath         = NULL;
-  *CustomFreeContext  = NULL;
+  EntryData          = NULL;
+  EntryDataSize      = 0;
+  StorageHandle      = NULL;
+  StoragePath        = NULL;
+  *CustomFreeContext = NULL;
   ZeroMem (&DmgPreloadContext, sizeof (DmgPreloadContext));
 
   //
@@ -1575,17 +1575,17 @@ InternalLoadBootEntry (
 
   if (BootEntry->CustomRead != NULL) {
     Status = BootEntry->CustomRead (
-                        Context->StorageContext,
-                        BootEntry,
-                        &EntryData,
-                        &EntryDataSize,
-                        &DevicePath,
-                        &StorageHandle,
-                        &StoragePath,
-                        Context->DmgLoading,
-                        &DmgPreloadContext,
-                        CustomFreeContext
-                        );
+                          Context->StorageContext,
+                          BootEntry,
+                          &EntryData,
+                          &EntryDataSize,
+                          &DevicePath,
+                          &StorageHandle,
+                          &StoragePath,
+                          Context->DmgLoading,
+                          &DmgPreloadContext,
+                          CustomFreeContext
+                          );
 
     if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_WARN, "OCB: Custom read failed - %r\n", Status));
@@ -1593,20 +1593,20 @@ InternalLoadBootEntry (
     }
   }
 
-  if ( (DmgPreloadContext.DmgFile != NULL)
-    || (DmgPreloadContext.DmgContext != NULL)
-    || BootEntry->IsFolder)
-    {
+  if (  (DmgPreloadContext.DmgFile != NULL)
+     || (DmgPreloadContext.DmgContext != NULL)
+     || BootEntry->IsFolder)
+  {
     if (Context->DmgLoading == OcDmgLoadingDisabled) {
       return EFI_SECURITY_VIOLATION;
     }
 
     DmgLoadContext->DevicePath = BootEntry->DevicePath;
     DevicePath                 = InternalLoadDmg (
-                                      DmgLoadContext,
-                                      Context->DmgLoading,
-                                      &DmgPreloadContext
-                                 );
+                                   DmgLoadContext,
+                                   Context->DmgLoading,
+                                   &DmgPreloadContext
+                                   );
     if (DevicePath == NULL) {
       return EFI_UNSUPPORTED;
     }

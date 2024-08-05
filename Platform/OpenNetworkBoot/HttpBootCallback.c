@@ -9,9 +9,9 @@
 
 #include <Protocol/Http.h>
 
-OC_DMG_LOADING_SUPPORT gDmgLoading;
+OC_DMG_LOADING_SUPPORT  gDmgLoading;
 
-STATIC EFI_HTTP_BOOT_CALLBACK mOriginalHttpBootCallback;
+STATIC EFI_HTTP_BOOT_CALLBACK  mOriginalHttpBootCallback;
 
 //
 // Abort if we are loading a .dmg and these are banned, or if underlying drivers have
@@ -21,16 +21,15 @@ STATIC EFI_HTTP_BOOT_CALLBACK mOriginalHttpBootCallback;
 //
 EFI_STATUS
 ValidateDmgAndHttps (
-  CHAR16                    *Uri,
-  BOOLEAN                   ShowLog
+  CHAR16   *Uri,
+  BOOLEAN  ShowLog
   )
 {
-  CHAR8                     *Match;
-  CHAR8                     *Uri8;
-  UINTN                     UriSize;
-  BOOLEAN                   HasDmgExtension;
+  CHAR8    *Match;
+  CHAR8    *Uri8;
+  UINTN    UriSize;
+  BOOLEAN  HasDmgExtension;
 
-  
   if (gRequireHttpsUri && !HasHttpsUri (Uri)) {
     //
     // Do not return ACCESS_DENIED as this will attempt to add authentication to the request.
@@ -38,29 +37,32 @@ ValidateDmgAndHttps (
     if (ShowLog) {
       DEBUG ((DEBUG_INFO, "NTBT: Invalid URI https:// is required\n"));
     }
+
     return EFI_UNSUPPORTED;
   }
 
   if (gDmgLoading == OcDmgLoadingDisabled) {
     UriSize = StrSize (Uri);
-    Uri8 = AllocatePool (UriSize);
+    Uri8    = AllocatePool (UriSize);
     if (Uri8 == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
+
     UnicodeStrToAsciiStrS (Uri, Uri8, UriSize);
 
-    Match = ".dmg";
+    Match           = ".dmg";
     HasDmgExtension = UriFileHasExtension (Uri8, Match);
     if (!HasDmgExtension) {
-      Match = ".chunklist";
+      Match           = ".chunklist";
       HasDmgExtension = UriFileHasExtension (Uri8, Match);
     }
+
     FreePool (Uri8);
-    if (HasDmgExtension)
-    {
+    if (HasDmgExtension) {
       if (ShowLog) {
         DEBUG ((DEBUG_INFO, "NTBT: %a file is requested while DMG loading is disabled\n", Match));
       }
+
       return EFI_UNSUPPORTED;
     }
   }
@@ -72,15 +74,15 @@ STATIC
 EFI_STATUS
 EFIAPI
 OpenNetworkBootHttpBootCallback (
-  IN EFI_HTTP_BOOT_CALLBACK_PROTOCOL    *This,
-  IN EFI_HTTP_BOOT_CALLBACK_DATA_TYPE   DataType,
-  IN BOOLEAN                            Received,
-  IN UINT32                             DataLength,
-  IN VOID                               *Data   OPTIONAL
+  IN EFI_HTTP_BOOT_CALLBACK_PROTOCOL   *This,
+  IN EFI_HTTP_BOOT_CALLBACK_DATA_TYPE  DataType,
+  IN BOOLEAN                           Received,
+  IN UINT32                            DataLength,
+  IN VOID                              *Data   OPTIONAL
   )
 {
-  EFI_STATUS          Status;
-  EFI_HTTP_MESSAGE    *HttpMessage;
+  EFI_STATUS        Status;
+  EFI_HTTP_MESSAGE  *HttpMessage;
 
   if ((DataType == HttpBootHttpRequest) && (Data != NULL)) {
     HttpMessage = (EFI_HTTP_MESSAGE *)Data;
@@ -92,9 +94,9 @@ OpenNetworkBootHttpBootCallback (
       // size is not known until it has been transferred).
       //
       Status = ValidateDmgAndHttps (
-        HttpMessage->Data.Request->Url,
-        HttpMessage->Data.Request->Method == HttpMethodHead
-      );
+                 HttpMessage->Data.Request->Url,
+                 HttpMessage->Data.Request->Method == HttpMethodHead
+                 );
       if (EFI_ERROR (Status)) {
         return Status;
       }
@@ -102,12 +104,12 @@ OpenNetworkBootHttpBootCallback (
   }
 
   return mOriginalHttpBootCallback (
-      This,
-      DataType,
-      Received,
-      DataLength,
-      Data
-  );
+           This,
+           DataType,
+           Received,
+           DataLength,
+           Data
+           );
 }
 
 STATIC
@@ -118,17 +120,17 @@ NotifyInstallHttpBootCallback (
   IN VOID       *Context
   )
 {
-  EFI_STATUS                        Status;
-  EFI_HANDLE                        LoadFileHandle;
-  EFI_HTTP_BOOT_CALLBACK_PROTOCOL   *HttpBootCallback;
+  EFI_STATUS                       Status;
+  EFI_HANDLE                       LoadFileHandle;
+  EFI_HTTP_BOOT_CALLBACK_PROTOCOL  *HttpBootCallback;
 
   LoadFileHandle = Context;
 
   Status = gBS->HandleProtocol (
-                LoadFileHandle,
-                &gEfiHttpBootCallbackProtocolGuid,
-                (VOID **) &HttpBootCallback
-                );
+                  LoadFileHandle,
+                  &gEfiHttpBootCallbackProtocolGuid,
+                  (VOID **)&HttpBootCallback
+                  );
 
   if (!EFI_ERROR (Status)) {
     //
@@ -145,14 +147,14 @@ NotifyInstallHttpBootCallback (
     // A then consumer B, so that we are already installed on both handles,
     // then consumer A again, will use the original callback for B.)
     //
-    mOriginalHttpBootCallback = HttpBootCallback->Callback;
+    mOriginalHttpBootCallback  = HttpBootCallback->Callback;
     HttpBootCallback->Callback = OpenNetworkBootHttpBootCallback;
   }
 }
 
 EFI_EVENT
 MonitorHttpBootCallback (
-  EFI_HANDLE    LoadFileHandle
+  EFI_HANDLE  LoadFileHandle
   )
 {
   EFI_STATUS  Status;

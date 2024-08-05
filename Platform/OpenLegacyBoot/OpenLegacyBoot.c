@@ -416,17 +416,17 @@ OcGetLegacyBootEntries (
       PickerEntry->Name = GetLegacyEntryName (LegacyOsType);
     }
 
-    PickerEntry->Id                          = AsciiDevicePath;
-    PickerEntry->Path                        = NULL;
-    PickerEntry->Arguments                   = NULL;
-    PickerEntry->Flavour                     = GetLegacyEntryFlavour (LegacyOsType);
-    PickerEntry->Tool                        = FALSE;
-    PickerEntry->TextMode                    = FALSE;
-    PickerEntry->RealPath                    = FALSE;
-    PickerEntry->External                    = IsExternal;
-    PickerEntry->UnmanagedBootAction         = UnmanagedBootActionDoLegacyBoot;
-    PickerEntry->UnmanagedBootGetDevicePath  = UnmanagedBootGetDevicePath;
-    PickerEntry->UnmanagedBootDevicePath     = BlockDevicePath;
+    PickerEntry->Id                         = AsciiDevicePath;
+    PickerEntry->Path                       = NULL;
+    PickerEntry->Arguments                  = NULL;
+    PickerEntry->Flavour                    = GetLegacyEntryFlavour (LegacyOsType);
+    PickerEntry->Tool                       = FALSE;
+    PickerEntry->TextMode                   = FALSE;
+    PickerEntry->RealPath                   = FALSE;
+    PickerEntry->External                   = IsExternal;
+    PickerEntry->UnmanagedBootAction        = UnmanagedBootActionDoLegacyBoot;
+    PickerEntry->UnmanagedBootGetDevicePath = UnmanagedBootGetDevicePath;
+    PickerEntry->UnmanagedBootDevicePath    = BlockDevicePath;
 
     if ((PickerEntry->Name == NULL) || (PickerEntry->Flavour == NULL)) {
       OcFlexArrayFree (&FlexPickerEntries);

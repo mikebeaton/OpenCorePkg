@@ -381,12 +381,12 @@ InternalLoadDmg (
       }
 
       Status = OcSafeFileOpen (
-                DmgDir,
-                &DmgFile,
-                DmgFileInfo->FileName,
-                EFI_FILE_MODE_READ,
-                0
-                );
+                 DmgDir,
+                 &DmgFile,
+                 DmgFileInfo->FileName,
+                 EFI_FILE_MODE_READ,
+                 0
+                 );
       if (EFI_ERROR (Status)) {
         DEBUG ((
           DEBUG_INFO,
@@ -432,6 +432,7 @@ InternalLoadDmg (
         FreePool (DmgFileInfo);
         DmgDir->Close (DmgDir);
       }
+
       FreePool (Context->DmgContext);
       return NULL;
     }
@@ -439,8 +440,8 @@ InternalLoadDmg (
 
   ChunklistBuffer   = NULL;
   ChunklistFileSize = 0;
-  if ( (DmgPreloadContext->DmgFile != NULL)
-    || (DmgPreloadContext->DmgContext != NULL))
+  if (  (DmgPreloadContext->DmgFile != NULL)
+     || (DmgPreloadContext->DmgContext != NULL))
   {
     if (DmgPreloadContext->ChunklistBuffer != NULL) {
       ChunklistBuffer   = DmgPreloadContext->ChunklistBuffer;
@@ -454,12 +455,12 @@ InternalLoadDmg (
                           );
     if (ChunklistFileInfo != NULL) {
       Status = OcSafeFileOpen (
-                DmgDir,
-                &ChunklistFile,
-                ChunklistFileInfo->FileName,
-                EFI_FILE_MODE_READ,
-                0
-                );
+                 DmgDir,
+                 &ChunklistFile,
+                 ChunklistFileInfo->FileName,
+                 EFI_FILE_MODE_READ,
+                 0
+                 );
       if (!EFI_ERROR (Status)) {
         Status = OcGetFileSize (ChunklistFile, &ChunklistFileSize);
         if (Status == EFI_SUCCESS) {
@@ -484,8 +485,8 @@ InternalLoadDmg (
     }
   }
 
-  if ( (DmgPreloadContext->DmgFile == NULL)
-    && (DmgPreloadContext->DmgContext == NULL))
+  if (  (DmgPreloadContext->DmgFile == NULL)
+     && (DmgPreloadContext->DmgContext == NULL))
   {
     FreePool (DmgFileInfo);
     DmgDir->Close (DmgDir);

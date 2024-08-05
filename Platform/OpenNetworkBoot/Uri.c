@@ -18,33 +18,34 @@ STATIC EFI_DEVICE_PATH_PROTOCOL  mEndDevicePath = {
 
 BOOLEAN
 HasHttpsUri (
-  CHAR16 	*Uri
+  CHAR16  *Uri
   )
 {
   ASSERT (Uri != NULL);
 
-  return (OcStrniCmp (L"https://", Uri, L_STR_LEN(L"https://")) == 0);
+  return (OcStrniCmp (L"https://", Uri, L_STR_LEN (L"https://")) == 0);
 }
 
 EFI_DEVICE_PATH_PROTOCOL *
 GetUriNode (
-  EFI_DEVICE_PATH_PROTOCOL *DevicePath
+  EFI_DEVICE_PATH_PROTOCOL  *DevicePath
   )
 {
   EFI_DEVICE_PATH_PROTOCOL  *Previous;
   EFI_DEVICE_PATH_PROTOCOL  *Node;
 
   for ( Previous = NULL, Node = DevicePath
-      ; !IsDevicePathEnd (Node)
-      ; Node = NextDevicePathNode (Node))
+        ; !IsDevicePathEnd (Node)
+        ; Node = NextDevicePathNode (Node))
   {
     Previous = Node;
   }
 
-  if ( Previous != NULL
-    && (DevicePathType (Previous) == MESSAGING_DEVICE_PATH)
-    && (DevicePathSubType (Previous) == MSG_URI_DP)
-    ) {
+  if (  (Previous != NULL)
+     && (DevicePathType (Previous) == MESSAGING_DEVICE_PATH)
+     && (DevicePathSubType (Previous) == MSG_URI_DP)
+        )
+  {
     return Previous;
   }
 
@@ -72,20 +73,20 @@ GetUriNode (
 STATIC
 EFI_STATUS
 ExtractOtherUriFromUri (
-  IN  CHAR8                       *Uri,
-  IN  CHAR8                       *FromExt,
-  IN  CHAR8                       *ToExt,
-  OUT CHAR8                       **OtherUri,
-  IN  BOOLEAN                     OnlySearchForFromExt
+  IN  CHAR8    *Uri,
+  IN  CHAR8    *FromExt,
+  IN  CHAR8    *ToExt,
+  OUT CHAR8    **OtherUri,
+  IN  BOOLEAN  OnlySearchForFromExt
   )
 {
-  CHAR8                     *SearchUri;
-  UINTN                     UriLen;
-  UINTN                     OtherUriLen;
-  UINTN                     FromExtLen;
-  UINTN                     ToExtLen;
-  INTN                      SizeChange;
-  CHAR8                     *ParamsStart;
+  CHAR8  *SearchUri;
+  UINTN  UriLen;
+  UINTN  OtherUriLen;
+  UINTN  FromExtLen;
+  UINTN  ToExtLen;
+  INTN   SizeChange;
+  CHAR8  *ParamsStart;
 
   ASSERT (FromExt != NULL);
 
@@ -96,12 +97,14 @@ ExtractOtherUriFromUri (
   }
 
   UriLen = AsciiStrLen (Uri);
-  if (UriLen > MAX_INTN - 1) { ///< i.e. UriSize > MAX_INTN
+  if (UriLen > MAX_INTN - 1) {
+    ///< i.e. UriSize > MAX_INTN
     return EFI_INVALID_PARAMETER;
   }
 
   FromExtLen = AsciiStrLen (FromExt);
-  if (FromExtLen > MAX_INTN - 1) { ///< i.e. FromExtSize > MAX_INTN
+  if (FromExtLen > MAX_INTN - 1) {
+    ///< i.e. FromExtSize > MAX_INTN
     return EFI_INVALID_PARAMETER;
   }
 
@@ -113,18 +116,21 @@ ExtractOtherUriFromUri (
     SearchUri = Uri;
   } else {
     ToExtLen = AsciiStrLen (ToExt);
-    if (ToExtLen > MAX_INTN - 1) { ///< i.e. ToExtSize > MAX_INTN
+    if (ToExtLen > MAX_INTN - 1) {
+      ///< i.e. ToExtSize > MAX_INTN
       return EFI_INVALID_PARAMETER;
     }
 
-    if (BaseOverflowSubSN ((INTN) ToExtLen, (INTN) FromExtLen, &SizeChange)) {
+    if (BaseOverflowSubSN ((INTN)ToExtLen, (INTN)FromExtLen, &SizeChange)) {
       return EFI_INVALID_PARAMETER;
     }
 
-    if (BaseOverflowAddSN ((INTN) UriLen, SizeChange, (INTN *) &OtherUriLen)) {
+    if (BaseOverflowAddSN ((INTN)UriLen, SizeChange, (INTN *)&OtherUriLen)) {
       return EFI_INVALID_PARAMETER;
     }
-    if (OtherUriLen > MAX_INTN - 1) { ///< i.e. OtherUriSize > MAX_INTN
+
+    if (OtherUriLen > MAX_INTN - 1) {
+      ///< i.e. OtherUriSize > MAX_INTN
       return EFI_INVALID_PARAMETER;
     }
 
@@ -132,6 +138,7 @@ ExtractOtherUriFromUri (
     if (*OtherUri == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
+
     CopyMem (*OtherUri, Uri, UriLen + 1);
     SearchUri = *OtherUri;
   }
@@ -143,12 +150,13 @@ ExtractOtherUriFromUri (
         ZeroMem (&SearchUri[UriLen + SizeChange + 1], -(SizeChange + 1));
       }
     }
+
     return EFI_SUCCESS;
   }
 
   ParamsStart = AsciiStrStr (SearchUri, "?");
-  if ( (ParamsStart != NULL)
-    && (AsciiStrnCmp (ParamsStart - FromExtLen, FromExt, FromExtLen) == 0))
+  if (  (ParamsStart != NULL)
+     && (AsciiStrnCmp (ParamsStart - FromExtLen, FromExt, FromExtLen) == 0))
   {
     if (!OnlySearchForFromExt) {
       CopyMem (ParamsStart + SizeChange, ParamsStart, &SearchUri[UriLen] - ParamsStart + 1);
@@ -157,6 +165,7 @@ ExtractOtherUriFromUri (
         ZeroMem (&SearchUri[UriLen + SizeChange + 1], -(SizeChange + 1));
       }
     }
+
     return EFI_SUCCESS;
   }
 
@@ -175,11 +184,11 @@ ExtractOtherUriFromUri (
 //
 EFI_STATUS
 ExtractOtherUriFromDevicePath (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
-  IN  CHAR8                       *FromExt,
-  IN  CHAR8                       *ToExt,
-  OUT CHAR8                       **OtherUri,
-  IN  BOOLEAN                     OnlySearchForFromExt
+  IN  EFI_DEVICE_PATH_PROTOCOL  *DevicePath,
+  IN  CHAR8                     *FromExt,
+  IN  CHAR8                     *ToExt,
+  OUT CHAR8                     **OtherUri,
+  IN  BOOLEAN                   OnlySearchForFromExt
   )
 {
   EFI_DEVICE_PATH_PROTOCOL  *Previous;
@@ -195,12 +204,12 @@ ExtractOtherUriFromDevicePath (
   Uri = (CHAR8 *)Previous + sizeof (EFI_DEVICE_PATH_PROTOCOL);
 
   return ExtractOtherUriFromUri (
-                  Uri,
-                  FromExt,
-                  ToExt,
-                  OtherUri,
-                  OnlySearchForFromExt
-                );
+           Uri,
+           FromExt,
+           ToExt,
+           OtherUri,
+           OnlySearchForFromExt
+           );
 }
 
 //
@@ -211,8 +220,8 @@ ExtractOtherUriFromDevicePath (
 //
 BOOLEAN
 UriFileHasExtension (
-  IN  CHAR8                       *Uri,
-  IN  CHAR8                       *Ext
+  IN  CHAR8  *Uri,
+  IN  CHAR8  *Ext
   )
 {
   return (!EFI_ERROR (ExtractOtherUriFromUri (Uri, Ext, NULL, NULL, TRUE)));
@@ -249,6 +258,7 @@ HttpBootAddUri (
     FreePool (TmpDevicePath);
     return EFI_INVALID_PARAMETER;
   }
+
   CopyMem (Previous, &mEndDevicePath, sizeof (mEndDevicePath));
 
   //
@@ -256,18 +266,20 @@ HttpBootAddUri (
   //
   if (StringFormat == OcStringFormatUnicode) {
     OriginalUri = Uri;
-    UriSize = StrSize (Uri);
-    Uri = AllocatePool (UriSize * sizeof (CHAR8));
+    UriSize     = StrSize (Uri);
+    Uri         = AllocatePool (UriSize * sizeof (CHAR8));
     if (Uri == NULL) {
       return EFI_OUT_OF_RESOURCES;
     }
+
     UnicodeStrToAsciiStrS (OriginalUri, Uri, UriSize);
   } else {
     OriginalUri = NULL;
-    UriSize = AsciiStrSize (Uri);
+    UriSize     = AsciiStrSize (Uri);
   }
-  Length  = sizeof (EFI_DEVICE_PATH_PROTOCOL) + UriSize;
-  Node    = AllocatePool (Length);
+
+  Length = sizeof (EFI_DEVICE_PATH_PROTOCOL) + UriSize;
+  Node   = AllocatePool (Length);
   if (Node == NULL) {
     FreePool (TmpDevicePath);
     return EFI_OUT_OF_RESOURCES;
@@ -280,6 +292,7 @@ HttpBootAddUri (
   if (OriginalUri != NULL) {
     FreePool (Uri);
   }
+
   *UriDevicePath = AppendDevicePathNode (TmpDevicePath, Node);
   FreePool (Node);
   FreePool (TmpDevicePath);

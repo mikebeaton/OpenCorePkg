@@ -377,10 +377,10 @@ BmDestroyRamDisk (
 STATIC
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFile (
-  IN  EFI_HANDLE                  LoadFileHandle,
-  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
-  OUT VOID                        **Data,
-  OUT UINT32                      *DataSize
+  IN  EFI_HANDLE                LoadFileHandle,
+  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
+  OUT VOID                      **Data,
+  OUT UINT32                    *DataSize
   )
 {
   EFI_STATUS                Status;
@@ -435,11 +435,12 @@ BmExpandLoadFile (
     // Call LoadFile with the correct buffer size.
     //
     FullPath = DevicePathFromHandle (LoadFileHandle);
-    Status = LoadFile->LoadFile (LoadFile, FilePath, TRUE, &BufferSize, FileBuffer);
+    Status   = LoadFile->LoadFile (LoadFile, FilePath, TRUE, &BufferSize, FileBuffer);
     if (EFI_ERROR (Status)) {
       FreePool (FileBuffer);
       return NULL;
     }
+
     *DataSize = (UINT32)BufferSize;
     *Data     = FileBuffer;
 
@@ -526,9 +527,9 @@ BmExpandLoadFile (
 **/
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
-  OUT VOID                        **Data,
-  OUT UINT32                      *DataSize
+  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
+  OUT VOID                      **Data,
+  OUT UINT32                    *DataSize
   )
 {
   EFI_STATUS                Status;

@@ -31,24 +31,24 @@
 typedef
 VOID
 (*PROCESS_IMAGE)(
-  IN VOID           *Context,
-  IN CONST CHAR16   *Name,
-  IN EFI_HANDLE     Handle
+  IN VOID          *Context,
+  IN CONST CHAR16  *Name,
+  IN EFI_HANDLE    Handle
   );
 
 typedef struct {
-  CHAR16      *UnloadName;
-  BOOLEAN     Unloaded;
+  CHAR16     *UnloadName;
+  BOOLEAN    Unloaded;
 } UNLOAD_INFO;
 
 typedef struct {
-  UINTN         UnloadNameCount;
-  UNLOAD_INFO   *UnloadInfo;
+  UINTN          UnloadNameCount;
+  UNLOAD_INFO    *UnloadInfo;
 } UNLOAD_IMAGE_CONTEXT;
 
 typedef struct {
-  CHAR8         *FileBuffer;
-  UINTN         FileBufferSize;
+  CHAR8    *FileBuffer;
+  UINTN    FileBufferSize;
 } DRIVER_REPORT_CONTEXT;
 
 /**
@@ -213,12 +213,12 @@ GetStringNameFromHandle (
 
 VOID
 ReportImageName (
-  IN VOID                     *Context,
-  IN CONST CHAR16             *Name,
-  IN EFI_HANDLE               Handle
+  IN VOID          *Context,
+  IN CONST CHAR16  *Name,
+  IN EFI_HANDLE    Handle
   )
 {
-  DRIVER_REPORT_CONTEXT            *ReportContext;
+  DRIVER_REPORT_CONTEXT  *ReportContext;
 
   ReportContext = Context;
 
@@ -232,14 +232,14 @@ ReportImageName (
 
 VOID
 UnloadImageByName (
-  IN VOID                     *Context,
-  IN CONST CHAR16             *Name,
-  IN EFI_HANDLE               Handle
+  IN VOID          *Context,
+  IN CONST CHAR16  *Name,
+  IN EFI_HANDLE    Handle
   )
 {
-  EFI_STATUS              Status;
-  UINTN                   Index;
-  UNLOAD_IMAGE_CONTEXT    *UnloadContext;
+  EFI_STATUS            Status;
+  UINTN                 Index;
+  UNLOAD_IMAGE_CONTEXT  *UnloadContext;
 
   UnloadContext = Context;
 
@@ -265,25 +265,25 @@ UnloadImageByName (
 //
 VOID
 ProcessAllDrivers (
-  IN VOID             *Context,
-  PROCESS_IMAGE       ProcessImage
+  IN VOID        *Context,
+  PROCESS_IMAGE  ProcessImage
   )
 {
-  EFI_STATUS                  Status;
-  UINTN                       HandleCount;
-  EFI_HANDLE                  *HandleBuffer;
-  EFI_LOADED_IMAGE_PROTOCOL   *LoadedImage;
-  UINTN                       Index;
-  CHAR16                      *FileName;
-  CONST CHAR16                *Name;
+  EFI_STATUS                 Status;
+  UINTN                      HandleCount;
+  EFI_HANDLE                 *HandleBuffer;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
+  UINTN                      Index;
+  CHAR16                     *FileName;
+  CONST CHAR16               *Name;
 
-  Status      = gBS->LocateHandleBuffer (
-                       ByProtocol,
-                       &gEfiDriverBindingProtocolGuid,
-                       NULL,
-                       &HandleCount,
-                       &HandleBuffer
-                       );
+  Status = gBS->LocateHandleBuffer (
+                  ByProtocol,
+                  &gEfiDriverBindingProtocolGuid,
+                  NULL,
+                  &HandleCount,
+                  &HandleBuffer
+                  );
   if (EFI_ERROR (Status)) {
     return;
   }
@@ -296,14 +296,16 @@ ProcessAllDrivers (
                     );
     if (!EFI_ERROR (Status)) {
       FileName = NULL;
-      Name = GetStringNameFromHandle (HandleBuffer[Index], NULL); ///< Do not free this one.
+      Name     = GetStringNameFromHandle (HandleBuffer[Index], NULL); ///< Do not free this one.
       if (Name == NULL) {
         FileName = FindLoadedImageFileName (LoadedImage);
-        Name = FileName;
+        Name     = FileName;
       }
+
       if (Name != NULL) {
         ProcessImage (Context, Name, HandleBuffer[Index]);
       }
+
       if (FileName != NULL) {
         FreePool (FileName);
       }
@@ -315,7 +317,7 @@ ProcessAllDrivers (
 
 VOID
 OcUnloadDrivers (
-  IN  OC_GLOBAL_CONFIG      *Config
+  IN  OC_GLOBAL_CONFIG  *Config
   )
 {
   UINTN                 Index;
@@ -328,10 +330,10 @@ OcUnloadDrivers (
   }
 
   if (!BaseOverflowMulUN (
-          Config->Uefi.Unload.Count,
-          sizeof (*UnloadContext.UnloadInfo),
-          &UnloadInfoSize
-          ))
+         Config->Uefi.Unload.Count,
+         sizeof (*UnloadContext.UnloadInfo),
+         &UnloadInfoSize
+         ))
   {
     UnloadContext.UnloadInfo = AllocateZeroPool (UnloadInfoSize);
   } else {
@@ -345,11 +347,11 @@ OcUnloadDrivers (
 
   for (Index = 0; Index < Config->Uefi.Unload.Count; ++Index) {
     UnloadContext.UnloadInfo[Index].UnloadName = AsciiStrCopyToUnicode (
-                              OC_BLOB_GET (
-                                Config->Uefi.Unload.Values[Index]
-                                ),
-                              0
-                              );
+                                                   OC_BLOB_GET (
+                                                     Config->Uefi.Unload.Values[Index]
+                                                     ),
+                                                   0
+                                                   );
     if (UnloadContext.UnloadInfo[Index].UnloadName == NULL) {
       for (Index2 = 0; Index2 < Index; ++Index2) {
         FreePool (UnloadContext.UnloadInfo[Index2].UnloadName);
@@ -369,8 +371,10 @@ OcUnloadDrivers (
     if (!UnloadContext.UnloadInfo[Index].Unloaded) {
       DEBUG ((DEBUG_INFO, "OC: Unload %s - %r\n", UnloadContext.UnloadInfo[Index].UnloadName, EFI_NOT_FOUND));
     }
+
     FreePool (UnloadContext.UnloadInfo[Index].UnloadName);
   }
+
   FreePool (UnloadContext.UnloadInfo);
 
   return;
@@ -381,9 +385,9 @@ OcDriverInfoDump (
   IN EFI_FILE_PROTOCOL  *Root
   )
 {
-  EFI_STATUS                      Status;
-  DRIVER_REPORT_CONTEXT              Context;
-  CHAR16                          TmpFileName[32];
+  EFI_STATUS             Status;
+  DRIVER_REPORT_CONTEXT  Context;
+  CHAR16                 TmpFileName[32];
 
   ASSERT (Root != NULL);
 

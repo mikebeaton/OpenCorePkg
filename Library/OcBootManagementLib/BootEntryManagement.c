@@ -723,13 +723,13 @@ InternalAddBootEntryFromCustomEntry (
     ));
 
   if (CustomEntry->UnmanagedBootAction) {
-    BootEntry->Type                        = OC_BOOT_UNMANAGED;
-    BootEntry->UnmanagedBootAction         = CustomEntry->UnmanagedBootAction;
-    BootEntry->UnmanagedBootGetDevicePath  = CustomEntry->UnmanagedBootGetDevicePath;
-    BootEntry->AudioBasePath               = CustomEntry->AudioBasePath;
-    BootEntry->AudioBaseType               = CustomEntry->AudioBaseType;
-    BootEntry->IsExternal                  = CustomEntry->External;
-    BootEntry->DevicePath                  = DuplicateDevicePath (CustomEntry->UnmanagedBootDevicePath);
+    BootEntry->Type                       = OC_BOOT_UNMANAGED;
+    BootEntry->UnmanagedBootAction        = CustomEntry->UnmanagedBootAction;
+    BootEntry->UnmanagedBootGetDevicePath = CustomEntry->UnmanagedBootGetDevicePath;
+    BootEntry->AudioBasePath              = CustomEntry->AudioBasePath;
+    BootEntry->AudioBaseType              = CustomEntry->AudioBaseType;
+    BootEntry->IsExternal                 = CustomEntry->External;
+    BootEntry->DevicePath                 = DuplicateDevicePath (CustomEntry->UnmanagedBootDevicePath);
 
     if (BootEntry->DevicePath == NULL) {
       FreeBootEntry (BootEntry);
@@ -1498,11 +1498,11 @@ AddBootEntryFromBootOption (
             }
 
             Status = InternalAddBootEntryFromCustomEntry (
-              BootContext,
-              CustomFileSystem,
-              &BootContext->PickerContext->CustomEntries[Index],
-              FALSE
-              );
+                       BootContext,
+                       CustomFileSystem,
+                       &BootContext->PickerContext->CustomEntries[Index],
+                       FALSE
+                       );
             break;
           }
         }
@@ -1524,21 +1524,23 @@ AddBootEntryFromBootOption (
           //
           if (CompareGuid (&gEfiPartTypeUnusedGuid, &EntryProtocolDevPath->Partuuid)) {
             Status = OcAddEntriesFromBootEntryProtocol (
-                        BootContext,
-                        CustomFileSystem,
-                        EntryProtocolHandles,
-                        EntryProtocolHandleCount,
-                        EntryProtocolDevPath->EntryName.PathName,
-                        TRUE,
-                        FALSE
-                        );
+                       BootContext,
+                       CustomFileSystem,
+                       EntryProtocolHandles,
+                       EntryProtocolHandleCount,
+                       EntryProtocolDevPath->EntryName.PathName,
+                       TRUE,
+                       FALSE
+                       );
             if (!EFI_ERROR (Status)) {
               if (EntryProtocolPartuuid != NULL) {
                 CopyGuid (EntryProtocolPartuuid, &gEfiPartTypeUnusedGuid);
               }
+
               if (EntryProtocolId != NULL) {
                 *EntryProtocolId = AllocateCopyPool (StrSize (EntryProtocolDevPath->EntryName.PathName), EntryProtocolDevPath->EntryName.PathName);
               }
+
               EntryProtocolDevPath = NULL;
             }
           }
@@ -2597,6 +2599,7 @@ OcLoadBootEntry (
       //
       gBS->UnloadImage (EntryHandle);
     }
+
     //
     // Unload dmg if any.
     //

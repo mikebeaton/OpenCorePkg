@@ -435,7 +435,7 @@ OcPlatformIs64BitSupported (
 **/
 VOID
 OcUnloadDrivers (
-  IN  OC_GLOBAL_CONFIG      *Config
+  IN  OC_GLOBAL_CONFIG  *Config
   );
 
 /**

@@ -11,17 +11,17 @@
 #define DELETE_CERT       L"--delete-cert"
 #define DELETE_ALL_CERTS  L"--delete-all-certs"
 
-BOOLEAN gRequireHttpsUri;
+BOOLEAN  gRequireHttpsUri;
 
-STATIC BOOLEAN mAllowPxeBoot;
-STATIC BOOLEAN mAllowHttpBoot;
-STATIC BOOLEAN mAllowIpv4;
-STATIC BOOLEAN mAllowIpv6;
-STATIC BOOLEAN mAuxEntries;
-STATIC CHAR16  *mHttpBootUri;
+STATIC BOOLEAN  mAllowPxeBoot;
+STATIC BOOLEAN  mAllowHttpBoot;
+STATIC BOOLEAN  mAllowIpv4;
+STATIC BOOLEAN  mAllowIpv6;
+STATIC BOOLEAN  mAuxEntries;
+STATIC CHAR16   *mHttpBootUri;
 
-STATIC CHAR16 PxeBootId[]  = L"PXE Boot IPv";
-STATIC CHAR16 HttpBootId[] = L"HTTP Boot IPv";
+STATIC CHAR16  PxeBootId[]  = L"PXE Boot IPv";
+STATIC CHAR16  HttpBootId[] = L"HTTP Boot IPv";
 
 VOID
 InternalFreePickerEntry (
@@ -82,12 +82,12 @@ FreeNetworkBootEntries (
 STATIC
 EFI_STATUS
 InternalAddEntry (
-  OC_FLEX_ARRAY     *FlexPickerEntries,
-  CHAR16            *Description,
-  EFI_HANDLE        Handle,
-  CHAR16            *HttpBootUri,
-  BOOLEAN           IsIPv4,
-  BOOLEAN           IsHttpBoot
+  OC_FLEX_ARRAY  *FlexPickerEntries,
+  CHAR16         *Description,
+  EFI_HANDLE     Handle,
+  CHAR16         *HttpBootUri,
+  BOOLEAN        IsIPv4,
+  BOOLEAN        IsHttpBoot
   )
 {
   EFI_STATUS                Status;
@@ -97,17 +97,17 @@ InternalAddEntry (
   UINTN                     IdLen;
 
   Status = gBS->HandleProtocol (
-    Handle,
-    &gEfiDevicePathProtocolGuid,
-    (VOID **)&DevicePath
-  );
-  if (EFI_ERROR(Status)) {
+                  Handle,
+                  &gEfiDevicePathProtocolGuid,
+                  (VOID **)&DevicePath
+                  );
+  if (EFI_ERROR (Status)) {
     DEBUG ((
       DEBUG_INFO,
       "NTBT: Missing device path - %r\n",
       Status
       ));
-      return Status;
+    return Status;
   }
 
   PickerEntry = OcFlexArrayAddItem (FlexPickerEntries);
@@ -115,14 +115,15 @@ InternalAddEntry (
     return EFI_OUT_OF_RESOURCES;
   }
 
-  IdLen = StrLen (Description);
+  IdLen           = StrLen (Description);
   PickerEntry->Id = AllocatePool ((IdLen + 1) * sizeof (PickerEntry->Id[0]));
   if (PickerEntry->Id == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
+
   UnicodeStrToAsciiStrS (Description, (CHAR8 *)PickerEntry->Id, IdLen + 1);
 
-  PickerEntry->Name = AllocateCopyPool(IdLen + 1, PickerEntry->Id);
+  PickerEntry->Name = AllocateCopyPool (IdLen + 1, PickerEntry->Id);
   if (PickerEntry->Name == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
@@ -138,15 +139,16 @@ InternalAddEntry (
       return EFI_OUT_OF_RESOURCES;
     }
   }
+
   PickerEntry->UnmanagedBootDevicePath = NewDevicePath;
 
   if (IsHttpBoot) {
     PickerEntry->CustomRead = HttpBootCustomRead;
     PickerEntry->CustomFree = HttpBootCustomFree;
-    PickerEntry->Flavour = IsIPv4 ? OC_FLAVOUR_HTTP_BOOT4 : OC_FLAVOUR_HTTP_BOOT6;
+    PickerEntry->Flavour    = IsIPv4 ? OC_FLAVOUR_HTTP_BOOT4 : OC_FLAVOUR_HTTP_BOOT6;
   } else {
     PickerEntry->CustomRead = PxeBootCustomRead;
-    PickerEntry->Flavour = IsIPv4 ? OC_FLAVOUR_PXE_BOOT4 : OC_FLAVOUR_PXE_BOOT6;
+    PickerEntry->Flavour    = IsIPv4 ? OC_FLAVOUR_PXE_BOOT4 : OC_FLAVOUR_PXE_BOOT6;
   }
 
   //
@@ -169,15 +171,15 @@ GetNetworkBootEntries (
   OUT       UINTN                    *NumEntries
   )
 {
-  EFI_STATUS        Status;
-  UINTN             HandleCount;
-  EFI_HANDLE        *HandleBuffer;
-  UINTN             Index;
-  CHAR16            *NetworkDescription;
-  CHAR16            *IdStr;
-  OC_FLEX_ARRAY     *FlexPickerEntries;
-  BOOLEAN           IsIPv4;
-  BOOLEAN           IsHttpBoot;
+  EFI_STATUS     Status;
+  UINTN          HandleCount;
+  EFI_HANDLE     *HandleBuffer;
+  UINTN          Index;
+  CHAR16         *NetworkDescription;
+  CHAR16         *IdStr;
+  OC_FLEX_ARRAY  *FlexPickerEntries;
+  BOOLEAN        IsIPv4;
+  BOOLEAN        IsHttpBoot;
 
   //
   // Here we produce custom entries only, not entries found on filesystems.
@@ -187,12 +189,12 @@ GetNetworkBootEntries (
   }
 
   Status = gBS->LocateHandleBuffer (
-    ByProtocol,
-    &gEfiLoadFileProtocolGuid,
-    NULL,
-    &HandleCount,
-    &HandleBuffer
-  );
+                  ByProtocol,
+                  &gEfiLoadFileProtocolGuid,
+                  NULL,
+                  &HandleCount,
+                  &HandleBuffer
+                  );
 
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "NTBT: Load file protocol - %r\n", Status));
@@ -214,29 +216,29 @@ GetNetworkBootEntries (
       // to identify PXE/HTTP and IPv4/6.
       //
       if ((IdStr = StrStr (NetworkDescription, PxeBootId)) != NULL) {
-        IsIPv4 = IdStr[L_STR_LEN(PxeBootId)] == L'4';
-        ASSERT (IsIPv4 || (IdStr[L_STR_LEN(PxeBootId)] == L'6'));
+        IsIPv4 = IdStr[L_STR_LEN (PxeBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[L_STR_LEN (PxeBootId)] == L'6'));
         IsHttpBoot = FALSE;
       } else if ((IdStr = StrStr (NetworkDescription, HttpBootId)) != NULL) {
-        IsIPv4 = IdStr[L_STR_LEN(HttpBootId)] == L'4';
-        ASSERT (IsIPv4 || (IdStr[L_STR_LEN(HttpBootId)] == L'6'));
+        IsIPv4 = IdStr[L_STR_LEN (HttpBootId)] == L'4';
+        ASSERT (IsIPv4 || (IdStr[L_STR_LEN (HttpBootId)] == L'6'));
         IsHttpBoot = TRUE;
       }
 
-      if ( (IdStr != NULL)
-        && ((IsIPv4 && mAllowIpv4) || (!IsIPv4 && mAllowIpv6))
-        && ((IsHttpBoot && mAllowHttpBoot) || (!IsHttpBoot && mAllowPxeBoot))
-        )
+      if (  (IdStr != NULL)
+         && ((IsIPv4 && mAllowIpv4) || (!IsIPv4 && mAllowIpv6))
+         && ((IsHttpBoot && mAllowHttpBoot) || (!IsHttpBoot && mAllowPxeBoot))
+            )
       {
         DEBUG ((DEBUG_INFO, "NTBT: Adding %s\n", NetworkDescription));
         Status = InternalAddEntry (
-                    FlexPickerEntries,
-                    NetworkDescription,
-                    HandleBuffer[Index],
-                    IsHttpBoot ? mHttpBootUri : NULL,
-                    IsIPv4,
-                    IsHttpBoot
-                  );
+                   FlexPickerEntries,
+                   NetworkDescription,
+                   HandleBuffer[Index],
+                   IsHttpBoot ? mHttpBootUri : NULL,
+                   IsIPv4,
+                   IsHttpBoot
+                   );
       } else {
         DEBUG ((DEBUG_INFO, "NTBT: Ignoring %s\n", NetworkDescription));
       }
@@ -267,20 +269,20 @@ GetNetworkBootEntries (
 
 EFI_STATUS
 EnrollCerts (
-  OC_FLEX_ARRAY        *ParsedLoadOptions
+  OC_FLEX_ARRAY  *ParsedLoadOptions
   )
 {
-  EFI_STATUS      Status;
-  UINTN           Index;
-  OC_PARSED_VAR   *Option;
-  EFI_GUID        *OwnerGuid;
-  UINTN           CertSize;
-  CHAR8           *CertData;
-  BOOLEAN         EnrollCert;
-  BOOLEAN         DeleteCert;
-  BOOLEAN         DeleteAllCerts;
-  UINTN           OptionLen;
-  UINTN           DeletedCount;
+  EFI_STATUS     Status;
+  UINTN          Index;
+  OC_PARSED_VAR  *Option;
+  EFI_GUID       *OwnerGuid;
+  UINTN          CertSize;
+  CHAR8          *CertData;
+  BOOLEAN        EnrollCert;
+  BOOLEAN        DeleteCert;
+  BOOLEAN        DeleteAllCerts;
+  UINTN          OptionLen;
+  UINTN          DeletedCount;
 
   Status = EFI_SUCCESS;
 
@@ -290,28 +292,28 @@ EnrollCerts (
   for (Index = 0; Index < ParsedLoadOptions->Count; ++Index) {
     Option = OcFlexArrayItemAt (ParsedLoadOptions, Index);
 
-    EnrollCert      = FALSE;
-    DeleteCert      = FALSE;
-    DeleteAllCerts  = FALSE;
+    EnrollCert     = FALSE;
+    DeleteCert     = FALSE;
+    DeleteAllCerts = FALSE;
 
     if (OcUnicodeStartsWith (Option->Unicode.Name, ENROLL_CERT, TRUE)) {
       EnrollCert = TRUE;
-      OptionLen = L_STR_LEN (ENROLL_CERT);
+      OptionLen  = L_STR_LEN (ENROLL_CERT);
     } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_CERT, TRUE)) {
       DeleteCert = TRUE;
-      OptionLen = L_STR_LEN (DELETE_CERT);
+      OptionLen  = L_STR_LEN (DELETE_CERT);
     } else if (OcUnicodeStartsWith (Option->Unicode.Name, DELETE_ALL_CERTS, TRUE)) {
       DeleteAllCerts = TRUE;
-      OptionLen = L_STR_LEN (DELETE_ALL_CERTS);
+      OptionLen      = L_STR_LEN (DELETE_ALL_CERTS);
     }
 
-    if ( (EnrollCert || DeleteCert || DeleteAllCerts)
-      && (Option->Unicode.Name[OptionLen] != CHAR_NULL)
-      && (Option->Unicode.Name[OptionLen] != L':')
-      )
+    if (  (EnrollCert || DeleteCert || DeleteAllCerts)
+       && (Option->Unicode.Name[OptionLen] != CHAR_NULL)
+       && (Option->Unicode.Name[OptionLen] != L':')
+          )
     {
-      EnrollCert  = FALSE;
-      DeleteCert  = FALSE;
+      EnrollCert     = FALSE;
+      DeleteCert     = FALSE;
       DeleteAllCerts = FALSE;
     }
 
@@ -322,7 +324,7 @@ EnrollCerts (
     }
 
     if (EnrollCert || DeleteCert || DeleteAllCerts) {
-      OwnerGuid = AllocateZeroPool (sizeof(EFI_GUID));
+      OwnerGuid = AllocateZeroPool (sizeof (EFI_GUID));
       if (OwnerGuid == NULL) {
         Status = EFI_OUT_OF_RESOURCES;
         break;
@@ -341,13 +343,13 @@ EnrollCerts (
 
       if (DeleteAllCerts) {
         Status = DeleteCertsForOwner (
-          EFI_TLS_CA_CERTIFICATE_VARIABLE,
-          &gEfiTlsCaCertificateGuid,
-          OwnerGuid,
-          0,
-          NULL,
-          &DeletedCount
-        );
+                   EFI_TLS_CA_CERTIFICATE_VARIABLE,
+                   &gEfiTlsCaCertificateGuid,
+                   OwnerGuid,
+                   0,
+                   NULL,
+                   &DeletedCount
+                   );
         DEBUG ((DEBUG_INFO, "NTBT: %s %u deleted - %r\n", Option->Unicode.Name, DeletedCount, Status));
       } else {
         //
@@ -361,26 +363,27 @@ EnrollCerts (
           Status = EFI_OUT_OF_RESOURCES;
           break;
         }
+
         UnicodeStrToAsciiStrS (Option->Unicode.Value, CertData, CertSize + 1);
 
         if (DeleteCert) {
           Status = DeleteCertsForOwner (
-            EFI_TLS_CA_CERTIFICATE_VARIABLE,
-            &gEfiTlsCaCertificateGuid,
-            OwnerGuid,
-            CertSize,
-            CertData,
-            &DeletedCount
-          );
+                     EFI_TLS_CA_CERTIFICATE_VARIABLE,
+                     &gEfiTlsCaCertificateGuid,
+                     OwnerGuid,
+                     CertSize,
+                     CertData,
+                     &DeletedCount
+                     );
           DEBUG ((DEBUG_INFO, "NTBT: %s %u deleted - %r\n", Option->Unicode.Name, DeletedCount, Status));
         } else {
           Status = CertIsPresent (
-                EFI_TLS_CA_CERTIFICATE_VARIABLE,
-                &gEfiTlsCaCertificateGuid,
-                OwnerGuid,
-                CertSize,
-                CertData
-          );
+                     EFI_TLS_CA_CERTIFICATE_VARIABLE,
+                     &gEfiTlsCaCertificateGuid,
+                     OwnerGuid,
+                     CertSize,
+                     CertData
+                     );
           if (EFI_ERROR (Status)) {
             if (Status == EFI_ALREADY_STARTED) {
               DEBUG ((DEBUG_INFO, "NTBT: %s already present\n", Option->Unicode.Name));
@@ -390,12 +393,12 @@ EnrollCerts (
             }
           } else {
             Status = EnrollX509toVariable (
-              EFI_TLS_CA_CERTIFICATE_VARIABLE,
-              &gEfiTlsCaCertificateGuid,
-              OwnerGuid,
-              CertSize,
-              CertData
-            );
+                       EFI_TLS_CA_CERTIFICATE_VARIABLE,
+                       &gEfiTlsCaCertificateGuid,
+                       OwnerGuid,
+                       CertSize,
+                       CertData
+                       );
             DEBUG ((DEBUG_INFO, "NTBT: %s - %r\n", Option->Unicode.Name, Status));
           }
         }
@@ -416,7 +419,7 @@ EnrollCerts (
 
 STATIC
 OC_BOOT_ENTRY_PROTOCOL
-mNetworkBootEntryProtocol = {
+  mNetworkBootEntryProtocol = {
   OC_BOOT_ENTRY_PROTOCOL_REVISION,
   GetNetworkBootEntries,
   FreeNetworkBootEntries,
@@ -430,10 +433,10 @@ UefiMain (
   IN EFI_SYSTEM_TABLE  *SystemTable
   )
 {
-  EFI_STATUS                Status;
-  EFI_LOADED_IMAGE_PROTOCOL *LoadedImage;
-  OC_FLEX_ARRAY             *ParsedLoadOptions;
-  CHAR16                    *TempUri;
+  EFI_STATUS                 Status;
+  EFI_LOADED_IMAGE_PROTOCOL  *LoadedImage;
+  OC_FLEX_ARRAY              *ParsedLoadOptions;
+  CHAR16                     *TempUri;
 
   Status = gBS->HandleProtocol (
                   ImageHandle,
@@ -444,29 +447,30 @@ UefiMain (
     return Status;
   }
 
-  mAllowIpv4        = FALSE;
-  mAllowIpv6        = FALSE;
-  mAllowPxeBoot     = FALSE;
-  mAllowHttpBoot    = FALSE;
-  gRequireHttpsUri  = FALSE;
-  mHttpBootUri      = NULL;
+  mAllowIpv4       = FALSE;
+  mAllowIpv6       = FALSE;
+  mAllowPxeBoot    = FALSE;
+  mAllowHttpBoot   = FALSE;
+  gRequireHttpsUri = FALSE;
+  mHttpBootUri     = NULL;
 
   Status = OcParseLoadOptions (LoadedImage, &ParsedLoadOptions);
   if (EFI_ERROR (Status)) {
     if (Status != EFI_NOT_FOUND) {
       return Status;
     }
+
     Status = EFI_SUCCESS;
   } else {
     //
     // e.g. --https --uri=https://imageserver.org/OpenShell.efi
     //
-    mAllowIpv4        = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
-    mAllowIpv6        = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
-    mAllowPxeBoot     = OcHasParsedVar (ParsedLoadOptions, L"--pxe", OcStringFormatUnicode);
-    mAllowHttpBoot    = OcHasParsedVar (ParsedLoadOptions, L"--http", OcStringFormatUnicode);
-    mAuxEntries       = OcHasParsedVar (ParsedLoadOptions, L"--aux", OcStringFormatUnicode);
-    gRequireHttpsUri  = OcHasParsedVar (ParsedLoadOptions, L"--https", OcStringFormatUnicode);
+    mAllowIpv4       = OcHasParsedVar (ParsedLoadOptions, L"-4", OcStringFormatUnicode);
+    mAllowIpv6       = OcHasParsedVar (ParsedLoadOptions, L"-6", OcStringFormatUnicode);
+    mAllowPxeBoot    = OcHasParsedVar (ParsedLoadOptions, L"--pxe", OcStringFormatUnicode);
+    mAllowHttpBoot   = OcHasParsedVar (ParsedLoadOptions, L"--http", OcStringFormatUnicode);
+    mAuxEntries      = OcHasParsedVar (ParsedLoadOptions, L"--aux", OcStringFormatUnicode);
+    gRequireHttpsUri = OcHasParsedVar (ParsedLoadOptions, L"--https", OcStringFormatUnicode);
 
     TempUri = NULL;
     OcParsedVarsGetUnicodeStr (ParsedLoadOptions, L"--uri", &TempUri);
@@ -491,8 +495,8 @@ UefiMain (
 
   if (!EFI_ERROR (Status)) {
     if (!mAllowIpv4 && !mAllowIpv6) {
-      mAllowIpv4  = TRUE;
-      mAllowIpv6  = TRUE;
+      mAllowIpv4 = TRUE;
+      mAllowIpv6 = TRUE;
     }
 
     if (!gRequireHttpsUri && !mAllowHttpBoot && !mAllowPxeBoot) {
@@ -526,8 +530,8 @@ UefiMain (
   if (ParsedLoadOptions != NULL) {
     OcFlexArrayFree (&ParsedLoadOptions);
   }
-  
-  if (EFI_ERROR (Status) && mHttpBootUri != NULL) {
+
+  if (EFI_ERROR (Status) && (mHttpBootUri != NULL)) {
     FreePool (mHttpBootUri);
   }
 

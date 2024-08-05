@@ -399,119 +399,119 @@ struct OC_BOOT_ENTRY_ {
   //
   // Link in entry list in OC_BOOT_FILESYSTEM.
   //
-  LIST_ENTRY                        Link;
+  LIST_ENTRY                  Link;
   //
   // Device path to booter or its directory.
   // Can be NULL, for example, for custom or system entries.
   //
-  EFI_DEVICE_PATH_PROTOCOL          *DevicePath;
+  EFI_DEVICE_PATH_PROTOCOL    *DevicePath;
   //
   // Action to perform on execution. Only valid for system entries.
   //
-  OC_BOOT_SYSTEM_ACTION             SystemAction;
+  OC_BOOT_SYSTEM_ACTION       SystemAction;
   //
   // Action to perform on execution. Only valid for unmanaged boot entries.
   //
-  OC_BOOT_UNMANAGED_ACTION          UnmanagedBootAction;
+  OC_BOOT_UNMANAGED_ACTION    UnmanagedBootAction;
   //
   // Gets Device Path for boot entry. Only valid for unmanaged boot entries.
   //
-  OC_BOOT_UNMANAGED_GET_DP          UnmanagedBootGetDevicePath;
+  OC_BOOT_UNMANAGED_GET_DP    UnmanagedBootGetDevicePath;
   //
   // Custom entry image read routine, optional for non-custom entries.
   //
-  OC_CUSTOM_READ                    CustomRead;
+  OC_CUSTOM_READ              CustomRead;
   //
   // Custom entry routine to free custom items. Optional.
   //
-  OC_CUSTOM_FREE                    CustomFree;
+  OC_CUSTOM_FREE              CustomFree;
   //
   // Id under which to save entry as default.
   //
-  CHAR16                            *Id;
+  CHAR16                      *Id;
   //
   // Obtained human visible name.
   //
-  CHAR16                            *Name;
+  CHAR16                      *Name;
   //
   // Obtained boot path directory.
   // For custom entries this contains tool path.
   //
-  CHAR16                            *PathName;
+  CHAR16                      *PathName;
   //
   // Content flavour.
   //
-  CHAR8                             *Flavour;
+  CHAR8                       *Flavour;
   //
   // Heuristical value signaling inferred type of booted os.
   // WARNING: Non-definitive, do not rely on for any security purposes.
   //
-  OC_BOOT_ENTRY_TYPE                Type;
+  OC_BOOT_ENTRY_TYPE          Type;
   //
   // Entry index number, assigned by picker.
   //
-  UINT32                            EntryIndex;
+  UINT32                      EntryIndex;
   //
   // Set when this entry is an externally available entry (e.g. USB).
   //
-  BOOLEAN                           IsExternal;
+  BOOLEAN                     IsExternal;
   //
   // Should try booting from first dmg found in DevicePath.
   //
-  BOOLEAN                           IsFolder;
+  BOOLEAN                     IsFolder;
   //
   // Set when this entry refers to a generic booter (e.g. BOOTx64.EFI).
   //
-  BOOLEAN                           IsGeneric;
+  BOOLEAN                     IsGeneric;
   //
   // Set when this entry refers to a custom boot entry.
   //
-  BOOLEAN                           IsCustom;
+  BOOLEAN                     IsCustom;
   //
   // Set when entry was created by OC_BOOT_ENTRY_PROTOCOL.
   //
-  BOOLEAN                           IsBootEntryProtocol;
+  BOOLEAN                     IsBootEntryProtocol;
   //
   // Set when entry is identified as macOS installer.
   //
-  BOOLEAN                           IsAppleInstaller;
+  BOOLEAN                     IsAppleInstaller;
   //
   // Should make this option default boot option.
   //
-  BOOLEAN                           SetDefault;
+  BOOLEAN                     SetDefault;
   //
   // Should launch this entry in text mode.
   //
-  BOOLEAN                           LaunchInText;
+  BOOLEAN                     LaunchInText;
   //
   // Should expose real device path when dealing with custom entries.
   //
-  BOOLEAN                           ExposeDevicePath;
+  BOOLEAN                     ExposeDevicePath;
   //
   // Should disable OpenRuntime NVRAM protection around invocation of tool.
   //
-  BOOLEAN                           FullNvramAccess;
+  BOOLEAN                     FullNvramAccess;
   //
   // Partition UUID of entry device.
   // Set for non-system action boot entry protocol boot entries only.
   //
-  EFI_GUID                          UniquePartitionGUID;
+  EFI_GUID                    UniquePartitionGUID;
   //
   // Load option data (usually "boot args") size.
   //
-  UINT32                            LoadOptionsSize;
+  UINT32                      LoadOptionsSize;
   //
   // Load option data (usually "boot args").
   //
-  VOID                              *LoadOptions;
+  VOID                        *LoadOptions;
   //
   // Audio base path for system action. Boot Entry Protocol only.
   //
-  CHAR8                             *AudioBasePath;
+  CHAR8                       *AudioBasePath;
   //
   // Audio base type for system action. Boot Entry Protocol only.
   //
-  CHAR8                             *AudioBaseType;
+  CHAR8                       *AudioBaseType;
 };
 
 /**
@@ -622,80 +622,80 @@ typedef struct {
   // Multiple entries may share an id - allows e.g. newest version
   // of Linux install to automatically become selected default.
   //
-  CONST CHAR8                       *Id;
+  CONST CHAR8                 *Id;
   //
   // Entry name.
   //
-  CONST CHAR8                       *Name;
+  CONST CHAR8                 *Name;
   //
   // Absolute device path to file for user custom entries,
   // file path relative to device root for boot entry protocol.
   //
-  CONST CHAR8                       *Path;
+  CONST CHAR8                 *Path;
   //
   // Entry boot arguments.
   //
-  CONST CHAR8                       *Arguments;
+  CONST CHAR8                 *Arguments;
   //
   // Content flavour.
   //
-  CONST CHAR8                       *Flavour;
+  CONST CHAR8                 *Flavour;
   //
   // Whether this entry is auxiliary.
   //
-  BOOLEAN                           Auxiliary;
+  BOOLEAN                     Auxiliary;
   //
   // Whether this entry is a tool.
   //
-  BOOLEAN                           Tool;
+  BOOLEAN                     Tool;
   //
   // Whether it should be started in text mode.
   //
-  BOOLEAN                           TextMode;
+  BOOLEAN                     TextMode;
   //
   // Whether we should pass the actual device path (if possible).
   //
-  BOOLEAN                           RealPath;
+  BOOLEAN                     RealPath;
   //
   // Should disable OpenRuntime NVRAM protection around invocation of tool.
   //
-  BOOLEAN                           FullNvramAccess;
+  BOOLEAN                     FullNvramAccess;
   //
   // System action. Boot Entry Protocol only. Optional.
   //
-  OC_BOOT_SYSTEM_ACTION             SystemAction;
+  OC_BOOT_SYSTEM_ACTION       SystemAction;
   //
   // Audio base path for system action. Boot Entry Protocol only. Optional.
   //
-  CHAR8                             *AudioBasePath;
+  CHAR8                       *AudioBasePath;
   //
   // Audio base type for system action. Boot Entry Protocol only. Optional.
   //
-  CHAR8                             *AudioBaseType;
+  CHAR8                       *AudioBaseType;
   //
   // Unmanaged boot action. Boot Entry Protocol only. Optional.
   //
-  OC_BOOT_UNMANAGED_ACTION          UnmanagedBootAction;
+  OC_BOOT_UNMANAGED_ACTION    UnmanagedBootAction;
   //
   // Gets Device Path for unmanaged boot entry. Boot Entry Protocol only. Optional.
   //
-  OC_BOOT_UNMANAGED_GET_DP          UnmanagedBootGetDevicePath;
+  OC_BOOT_UNMANAGED_GET_DP    UnmanagedBootGetDevicePath;
   //
   // External Device Path. For unmanaged boot and possibly other Boot Entry Protocol entries. Optional.
   //
-  EFI_DEVICE_PATH_PROTOCOL          *UnmanagedBootDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL    *UnmanagedBootDevicePath;
   //
   // Custom entry image read routine, optional for non-custom entries.
   //
-  OC_CUSTOM_READ                    CustomRead;
+  OC_CUSTOM_READ              CustomRead;
   //
   // Custom entry routine to free custom items. Optional.
   //
-  OC_CUSTOM_FREE                    CustomFree;
+  OC_CUSTOM_FREE              CustomFree;
   //
   // Whether this entry should be labeled as external to the system. Boot Entry Protocol only. Optional.
   //
-  BOOLEAN                           External;
+  BOOLEAN                     External;
 } OC_PICKER_ENTRY;
 
 /**

@@ -1475,6 +1475,7 @@ BootPickerEntriesSet (
         } else {
           Status = CopyLabel (&VolumeEntry->Label, &GuiContext->Labels[LABEL_OTHER]);
         }
+
         break;
       //
       // Use flavour-based labels for system entries (e.g. from boot entry protocol).
@@ -1497,6 +1498,7 @@ BootPickerEntriesSet (
           DEBUG ((DEBUG_WARN, "OCUI: System entry flavour %a unsupported for label\n", Entry->Flavour));
           Status = EFI_UNSUPPORTED;
         }
+
         break;
       case OC_BOOT_UNMANAGED:
         if (OcAsciiStriStr (Entry->Flavour, OC_FLAVOUR_WINDOWS) != NULL) {
@@ -1504,6 +1506,7 @@ BootPickerEntriesSet (
         } else {
           Status = CopyLabel (&VolumeEntry->Label, &GuiContext->Labels[LABEL_OTHER]);
         }
+
         break;
       case OC_BOOT_UNKNOWN:
         Status = CopyLabel (&VolumeEntry->Label, &GuiContext->Labels[LABEL_GENERIC_HDD]);

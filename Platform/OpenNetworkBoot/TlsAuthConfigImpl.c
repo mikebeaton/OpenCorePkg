@@ -13,10 +13,10 @@
 typedef
 EFI_STATUS
 (*PROCESS_CERT)(
-  IN VOID                 *Context,
-  IN UINTN                CertIndex,
-  IN UINTN                CertSize,
-  IN EFI_SIGNATURE_DATA   *Cert
+  IN VOID                *Context,
+  IN UINTN               CertIndex,
+  IN UINTN               CertSize,
+  IN EFI_SIGNATURE_DATA  *Cert
   );
 
 typedef struct {
@@ -41,10 +41,10 @@ typedef struct {
 STATIC
 EFI_STATUS
 ProcessAllCerts (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN PROCESS_CERT                  ProcessCert,
-  IN VOID                          *Context OPTIONAL
+  IN CHAR16        *VariableName,
+  IN EFI_GUID      *VendorGuid,
+  IN PROCESS_CERT  ProcessCert,
+  IN VOID          *Context OPTIONAL
   )
 {
   EFI_STATUS          Status;
@@ -59,9 +59,9 @@ ProcessAllCerts (
 
   ASSERT (ProcessCert != NULL);
 
-  Data              = NULL;
-  CertList          = NULL;
-  Cert              = NULL;
+  Data     = NULL;
+  CertList = NULL;
+  Cert     = NULL;
 
   //
   // Read Variable.
@@ -72,6 +72,7 @@ ProcessAllCerts (
     if (Status == EFI_NOT_FOUND) {
       Status = EFI_SUCCESS;
     }
+
     return Status;
   }
 
@@ -103,7 +104,7 @@ ProcessAllCerts (
       continue;
     }
 
-    Status = EFI_SUCCESS;
+    Status    = EFI_SUCCESS;
     CertCount = (CertList->SignatureListSize - sizeof (EFI_SIGNATURE_LIST) - CertList->SignatureHeaderSize) / CertList->SignatureSize;
     for (Index = 0; Index < CertCount; Index++) {
       Cert = (EFI_SIGNATURE_DATA *)((UINT8 *)CertList
@@ -118,6 +119,7 @@ ProcessAllCerts (
 
       ++GuidIndex;
     }
+
     if (EFI_ERROR (Status)) {
       break;
     }
@@ -137,10 +139,10 @@ ProcessAllCerts (
 STATIC
 EFI_STATUS
 LogCert (
-  IN VOID                 *Context,
-  IN UINTN                CertIndex,
-  IN UINTN                CertSize,
-  IN EFI_SIGNATURE_DATA   *Cert
+  IN VOID                *Context,
+  IN UINTN               CertIndex,
+  IN UINTN               CertSize,
+  IN EFI_SIGNATURE_DATA  *Cert
   )
 {
   DEBUG ((DEBUG_INFO, "NTBT: Cert %u owner %g\n", CertIndex, &Cert->SignatureOwner));
@@ -157,17 +159,17 @@ LogCert (
 **/
 EFI_STATUS
 LogInstalledCerts (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid
   )
 {
   DEBUG ((DEBUG_INFO, "NTBT: Listing installed certs...\n"));
   return ProcessAllCerts (
-    VariableName,
-    VendorGuid,
-    LogCert,
-    NULL
-  );
+           VariableName,
+           VendorGuid,
+           LogCert,
+           NULL
+           );
 }
 
 /**
@@ -177,13 +179,13 @@ LogInstalledCerts (
 STATIC
 EFI_STATUS
 CheckCertPresent (
-  IN VOID                 *VoidContext,
-  IN UINTN                CertIndex,
-  IN UINTN                CertSize,
-  IN EFI_SIGNATURE_DATA   *Cert
+  IN VOID                *VoidContext,
+  IN UINTN               CertIndex,
+  IN UINTN               CertSize,
+  IN EFI_SIGNATURE_DATA  *Cert
   )
 {
-  CERT_IS_PRESENT_CONTEXT     *Context;
+  CERT_IS_PRESENT_CONTEXT  *Context;
 
   Context = VoidContext;
 
@@ -191,9 +193,10 @@ CheckCertPresent (
     return EFI_SUCCESS;
   }
 
-  if ( (CertSize == sizeof (EFI_SIGNATURE_DATA) - 1 + Context->X509DataSize)
-    && (CompareMem (Cert->SignatureData, Context->X509Data, Context->X509DataSize) == 0)
-  ) {
+  if (  (CertSize == sizeof (EFI_SIGNATURE_DATA) - 1 + Context->X509DataSize)
+     && (CompareMem (Cert->SignatureData, Context->X509Data, Context->X509DataSize) == 0)
+        )
+  {
     return EFI_ALREADY_STARTED;
   }
 
@@ -214,27 +217,27 @@ CheckCertPresent (
 **/
 EFI_STATUS
 CertIsPresent (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data
   )
 {
-  CERT_IS_PRESENT_CONTEXT     Context;
+  CERT_IS_PRESENT_CONTEXT  Context;
 
   ASSERT (X509Data != NULL);
 
-  Context.OwnerGuid     = OwnerGuid;
-  Context.X509DataSize  = X509DataSize;
-  Context.X509Data      = X509Data;
+  Context.OwnerGuid    = OwnerGuid;
+  Context.X509DataSize = X509DataSize;
+  Context.X509Data     = X509Data;
 
   return ProcessAllCerts (
-    VariableName,
-    VendorGuid,
-    CheckCertPresent,
-    &Context
-  );
+           VariableName,
+           VendorGuid,
+           CheckCertPresent,
+           &Context
+           );
 }
 
 /**
@@ -254,12 +257,12 @@ CertIsPresent (
 **/
 EFI_STATUS
 DeleteCertsForOwner (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data,
-  OUT UINTN                        *DeletedCount
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data,
+  OUT UINTN    *DeletedCount
   )
 {
   EFI_STATUS          Status;
@@ -281,6 +284,7 @@ DeleteCertsForOwner (
   if (DeletedCount == NULL) {
     DeletedCount = &LocalDeleteCount;
   }
+
   *DeletedCount = 0;
 
   Data     = NULL;
@@ -298,6 +302,7 @@ DeleteCertsForOwner (
     if (Status == EFI_NOT_FOUND) {
       Status = EFI_SUCCESS;
     }
+
     return Status;
   }
 
@@ -318,7 +323,7 @@ DeleteCertsForOwner (
   Data = AllocateZeroPool (DataSize);
   if (Data == NULL) {
     FreePool (OldData);
-    return  EFI_OUT_OF_RESOURCES;
+    return EFI_OUT_OF_RESOURCES;
   }
 
   //
@@ -338,13 +343,14 @@ DeleteCertsForOwner (
       Cert        = (EFI_SIGNATURE_DATA *)((UINT8 *)CertList + sizeof (EFI_SIGNATURE_LIST) + CertList->SignatureHeaderSize);
       CertCount   = (CertList->SignatureListSize - sizeof (EFI_SIGNATURE_LIST) - CertList->SignatureHeaderSize) / CertList->SignatureSize;
       for (Index = 0; Index < CertCount; Index++) {
-        if ( CompareGuid (&Cert->SignatureOwner, OwnerGuid)
-          && ( (X509Data == NULL)
-            || ( (CertList->SignatureSize == (UINT32)(sizeof (EFI_SIGNATURE_DATA) - 1 + X509DataSize))
-              && (CompareMem ((UINT8 *)(Cert->SignatureData), X509Data, X509DataSize) == 0)
-            )
-          )
-         ) {
+        if (  CompareGuid (&Cert->SignatureOwner, OwnerGuid)
+           && (  (X509Data == NULL)
+              || (  (CertList->SignatureSize == (UINT32)(sizeof (EFI_SIGNATURE_DATA) - 1 + X509DataSize))
+                 && (CompareMem ((UINT8 *)(Cert->SignatureData), X509Data, X509DataSize) == 0)
+                    )
+                 )
+              )
+        {
           //
           // Find it! Skip it!
           //
@@ -425,11 +431,11 @@ DeleteCertsForOwner (
 **/
 EFI_STATUS
 EnrollX509toVariable (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data
   )
 {
   EFI_STATUS          Status;
@@ -440,12 +446,12 @@ EnrollX509toVariable (
   UINTN               SigDataSize;
   UINT32              Attr;
 
-  SigDataSize  = 0;
-  DataSize     = 0;
-  CACert       = NULL;
-  CACertData   = NULL;
-  Data         = NULL;
-  Attr         = 0;
+  SigDataSize = 0;
+  DataSize    = 0;
+  CACert      = NULL;
+  CACertData  = NULL;
+  Data        = NULL;
+  Attr        = 0;
 
   ASSERT (X509Data != NULL);
 

@@ -30,12 +30,12 @@
 /**
   Set if we should enforce https only within this driver.
 **/
-extern BOOLEAN gRequireHttpsUri;
+extern BOOLEAN  gRequireHttpsUri;
 
 /**
   Current DmgLoading setting, for HTTP BOOT callback validation.
 **/
-extern OC_DMG_LOADING_SUPPORT gDmgLoading;
+extern OC_DMG_LOADING_SUPPORT  gDmgLoading;
 
 /**
   Custom validation for network boot device path.
@@ -48,8 +48,8 @@ extern OC_DMG_LOADING_SUPPORT gDmgLoading;
 typedef
 EFI_STATUS
 (*VALIDATE_BOOT_DEVICE_PATH)(
-  IN VOID                       *Context,
-  IN EFI_DEVICE_PATH_PROTOCOL   *Path
+  IN VOID                      *Context,
+  IN EFI_DEVICE_PATH_PROTOCOL  *Path
   );
 
 /*
@@ -60,7 +60,7 @@ EFI_STATUS
 */
 EFI_DEVICE_PATH_PROTOCOL *
 GetUriNode (
-  EFI_DEVICE_PATH_PROTOCOL *DevicePath
+  EFI_DEVICE_PATH_PROTOCOL  *DevicePath
   );
 
 /**
@@ -108,9 +108,9 @@ BmGetLoadFileDescription (
 **/
 EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
-  OUT VOID                        **Data,
-  OUT UINT32                      *DataSize
+  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
+  OUT VOID                      **Data,
+  OUT UINT32                    *DataSize
   );
 
 /**
@@ -146,37 +146,37 @@ BmDestroyRamDisk (
 EFI_STATUS
 EFIAPI
 HttpBootCustomFree (
-  IN  VOID      *Context
+  IN  VOID  *Context
   );
 
 EFI_STATUS
 EFIAPI
 HttpBootCustomRead (
-  IN  OC_STORAGE_CONTEXT                  *Storage,
-  IN  OC_BOOT_ENTRY                       *ChosenEntry,
-  OUT VOID                                **Data,
-  OUT UINT32                              *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
-  OUT EFI_HANDLE                          *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
-  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
-  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  OUT VOID                                **Context
+  IN  OC_STORAGE_CONTEXT                   *Storage,
+  IN  OC_BOOT_ENTRY                        *ChosenEntry,
+  OUT VOID                                 **Data,
+  OUT UINT32                               *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **DevicePath,
+  OUT EFI_HANDLE                           *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT               DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  OUT VOID                                 **Context
   );
 
 EFI_STATUS
 EFIAPI
 PxeBootCustomRead (
-  IN  OC_STORAGE_CONTEXT                  *Storage,
-  IN  OC_BOOT_ENTRY                       *ChosenEntry,
-  OUT VOID                                **Data,
-  OUT UINT32                              *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
-  OUT EFI_HANDLE                          *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
-  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
-  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  OUT VOID                                **Context
+  IN  OC_STORAGE_CONTEXT                   *Storage,
+  IN  OC_BOOT_ENTRY                        *ChosenEntry,
+  OUT VOID                                 **Data,
+  OUT UINT32                               *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **DevicePath,
+  OUT EFI_HANDLE                           *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT               DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  OUT VOID                                 **Context
   );
 
 ///
@@ -185,22 +185,22 @@ PxeBootCustomRead (
 
 BOOLEAN
 HasHttpsUri (
-  CHAR16 	*Uri
+  CHAR16  *Uri
   );
 
 EFI_STATUS
 ExtractOtherUriFromDevicePath (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
-  IN  CHAR8                       *FromExt,
-  IN  CHAR8                       *ToExt,
-  OUT CHAR8                       **OtherUri,
-  IN  BOOLEAN                     OnlySearchForFromExt
+  IN  EFI_DEVICE_PATH_PROTOCOL  *DevicePath,
+  IN  CHAR8                     *FromExt,
+  IN  CHAR8                     *ToExt,
+  OUT CHAR8                     **OtherUri,
+  IN  BOOLEAN                   OnlySearchForFromExt
   );
 
 BOOLEAN
 UriFileHasExtension (
-  IN  CHAR8                       *Uri,
-  IN  CHAR8                       *Ext
+  IN  CHAR8  *Uri,
+  IN  CHAR8  *Ext
   );
 
 EFI_STATUS
@@ -213,7 +213,7 @@ HttpBootAddUri (
 
 EFI_EVENT
 MonitorHttpBootCallback (
-  EFI_HANDLE    LoadFileHandle
+  EFI_HANDLE  LoadFileHandle
   );
 
 ///
@@ -222,36 +222,36 @@ MonitorHttpBootCallback (
 
 EFI_STATUS
 LogInstalledCerts (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid
   );
 
 EFI_STATUS
 CertIsPresent (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data
   );
 
 EFI_STATUS
 DeleteCertsForOwner (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data,
-  OUT UINTN                        *DeletedCount
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data,
+  OUT UINTN    *DeletedCount
   );
 
 EFI_STATUS
 EnrollX509toVariable (
-  IN CHAR16                        *VariableName,
-  IN EFI_GUID                      *VendorGuid,
-  IN EFI_GUID                      *OwnerGuid,
-  IN UINTN                         X509DataSize,
-  IN VOID                          *X509Data
+  IN CHAR16    *VariableName,
+  IN EFI_GUID  *VendorGuid,
+  IN EFI_GUID  *OwnerGuid,
+  IN UINTN     X509DataSize,
+  IN VOID      *X509Data
   );
 
 #endif // LOAD_FILE_INTERNAL_H

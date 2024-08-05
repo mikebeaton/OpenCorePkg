@@ -8,15 +8,15 @@
 #include "NetworkBootInternal.h"
 
 typedef struct {
-  EFI_DEVICE_PATH_PROTOCOL  *RamDiskDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL    *RamDiskDevicePath;
 } CUSTOM_FREE_CONTEXT;
 
 STATIC
 EFI_STATUS
 SetDmgPreloadDmgFile (
-  IN     OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  IN OUT VOID                                **Data,
-  IN OUT UINT32                              *DataSize
+  IN     OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  IN OUT VOID                                 **Data,
+  IN OUT UINT32                               *DataSize
   )
 {
   EFI_STATUS  Status;
@@ -26,7 +26,7 @@ SetDmgPreloadDmgFile (
   if (EFI_ERROR (Status)) {
     FreePool (Data);
   } else {
-    DmgPreloadContext->DmgFileSize  = *DataSize;
+    DmgPreloadContext->DmgFileSize = *DataSize;
   }
 
   *Data     = NULL;
@@ -38,15 +38,15 @@ SetDmgPreloadDmgFile (
 STATIC
 EFI_STATUS
 SetDmgPreloadChunklist (
-  IN     OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  IN OUT VOID                                **Data,
-  IN OUT UINT32                              *DataSize
+  IN     OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  IN OUT VOID                                 **Data,
+  IN OUT UINT32                               *DataSize
   )
 {
-  DmgPreloadContext->ChunklistBuffer    = *Data;
-  DmgPreloadContext->ChunklistFileSize  = *DataSize;
+  DmgPreloadContext->ChunklistBuffer   = *Data;
+  DmgPreloadContext->ChunklistFileSize = *DataSize;
 
-  *Data = NULL;
+  *Data     = NULL;
   *DataSize = 0;
 
   return EFI_SUCCESS;
@@ -55,17 +55,19 @@ SetDmgPreloadChunklist (
 STATIC
 VOID
 FreeDmgPreloadContext (
-  IN  OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext
+  IN  OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext
   )
 {
   if (DmgPreloadContext->ChunklistBuffer != NULL) {
     FreePool (DmgPreloadContext->ChunklistBuffer);
   }
+
   DmgPreloadContext->ChunklistFileSize = 0;
   if (DmgPreloadContext->DmgFile != NULL) {
     DmgPreloadContext->DmgFile->Close (DmgPreloadContext->DmgFile);
     DmgPreloadContext->DmgFile = NULL;
   }
+
   DmgPreloadContext->DmgFileSize = 0;
 }
 
@@ -77,10 +79,10 @@ FreeDmgPreloadContext (
 EFI_STATUS
 EFIAPI
 HttpBootCustomFree (
-  IN  VOID      *Context
+  IN  VOID  *Context
   )
 {
-  CUSTOM_FREE_CONTEXT      *CustomFreeContext;
+  CUSTOM_FREE_CONTEXT  *CustomFreeContext;
 
   if (Context != NULL) {
     CustomFreeContext = Context;
@@ -88,6 +90,7 @@ HttpBootCustomFree (
       BmDestroyRamDisk (CustomFreeContext->RamDiskDevicePath);
       FreePool (CustomFreeContext->RamDiskDevicePath);
     }
+
     FreePool (CustomFreeContext);
   }
 
@@ -126,16 +129,16 @@ HttpBootCustomFree (
 EFI_STATUS
 EFIAPI
 HttpBootCustomRead (
-  IN  OC_STORAGE_CONTEXT                  *Storage,
-  IN  OC_BOOT_ENTRY                       *ChosenEntry,
-  OUT VOID                                **Data,
-  OUT UINT32                              *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
-  OUT EFI_HANDLE                          *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
-  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
-  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  OUT VOID                                **Context
+  IN  OC_STORAGE_CONTEXT                   *Storage,
+  IN  OC_BOOT_ENTRY                        *ChosenEntry,
+  OUT VOID                                 **Data,
+  OUT UINT32                               *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **DevicePath,
+  OUT EFI_HANDLE                           *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT               DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  OUT VOID                                 **Context
   )
 {
   EFI_STATUS                Status;
@@ -148,7 +151,7 @@ HttpBootCustomRead (
   ASSERT (Context != NULL);
   *Context = NULL;
 
-  CustomFreeContext = AllocateZeroPool (sizeof(CUSTOM_FREE_CONTEXT));
+  CustomFreeContext = AllocateZeroPool (sizeof (CUSTOM_FREE_CONTEXT));
   if (CustomFreeContext == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
@@ -181,10 +184,10 @@ HttpBootCustomRead (
     Status = ExtractOtherUriFromDevicePath (*DevicePath, ".dmg", ".chunklist", &OtherUri, FALSE);
     if (!EFI_ERROR (Status)) {
       GotDmgFirst = TRUE;
-      Status = SetDmgPreloadDmgFile (DmgPreloadContext, Data, DataSize);
+      Status      = SetDmgPreloadDmgFile (DmgPreloadContext, Data, DataSize);
       if (EFI_ERROR (Status)) {
         FreePool (OtherUri);
-        OtherUri  = NULL;
+        OtherUri = NULL;
       }
     } else {
       Status = ExtractOtherUriFromDevicePath (*DevicePath, ".chunklist", ".dmg", &OtherUri, FALSE);
@@ -192,11 +195,11 @@ HttpBootCustomRead (
         Status = SetDmgPreloadChunklist (DmgPreloadContext, Data, DataSize);
         if (EFI_ERROR (Status)) {
           FreePool (OtherUri);
-          OtherUri  = NULL;
+          OtherUri = NULL;
         }
       } else if (Status == EFI_NOT_FOUND) {
-        Status    = EFI_SUCCESS;
-        OtherUri  = NULL;
+        Status   = EFI_SUCCESS;
+        OtherUri = NULL;
       }
     }
   }
@@ -233,7 +236,7 @@ HttpBootCustomRead (
           } else {
             FreePool (*DevicePath);
             *DevicePath = OtherDevicePath;
-            Status = SetDmgPreloadDmgFile (DmgPreloadContext, Data, DataSize);
+            Status      = SetDmgPreloadDmgFile (DmgPreloadContext, Data, DataSize);
           }
         }
       }
@@ -259,7 +262,7 @@ HttpBootCustomRead (
   // It is okay to follow EDK-II code and check for this when it might not be there.
   //
   CustomFreeContext->RamDiskDevicePath = BmGetRamDiskDevicePath (*DevicePath);
-  *Context = CustomFreeContext;
+  *Context                             = CustomFreeContext;
 
   return EFI_SUCCESS;
 }
@@ -270,16 +273,16 @@ HttpBootCustomRead (
 EFI_STATUS
 EFIAPI
 PxeBootCustomRead (
-  IN  OC_STORAGE_CONTEXT                  *Storage,
-  IN  OC_BOOT_ENTRY                       *ChosenEntry,
-  OUT VOID                                **Data,
-  OUT UINT32                              *DataSize,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **DevicePath,
-  OUT EFI_HANDLE                          *StorageHandle,
-  OUT EFI_DEVICE_PATH_PROTOCOL            **StoragePath,
-  IN  OC_DMG_LOADING_SUPPORT              DmgLoading,
-  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT *DmgPreloadContext,
-  OUT VOID                                **Context
+  IN  OC_STORAGE_CONTEXT                   *Storage,
+  IN  OC_BOOT_ENTRY                        *ChosenEntry,
+  OUT VOID                                 **Data,
+  OUT UINT32                               *DataSize,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **DevicePath,
+  OUT EFI_HANDLE                           *StorageHandle,
+  OUT EFI_DEVICE_PATH_PROTOCOL             **StoragePath,
+  IN  OC_DMG_LOADING_SUPPORT               DmgLoading,
+  OUT OC_APPLE_DISK_IMAGE_PRELOAD_CONTEXT  *DmgPreloadContext,
+  OUT VOID                                 **Context
   )
 {
   *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize);
