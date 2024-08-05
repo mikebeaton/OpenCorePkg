@@ -380,9 +380,7 @@ BmExpandLoadFile (
   IN  EFI_HANDLE                  LoadFileHandle,
   IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
   OUT VOID                        **Data,
-  OUT UINT32                      *DataSize,
-  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
-  IN  VOID                        *ValidateContext OPTIONAL
+  OUT UINT32                      *DataSize
   )
 {
   EFI_STATUS                Status;
@@ -428,22 +426,6 @@ BmExpandLoadFile (
       return NULL;
     }
 
-    FullPath = DevicePathFromHandle (LoadFileHandle);
-
-    //
-    // Custom validation - this can be late for enforcing https:// protocol
-    // (or any other validation) in the unusual situation where image size
-    // cannot be obtained from HTTP HEAD command (in which case the image
-    // gets loaded and cached before we get to here), but it does still
-    // get enforced.
-    //
-    if ( (Validate != NULL)
-      && EFI_ERROR(Validate (ValidateContext, FullPath))
-      )
-    {
-      return NULL;
-    }
-
     FileBuffer = AllocatePool (BufferSize);
     if (FileBuffer == NULL) {
       return NULL;
@@ -452,6 +434,7 @@ BmExpandLoadFile (
     //
     // Call LoadFile with the correct buffer size.
     //
+    FullPath = DevicePathFromHandle (LoadFileHandle);
     Status = LoadFile->LoadFile (LoadFile, FilePath, TRUE, &BufferSize, FileBuffer);
     if (EFI_ERROR (Status)) {
       FreePool (FileBuffer);
@@ -545,9 +528,7 @@ EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
   IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
   OUT VOID                        **Data,
-  OUT UINT32                      *DataSize,
-  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
-  IN  VOID                        *ValidateContext OPTIONAL
+  OUT UINT32                      *DataSize
   )
 {
   EFI_STATUS                Status;
@@ -608,7 +589,7 @@ BmExpandLoadFiles (
     return NULL;
   }
 
-  Node = BmExpandLoadFile (Handle, FilePath, Data, DataSize, Validate, ValidateContext);
+  Node = BmExpandLoadFile (Handle, FilePath, Data, DataSize);
 
   gBS->CloseEvent (NotifyEvent);
 

@@ -33,6 +33,11 @@
 extern BOOLEAN gRequireHttpsUri;
 
 /**
+  Current DmgLoading setting, for HTTP BOOT callback validation.
+**/
+extern OC_DMG_LOADING_SUPPORT gDmgLoading;
+
+/**
   Custom validation for network boot device path.
 
   @param Path         Device path to validate.
@@ -105,9 +110,7 @@ EFI_DEVICE_PATH_PROTOCOL *
 BmExpandLoadFiles (
   IN  EFI_DEVICE_PATH_PROTOCOL    *FilePath,
   OUT VOID                        **Data,
-  OUT UINT32                      *DataSize,
-  IN  VALIDATE_BOOT_DEVICE_PATH   Validate OPTIONAL,
-  IN  VOID                        *ValidateContext OPTIONAL
+  OUT UINT32                      *DataSize
   );
 
 /**
@@ -181,12 +184,12 @@ PxeBootCustomRead (
 ///
 
 BOOLEAN
-HasValidUriProtocol (
+HasHttpsUri (
   CHAR16 	*Uri
   );
 
 EFI_STATUS
-ExtractOtherUri (
+ExtractOtherUriFromDevicePath (
   IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
   IN  CHAR8                       *FromExt,
   IN  CHAR8                       *ToExt,
@@ -196,7 +199,7 @@ ExtractOtherUri (
 
 BOOLEAN
 UriFileHasExtension (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
+  IN  CHAR8                       *Uri,
   IN  CHAR8                       *Ext
   );
 

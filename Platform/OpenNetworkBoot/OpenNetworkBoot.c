@@ -220,7 +220,11 @@ GetNetworkBootEntries (
         IsHttpBoot = TRUE;
       }
 
-      if (IdStr != NULL && ((IsIPv4 && mAllowIpv4) || (!IsIPv4 && mAllowIpv6))) {
+      if ( (IdStr != NULL)
+        && ((IsIPv4 && mAllowIpv4) || (!IsIPv4 && mAllowIpv6))
+        && ((IsHttpBoot && mAllowHttpBoot) || (!IsHttpBoot && mAllowPxeBoot))
+        )
+      {
         DEBUG ((DEBUG_INFO, "NTBT: Adding %s\n", NetworkDescription));
         Status = InternalAddEntry (
                     FlexPickerEntries,
@@ -251,7 +255,7 @@ GetNetworkBootEntries (
 
   OcFlexArrayFreeContainer (&FlexPickerEntries, (VOID **)Entries, NumEntries);
 
-  if (NumEntries == 0) {
+  if (*NumEntries == 0) {
     return EFI_NOT_FOUND;
   }
 
@@ -500,20 +504,19 @@ UefiMain (
       if (!mAllowHttpBoot) {
         DEBUG ((DEBUG_INFO, "NTBT: URI specified but HTTP boot is disabled\n"));
       } else {
-        if (!HasValidUriProtocol (mHttpBootUri)) {
-          Status = EFI_INVALID_PARAMETER;
+        if (gRequireHttpsUri && !HasHttpsUri (mHttpBootUri)) {
+          DEBUG ((DEBUG_WARN, "NTBT: Invalid URI https:// is required\n"));
+          mAllowHttpBoot = FALSE;
         }
       }
     }
 
-    if (!EFI_ERROR (Status)) {
-      Status = gBS->InstallMultipleProtocolInterfaces (
-                      &ImageHandle,
-                      &gOcBootEntryProtocolGuid,
-                      &mNetworkBootEntryProtocol,
-                      NULL
-                      );
-    }
+    Status = gBS->InstallMultipleProtocolInterfaces (
+                    &ImageHandle,
+                    &gOcBootEntryProtocolGuid,
+                    &mNetworkBootEntryProtocol,
+                    NULL
+                    );
   }
 
   if (ParsedLoadOptions != NULL) {

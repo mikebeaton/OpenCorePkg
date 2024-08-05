@@ -95,57 +95,6 @@ HttpBootCustomFree (
 }
 
 //
-// Abort after first call to LoadFile if we are loading a .dmg and these are banned,
-// or if underlying drivers have allowed http:// in URL but user setting for OpenNetworkBoot
-// does not allow it.
-// If PcdAllowHttpConnections is not set (via NETWORK_ALLOW_HTTP_CONNECTIONS compilation
-// flag) then both HttpDxe and HttpBootDxe will enforce https: before we ever get to here.
-//
-EFI_STATUS
-ValidateDmgAndHttps (
-  VOID                      *Context,
-  EFI_DEVICE_PATH_PROTOCOL  *FullPath
-  )
-{
-  EFI_DEVICE_PATH_PROTOCOL  *Previous;
-  CHAR8                     *Uri;
-  OC_DMG_LOADING_SUPPORT    DmgLoading;
-  CHAR8                     *Match;
-  BOOLEAN                   HasDmgExtension;
-
-  if (gRequireHttpsUri) {
-    Previous = GetUriNode (FullPath);
-    if (Previous == NULL) {
-      DEBUG ((DEBUG_WARN, "NTBT: Invalid device path for https:// validation\n"));
-      return EFI_INVALID_PARAMETER;
-    }
-    Uri = (CHAR8 *)Previous + sizeof (EFI_DEVICE_PATH_PROTOCOL);
-    if (OcAsciiStrniCmp ("https://", Uri, L_STR_LEN("https://")) != 0) {
-      DEBUG ((DEBUG_INFO, "NTBT: Non https:// URI - %r\n", EFI_ACCESS_DENIED));
-      return EFI_ACCESS_DENIED;
-    }
-  }
-
-  DmgLoading = *(OC_DMG_LOADING_SUPPORT *)Context;
-
-  if (DmgLoading == OcDmgLoadingDisabled) {
-    Match = ".dmg";
-    HasDmgExtension = UriFileHasExtension (FullPath, Match);
-    if (!HasDmgExtension) {
-      Match = ".chunklist";
-      HasDmgExtension = UriFileHasExtension (FullPath, Match);
-    }
-    if (HasDmgExtension)
-    {
-      DEBUG ((DEBUG_INFO, "NTBT: %a file is requested while DMG loading is disabled\n", Match));
-      return EFI_UNSUPPORTED;
-    }
-  }
-
-  return EFI_SUCCESS;
-}
-
-//
 // Within BmExpandLoadFiles:
 //  - Only DevicePath will be set if we're returning a boot file on an HTTP
 //    Boot native ram disk (from .iso or .img). In this case the first and
@@ -204,12 +153,14 @@ HttpBootCustomRead (
     return EFI_OUT_OF_RESOURCES;
   }
 
+  gDmgLoading = DmgLoading;
+
   //
   // Load the first (or only) file. This method has been extended to
   // abort early (avoiding a pointless, long, slow load of a DMG) if DmgLoading
   // is disabled and the requested file extension is `.dmg` (or `.chunklist`).
   //
-  *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize, ValidateDmgAndHttps, &DmgLoading);
+  *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize);
 
   if (*DevicePath == NULL) {
     FreePool (CustomFreeContext);
@@ -227,7 +178,7 @@ HttpBootCustomRead (
   // loaded as a RAM disk.
   //
   if (*DataSize != 0) {
-    Status = ExtractOtherUri (*DevicePath, ".dmg", ".chunklist", &OtherUri, FALSE);
+    Status = ExtractOtherUriFromDevicePath (*DevicePath, ".dmg", ".chunklist", &OtherUri, FALSE);
     if (!EFI_ERROR (Status)) {
       GotDmgFirst = TRUE;
       Status = SetDmgPreloadDmgFile (DmgPreloadContext, Data, DataSize);
@@ -236,7 +187,7 @@ HttpBootCustomRead (
         OtherUri  = NULL;
       }
     } else {
-      Status = ExtractOtherUri (*DevicePath, ".chunklist", ".dmg", &OtherUri, FALSE);
+      Status = ExtractOtherUriFromDevicePath (*DevicePath, ".chunklist", ".dmg", &OtherUri, FALSE);
       if (!EFI_ERROR (Status)) {
         Status = SetDmgPreloadChunklist (DmgPreloadContext, Data, DataSize);
         if (EFI_ERROR (Status)) {
@@ -270,7 +221,7 @@ HttpBootCustomRead (
         //
         // Load the second file of .dmg/.chunklist pair.
         //
-        OtherDevicePath = BmExpandLoadFiles (OtherLoadFile, Data, DataSize, NULL, NULL);
+        OtherDevicePath = BmExpandLoadFiles (OtherLoadFile, Data, DataSize);
         FreePool (OtherLoadFile);
         if (OtherDevicePath == NULL) {
           DEBUG ((DEBUG_INFO, "NTBT: Failed to fetch required matching file %a\r", OtherUri));
@@ -331,7 +282,7 @@ PxeBootCustomRead (
   OUT VOID                                **Context
   )
 {
-  *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize, NULL, NULL);
+  *DevicePath = BmExpandLoadFiles (ChosenEntry->DevicePath, Data, DataSize);
 
   return (*DevicePath == NULL ? EFI_NOT_FOUND : EFI_SUCCESS);
 }

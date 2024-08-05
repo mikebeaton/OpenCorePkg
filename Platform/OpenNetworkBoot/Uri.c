@@ -17,26 +17,13 @@ STATIC EFI_DEVICE_PATH_PROTOCOL  mEndDevicePath = {
 };
 
 BOOLEAN
-HasValidUriProtocol (
+HasHttpsUri (
   CHAR16 	*Uri
   )
 {
   ASSERT (Uri != NULL);
 
-  if (OcStrniCmp (L"https://", Uri, L_STR_LEN(L"https://")) == 0) {
-    return TRUE;
-  }
-
-  if (OcStrniCmp (L"http://", Uri, L_STR_LEN(L"http://")) == 0) {
-    if (gRequireHttpsUri) {
-      DEBUG ((DEBUG_WARN, "NTBT: http:// in URI when https:// is required\n"));
-      return FALSE;
-    }
-    return TRUE;
-  }
-
-  DEBUG ((DEBUG_WARN, "NTBT: Invalid URI %s, %ahttps:// required\n", Uri, gRequireHttpsUri ? "" : "http:// or "));
-  return FALSE;
+  return (OcStrniCmp (L"https://", Uri, L_STR_LEN(L"https://")) == 0);
 }
 
 EFI_DEVICE_PATH_PROTOCOL *
@@ -65,10 +52,6 @@ GetUriNode (
 }
 
 //
-// We have the filename in the returned device path, so we can try to load the
-// matching file (.chunklist or .dmg, whichever one was not fetched), if we
-// we find the other.
-//
 // See HttpBootCheckImageType and HttpUrlGetPath within it for how to get
 // the proper filename from URL: we would need to use HttpParseUrl, then
 // HttpUrlGetPath, then HttpUrlFreeParser.
@@ -85,18 +68,17 @@ GetUriNode (
 // as the parameter must come last to be fixed up) if we check if url ends
 // with the file ext, and replace it if so; otherwise check if the part
 // ending at '?' ends with ext and replace it if so.
-// 
+//
+STATIC
 EFI_STATUS
-ExtractOtherUri (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
+ExtractOtherUriFromUri (
+  IN  CHAR8                       *Uri,
   IN  CHAR8                       *FromExt,
   IN  CHAR8                       *ToExt,
   OUT CHAR8                       **OtherUri,
   IN  BOOLEAN                     OnlySearchForFromExt
   )
 {
-  EFI_DEVICE_PATH_PROTOCOL  *Previous;
-  CHAR8                     *Uri;
   CHAR8                     *SearchUri;
   UINTN                     UriLen;
   UINTN                     OtherUriLen;
@@ -105,7 +87,6 @@ ExtractOtherUri (
   INTN                      SizeChange;
   CHAR8                     *ParamsStart;
 
-  ASSERT (DevicePath != NULL);
   ASSERT (FromExt != NULL);
 
   if (!OnlySearchForFromExt) {
@@ -114,12 +95,6 @@ ExtractOtherUri (
     *OtherUri = NULL;
   }
 
-  Previous = GetUriNode (DevicePath);
-  if (Previous == NULL) {
-    return EFI_INVALID_PARAMETER;
-  }
-
-  Uri = (CHAR8 *)Previous + sizeof (EFI_DEVICE_PATH_PROTOCOL);
   UriLen = AsciiStrLen (Uri);
   if (UriLen > MAX_INTN - 1) { ///< i.e. UriSize > MAX_INTN
     return EFI_INVALID_PARAMETER;
@@ -194,18 +169,53 @@ ExtractOtherUri (
 }
 
 //
+// We have the filename in the returned device path, so we can try to load the
+// matching file (.chunklist or .dmg, whichever one was not fetched), if we
+// we find the other.
+//
+EFI_STATUS
+ExtractOtherUriFromDevicePath (
+  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
+  IN  CHAR8                       *FromExt,
+  IN  CHAR8                       *ToExt,
+  OUT CHAR8                       **OtherUri,
+  IN  BOOLEAN                     OnlySearchForFromExt
+  )
+{
+  EFI_DEVICE_PATH_PROTOCOL  *Previous;
+  CHAR8                     *Uri;
+
+  ASSERT (DevicePath != NULL);
+
+  Previous = GetUriNode (DevicePath);
+  if (Previous == NULL) {
+    return EFI_INVALID_PARAMETER;
+  }
+
+  Uri = (CHAR8 *)Previous + sizeof (EFI_DEVICE_PATH_PROTOCOL);
+
+  return ExtractOtherUriFromUri (
+                  Uri,
+                  FromExt,
+                  ToExt,
+                  OtherUri,
+                  OnlySearchForFromExt
+                );
+}
+
+//
 // Determine whether file at URI has extension. This isn't only checking
 // the file part of the URI, instead it first checks the argument to the last
 // param, if there is one. This is a convenience to allow the 'download.php'
-// example shown at ExtractOtherUri.
+// example shown at ExtractOtherUriFromUri.
 //
 BOOLEAN
 UriFileHasExtension (
-  IN  EFI_DEVICE_PATH_PROTOCOL    *DevicePath,
+  IN  CHAR8                       *Uri,
   IN  CHAR8                       *Ext
   )
 {
-  return (!EFI_ERROR (ExtractOtherUri (DevicePath, Ext, NULL, NULL, TRUE)));
+  return (!EFI_ERROR (ExtractOtherUriFromUri (Uri, Ext, NULL, NULL, TRUE)));
 }
 
 EFI_STATUS
