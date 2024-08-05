@@ -40,8 +40,8 @@ which drivers are required.
 > **Note 1**: In some firmware the existing `HttpDxe` driver may be locked
 down to `https://` URIs only (even in some cases where the machine has no BIOS UI
 for HTTP Boot; e.g. Dell OptiPlex 3070). This means that `HttpBootDxe` can work
-with the native `HttpDxe`, but will only  from `https://` URIs (giving a failure
-message otherwise).
+with the native `HttpDxe`, but will only boot from `https://` URIs (giving a
+failure message otherwise).
 
 > **Note 2**: In some firmware the existing `HttpBootDxe` driver may produce
 options which do not work correctly (e.g. blank screen when selected),
